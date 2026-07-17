@@ -1,0 +1,13 @@
+@keyframes shrinkToCenter {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.animate-progress-center {
+  transform-origin: center;
+  animation: shrinkToCenter 4s linear forwards;
+}
