@@ -6,6 +6,9 @@ from utils.security import bcrypt
 auth = Blueprint("auth", __name__)
 
 
+# ------------------------
+# REGISTER
+# ------------------------
 @auth.route("/register", methods=["POST"])
 def register():
 
@@ -41,3 +44,38 @@ def register():
     return jsonify({
         "message": "User registered successfully!"
     }), 201
+
+
+# ------------------------
+# LOGIN
+# ------------------------
+@auth.route("/login", methods=["POST"])
+def login():
+
+    data = request.get_json()
+
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({
+            "message": "Email and password are required."
+        }), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if user is None:
+        return jsonify({
+            "message": "Invalid email or password."
+        }), 401
+
+    if not bcrypt.check_password_hash(user.password_hash, password):
+        return jsonify({
+            "message": "Invalid email or password."
+        }), 401
+
+    return jsonify({
+        "message": "Login successful!",
+        "username": user.username,
+        "email": user.email
+    }), 200
