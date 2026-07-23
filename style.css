@@ -123,3 +123,13 @@
   box-shadow: 0px 0px 0px #3D2013;
   transform: translate(2px, 2px);
 }
+
+/* Custom CSS class to enable Top-Left Resizing for Webkit Browsers */
+.resize-tl {
+  resize: both;
+  direction: rtl; /* Reverses horizontal resize handle to top-left */
+}
+
+.resize-tl > * {
+  direction: ltr; /* Keeps internal text direction normal */
+}

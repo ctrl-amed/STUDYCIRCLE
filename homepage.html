@@ -129,7 +129,7 @@
           </button>
 
           <!-- 2. BESIDE FRIENDS: STREAK STATUS (ICON-ONLY ON MOBILE) -->
-          <button onclick="openModal('streak-modal')" title="Streak Status"
+          <button onclick="openModal('full-calendar-modal')" title="Streak Status"
                   class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 transition-all duration-150 retro-shadow cursor-pointer">
             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#ED8C00]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M13.5 1.5c.41 2.6-1.12 4.88-2.6 6.88-1.07 1.45-2.28 2.87-2.6 4.67-.32 1.83.24 3.65 1.43 4.95.83.91 1.93 1.5 3.07 1.7-1.31-.38-2.52-1.2-3.32-2.33-.99-1.38-1.12-3.14-.38-4.6.64-1.26 1.76-2.22 2.62-3.37 1.62-2.16 2.37-4.88 1.78-7.9zM12 22c4.42 0 8-3.58 8-8 0-3.38-2.07-6.28-5-7.5.38 2.38-.5 4.88-2.3 6.6-1.8 1.72-4.22 2.5-6.7 2.1 1.28 4.02 5.2 6.8 10 6.8z"/>
@@ -243,47 +243,291 @@
     </div>
   </div>
 
-  <!-- STREAK MODAL -->
-  <div id="streak-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] p-6 max-w-sm w-full relative">
-      <button onclick="closeModal('streak-modal')" class="absolute top-3 right-3 text-[#3D2013] font-pressstart text-xs hover:text-[#A53914] cursor-pointer">[X]</button>
-      <div class="flex items-center gap-3 mb-4">
-        <svg class="w-8 h-8 text-[#ED8C00]" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M13.5 1.5c.41 2.6-1.12 4.88-2.6 6.88-1.07 1.45-2.28 2.87-2.6 4.67-.32 1.83.24 3.65 1.43 4.95.83.91 1.93 1.5 3.07 1.7-1.31-.38-2.52-1.2-3.32-2.33-.99-1.38-1.12-3.14-.38-4.6.64-1.26 1.76-2.22 2.62-3.37 1.62-2.16 2.37-4.88 1.78-7.9z"/>
-        </svg>
-        <h3 class="font-pressstart text-sm text-[#3D2013]">STREAK STATUS</h3>
-      </div>
-      <p class="font-pixel text-xl text-[#3D2013]">You are on a <span id="modal-streak-val" class="font-bold text-[#ED8C00]">2 day</span> study streak! Keep studying daily to boost your rewards.</p>
-    </div>
-  </div>
 
-  <!-- FRIENDS MODAL -->
-  <div id="friends-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] p-6 max-w-sm w-full relative">
-      <button onclick="closeModal('friends-modal')" class="absolute top-3 right-3 text-[#3D2013] font-pressstart text-xs hover:text-[#A53914] cursor-pointer">[X]</button>
-      <div class="flex items-center gap-3 mb-4">
-        <svg class="w-8 h-8 text-[#788D55]" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3z"/>
+<!-- ========================================================================= -->
+<!-- FRIENDS MODAL (RIGHT SIDE DOCK: ~1/4 SCREEN ON DESKTOP)                   -->
+<!-- ========================================================================= -->
+<div id="friends-modal" class="modal hidden fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm transition-all duration-300">
+  <!-- RIGHT SIDE DOCKED CONTAINER -->
+  <div class="bg-[#FEF4E0] border-l-[3px] sm:border-l-[4px] border-[#3D2013] h-full w-full sm:w-2/3 md:w-1/3 lg:w-1/4 max-w-md flex flex-col justify-between shadow-2xl relative overflow-hidden transition-transform duration-300">
+    
+    <!-- HEADER -->
+    <div class="bg-[#482A1D] border-b-[3px] border-[#3D2013] px-4 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-6 h-6 text-[#F9EDDA]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
         </svg>
-        <h3 class="font-pressstart text-sm text-[#3D2013]">FRIENDS LIST</h3>
+        <h3 class="font-pressstart text-xs text-[#F9EDDA] tracking-wide">FRIENDS</h3>
       </div>
-      <p class="font-pixel text-xl text-[#3D2013]">You currently have <span id="modal-friends-val" class="font-bold text-[#788D55]">5</span> online study buddies!</p>
+      <!-- CLOSE BUTTON (CLOSES BOTH FRIENDS LIST & CHAT MODAL) -->
+      <button onclick="closeModal('friends-modal')" title="Close" class="text-[#F9EDDA] hover:text-[#A53914] cursor-pointer p-0.5 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
     </div>
-  </div>
 
-  <!-- ADD COINS MODAL -->
-  <div id="add-coins-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] p-6 max-w-sm w-full relative">
-      <button onclick="closeModal('add-coins-modal')" class="absolute top-3 right-3 text-[#3D2013] font-pressstart text-xs hover:text-[#A53914] cursor-pointer">[X]</button>
-      <div class="flex items-center gap-3 mb-4">
-        <svg class="w-8 h-8 text-[#FFBA1F]" fill="currentColor" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" stroke="#3D2013" stroke-width="2"/>
-        </svg>
-        <h3 class="font-pressstart text-sm text-[#3D2013]">GET MORE COINS</h3>
-      </div>
-      <p class="font-pixel text-xl text-[#3D2013]">Complete study goals or visit the shop to earn additional coins!</p>
-    </div>
+    <!-- MAIN FRIENDS SCROLLABLE BODY -->
+    <div id="friends-list-container" class="flex-1 overflow-y-auto p-3 flex flex-col gap-4 relative">
+<!-- ONLINE FRIENDS SECTION -->
+<div>
+  <div class="flex items-center gap-1.5 mb-2 px-1">
+    <!-- GREEN ONLINE STATUS SQUARE -->
+    <span class="w-2.5 h-2.5 bg-[#788D55] shrink-0"></span>
+
+    <!-- LABEL & DYNAMIC COUNT -->
+    <span class="font-pressstart text-[10px] text-[#795F4A] uppercase tracking-wider flex items-center">
+      ONLINE - <span id="friends-online-badge" class="ml-1">0</span>
+    </span>
   </div>
+  <div id="friends-online-list" class="flex flex-col gap-2"></div>
+</div>
+
+<!-- OFFLINE FRIENDS SECTION -->
+<div>
+  <div class="flex items-center gap-1.5 mb-2 px-1 mt-2">
+    <!-- GREY OFFLINE STATUS SQUARE -->
+    <span class="w-2.5 h-2.5 bg-[#B29E8A] shrink-0"></span>
+
+    <!-- LABEL & DYNAMIC COUNT -->
+    <span class="font-pressstart text-[10px] text-[#795F4A] uppercase tracking-wider flex items-center">
+      OFFLINE - <span id="friends-offline-badge" class="ml-1">0</span>
+    </span>
+  </div>
+  <div id="friends-offline-list" class="flex flex-col gap-2"></div>
+</div>
+    </div>
+
+    <!-- SEARCH BAR & ADD USER FOOTER -->
+    <div class="border-t-[3px] border-[#3D2013] p-3 bg-[#FEF4E0] shrink-0 relative">
+      
+      <div id="friends-toast" class="hidden absolute -top-12 left-3 right-3 p-2 bg-[#FEF4E0] border-[2px] border-[#3D2013] shadow-[2px_2px_0px_#3D2013] flex items-center justify-between z-20 transition-all duration-200">
+        <span id="friends-toast-msg" class="font-pixel text-lg leading-none text-[#FEF4E0] truncate pr-2"></span>
+        <button onclick="hideFriendsToast()" class="font-pressstart text-[8px] text-[#3D2013] hover:text-[#A53914] cursor-pointer">✕</button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input type="text" id="friend-search-input" 
+               placeholder="Search user..." 
+               onkeydown="if(event.key === 'Enter') handleAddFriendSearch()"
+               class="flex-1 bg-[#FAE9CE] border-[2px] border-[#3D2013] px-2.5 py-1.5 font-pixel text-lg text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none focus:bg-[#FEF4E0]" />
+<button onclick="handleAddFriendSearch()" 
+        title="Add Friend"
+        class="bg-[#F9EDDA] border-[2.5px] border-[#3D2013] p-3 text-[#482A1D] rounded-lg transition-all duration-150 retro-shadow hover:brightness-105 active:translate-x-[1px] active:translate-y-[1px] cursor-pointer shrink-0">
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- FRIEND CHAT MODAL (RETRO RESIZABLE DOCKED WINDOW AT BOTTOM LEFT OF DOCK) -->
+<!-- ========================================================================= -->
+<div id="friend-chat-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 md:bg-transparent md:backdrop-blur-none md:p-0 md:inset-auto md:bottom-0 md:right-[calc(25%+1px)]">
+  <div id="friend-chat-window" 
+       class="bg-[#FEF4E0] border-[3px] border-[#482A1D] rounded-none p-0 relative overflow-hidden shadow-2xl flex flex-col resize-tl"
+       style="width: 380px; height: 420px; min-width: 300px; min-height: 280px; max-width: 550px; max-height: 520px;">
+    
+<!-- RESIZE HANDLE (TOP-LEFT CORNER) -->
+<div id="friend-chat-resize-handle" class="absolute top-0 left-0 w-4 h-4 z-30 cursor-nwse-resize flex items-center justify-center">
+  <div class="w-2.5 h-2.5 border-t-[2px] border-l-[2px] border-[#482A1D]"></div>
+</div>
+
+    <!-- HEADER -->
+    <div class="bg-[#EBD9C4] border-b-[3px] border-[#482A1D] px-4 py-2.5 flex items-center justify-between shrink-0 pl-5">
+      <div class="flex items-center gap-2.5">
+        <!-- AVATAR WITH BOTTOM-RIGHT ONLINE STATUS DOT -->
+        <div class="relative shrink-0">
+          <div class="w-7 h-7 rounded-full bg-[#788D55] border-[1.5px] border-[#3D2013] flex items-center justify-center overflow-hidden">
+            <img id="chat-modal-avatar" src="" alt="" class="w-full h-full object-cover hidden">
+            <span id="chat-modal-avatar-fallback" class="font-pressstart text-[8px] text-[#FEF4E0]">?</span>
+          </div>
+          <div id="chat-modal-status-dot" class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-[1.5px] border-[#3D2013] bg-[#788D55]"></div>
+        </div>
+        
+        <!-- USERNAME (VERTICALLY CENTERED) -->
+        <div class="flex items-center">
+          <h3 id="chat-modal-username" class="font-pressstart text-xs text-[#3D2013] leading-none">FRIEND</h3>
+        </div>
+      </div>
+
+      <button onclick="closeModal('friend-chat-modal')" title="Close" class="text-[#3D2013] hover:text-[#A53914] cursor-pointer p-0.5 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- CHAT BODY -->
+    <div class="flex-1 flex flex-col justify-between overflow-hidden p-3 gap-2 bg-[#FEF4E0] relative">
+      <div id="friend-chat-messages-container" class="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 scroll-smooth">
+        <!-- Chat messages rendered dynamically -->
+      </div>
+
+      <!-- SCROLL TO BOTTOM BUTTON -->
+      <button id="friend-scroll-btn" onclick="scrollToBottomFriendChat()"
+              class="hidden absolute bottom-14 right-4 w-7 h-7 bg-[#FD923E] border-[2px] border-[#482A1D] text-[#FEF4E0] flex items-center justify-center shadow-[2px_2px_0px_#482A1D] hover:scale-105 active:scale-95 transition-all cursor-pointer z-10"
+              title="Scroll to latest message">
+        <svg class="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <!-- INPUT FOOTER -->
+      <div class="flex items-center gap-2 pt-1 border-t-[2px] border-[#482A1D]/20 shrink-0">
+        <input type="text" id="friend-chat-input" 
+               placeholder="Type a message..." 
+               onkeydown="if(event.key === 'Enter') sendFriendChatMessage()"
+               class="flex-1 bg-[#FAE9CE] border-[2px] border-[#482A1D] px-3 py-1.5 font-pixel text-lg text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none focus:bg-[#FEF4E0]" />
+<button onclick="sendFriendChatMessage()" title="Send Message"
+        class="w-9 h-9 bg-[#FD923E] border-[2.5px] border-[#482A1D] flex items-center justify-center text-[#FEF4E0] !rounded-none transition-all duration-150 retro-shadow [@media(hover:hover)]:hover:brightness-105 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus:outline-none cursor-pointer shrink-0">
+  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+  </svg>
+</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD COINS MODAL -->
+<div id="add-coins-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+  
+  <!-- Outer Border: #3D2013 | Inner Border: #F6DBBC | Fixed Container -->
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-8 max-w-lg w-full min-h-[360px] flex flex-col items-center justify-center text-center relative">
+    
+    <!-- ========================================== -->
+    <!-- VIEW 1: SELECTION STATE (DEFAULT) -->
+    <!-- ========================================== -->
+    <div id="coin-modal-selection" class="w-full flex flex-col items-center justify-center">
+      
+      <!-- HEADER -->
+      <h3 class="font-pressstart text-lg sm:text-xl text-[#3D2013] mb-3">Buy Coins</h3>
+
+      <!-- MESSAGE -->
+      <p class="font-pixel text-2xl text-[#3D2013] mb-6 leading-tight">
+        Get more coins to decorate and unlock new items!
+      </p>
+
+      <!-- COIN PACKAGES GRID (3 CARDS) -->
+      <div class="grid grid-cols-3 gap-3.5 w-full mb-7">
+        
+        <!-- CARD 1: 500 COINS -->
+        <button type="button" 
+                onclick="selectCoinPackage(this)"
+                data-package="500"
+                class="coin-card bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0">
+          <div class="check-badge hidden absolute -top-2 -right-2 bg-[#788D55] border-[2px] border-[#3D2013] text-[#FEF4E0] text-[8px] font-pressstart rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10">✓</div>
+          
+          <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+            <img src="media/coin_logo.png" alt="Coin Logo" class="w-6 h-6 object-contain shrink-0" />
+            <span class="font-pressstart text-xs text-[#3D2013]">500</span>
+          </div>
+          <div class="w-full bg-[#F6DBBC] rounded-md py-1.5 text-center">
+            <span class="font-pressstart text-[10px] text-[#3D2013]">₱200</span>
+          </div>
+        </button>
+
+        <!-- CARD 2: 1250 COINS (POPULAR / GREEN DESIGN - PRE-SELECTED) -->
+        <button type="button" 
+                onclick="selectCoinPackage(this)"
+                data-package="1250"
+                class="coin-card selected-card bg-[#E4E2CA] border-[3px] border-[#788D55] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0">
+          <div class="check-badge absolute -top-2 -right-2 bg-[#788D55] border-[2px] border-[#3D2013] text-[#FEF4E0] text-[8px] font-pressstart rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10">✓</div>
+
+          <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+            <img src="media/coin_logo.png" alt="Coin Logo" class="w-6 h-6 object-contain shrink-0" />
+            <span class="font-pressstart text-xs text-[#3D2013]">1250</span>
+          </div>
+          <div class="w-full bg-[#DFDABD] rounded-md py-1 text-center flex flex-col items-center justify-center gap-0.5">
+            <span class="bg-[#788D55] text-[#FEF4E0] font-pressstart text-[7px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Popular</span>
+            <span class="font-pressstart text-[10px] text-[#3D2013]">₱500</span>
+          </div>
+        </button>
+
+        <!-- CARD 3: 3000 COINS -->
+        <button type="button" 
+                onclick="selectCoinPackage(this)"
+                data-package="3000"
+                class="coin-card bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0">
+          <div class="check-badge hidden absolute -top-2 -right-2 bg-[#788D55] border-[2px] border-[#3D2013] text-[#FEF4E0] text-[8px] font-pressstart rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10">✓</div>
+
+          <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+            <img src="media/coin_logo.png" alt="Coin Logo" class="w-6 h-6 object-contain shrink-0" />
+            <span class="font-pressstart text-xs text-[#3D2013]">3000</span>
+          </div>
+          <div class="w-full bg-[#F6DBBC] rounded-md py-1.5 text-center">
+            <span class="font-pressstart text-[10px] text-[#3D2013]">₱1000</span>
+          </div>
+        </button>
+
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="flex items-center gap-4 w-full">
+        <!-- CANCEL BUTTON -->
+        <button 
+          onclick="closeModal('add-coins-modal')" 
+          class="flex-1 font-pressstart text-xs bg-[#F6DBBC] border-[2.5px] border-[#3D2013] text-[#3D2013] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+          CANCEL
+        </button>
+
+        <!-- PURCHASE BUTTON -->
+        <button 
+          onclick="processPurchase()" 
+          class="flex-1 font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+          PURCHASE
+        </button>
+      </div>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: LOADING STATE -->
+    <!-- ========================================== -->
+    <div id="coin-modal-loading" class="hidden w-full flex flex-col items-center justify-center py-6 gap-4">
+      <div class="w-12 h-12 border-4 border-[#3D2013] border-t-[#788D55] rounded-full animate-spin"></div>
+      <h3 class="font-pressstart text-sm text-[#3D2013] animate-pulse">PROCESSING...</h3>
+      <p class="font-pixel text-xl text-[#3D2013]/80">Please wait while we prepare your coins.</p>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: SUCCESS STATE -->
+    <!-- ========================================== -->
+    <div id="coin-modal-success" class="hidden w-full flex flex-col items-center justify-center py-2 relative">
+      
+      <!-- SUCCESS ICON -->
+      <div class="w-16 h-16 bg-[#788D55] border-[3px] border-[#3D2013] rounded-full flex items-center justify-center mb-4 retro-shadow">
+        <svg class="w-8 h-8 text-[#FEF4E0]" viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="square" stroke-linejoin="square"/>
+        </svg>
+      </div>
+
+      <h3 class="font-pressstart text-lg text-[#3D2013] mb-2">Purchase Successful!</h3>
+      <p class="font-pixel text-2xl text-[#3D2013] mb-6">
+        <span id="purchased-coin-amount" class="font-bold text-[#788D55]">1,250</span> Coins have been added to your balance.
+      </p>
+
+      <button 
+        onclick="closeModal('add-coins-modal')" 
+        class="font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 px-8 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+        DONE
+      </button>
+
+    </div>
+
+  </div>
+</div>
 
 <!-- LOGOUT MODAL -->
 <div id="logout-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
@@ -850,7 +1094,7 @@
                class="flex-1 bg-[#FAE9CE] border-[2px] border-[#482A1D] px-3 py-1.5 font-pixel text-lg text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none focus:bg-[#FEF4E0] transition-colors" />
         
 <button onclick="sendSparkleMessage()" title="Send Message"
-        class="w-9 h-9 bg-[#FD923E] border-[2px] border-[#482A1D] flex items-center justify-center text-[#FEF4E0] shadow-[2px_2px_0px_#482A1D] hover:brightness-105 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0">
+        class="w-9 h-9 bg-[#FD923E] border-[2.5px] border-[#482A1D] flex items-center justify-center text-[#FEF4E0] !rounded-none transition-all duration-150 retro-shadow [@media(hover:hover)]:hover:brightness-105 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus:outline-none cursor-pointer shrink-0">
   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
   </svg>

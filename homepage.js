@@ -930,3 +930,533 @@ document.addEventListener("DOMContentLoaded", () => {
     resizeObserver.observe(sparkleWindow);
   }
 });
+
+// Variable to track currently selected coin amount (defaults to 1250)
+let selectedCoinAmount = "1250";
+
+// ==========================================
+// 1. PACKAGE SELECTION LOGIC
+// ==========================================
+function selectCoinPackage(selectedBtn) {
+  const allCards = document.querySelectorAll('#add-coins-modal .coin-card');
+  
+  // Store selected package value
+  selectedCoinAmount = selectedBtn.getAttribute('data-package');
+
+  allCards.forEach(card => {
+    // Reset all cards
+    if (card.getAttribute('data-package') === '1250') {
+      card.className = 'coin-card bg-[#E4E2CA] border-[2.5px] border-[#6C7250] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0';
+    } else {
+      card.className = 'coin-card bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0';
+    }
+
+    const badge = card.querySelector('.check-badge');
+    if (badge) badge.classList.add('hidden');
+  });
+
+  // Apply selected styles
+  selectedBtn.classList.remove('border-[#3D2013]', 'border-[#6C7250]', 'border-[2.5px]');
+  selectedBtn.classList.add('selected-card', 'border-[3px]', 'border-[#788D55]');
+
+  const activeBadge = selectedBtn.querySelector('.check-badge');
+  if (activeBadge) activeBadge.classList.remove('hidden');
+}
+
+// ==========================================
+// 2. PURCHASE & LOADING PROCESS LOGIC
+// ==========================================
+function processPurchase() {
+  const selectionView = document.getElementById('coin-modal-selection');
+  const loadingView = document.getElementById('coin-modal-loading');
+  const successView = document.getElementById('coin-modal-success');
+
+  // Switch to loading view
+  selectionView.classList.add('hidden');
+  loadingView.classList.remove('hidden');
+
+  // Simulate 2-second processing time
+  setTimeout(() => {
+    // Hide loading & show success view
+    loadingView.classList.add('hidden');
+    successView.classList.remove('hidden');
+
+    // Display formatted amount in success screen
+    const purchasedLabel = document.getElementById('purchased-coin-amount');
+    if (purchasedLabel) {
+      purchasedLabel.textContent = parseInt(selectedCoinAmount).toLocaleString();
+    }
+
+    // Trigger Success Toast Notification
+    showSuccessToast();
+
+  }, 2000);
+}
+
+// ==========================================
+// 3. TOAST GENERATOR FUNCTION
+// ==========================================
+function showSuccessToast() {
+  let toastContainer = document.getElementById('toast-container');
+  
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.className = 'fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none';
+    document.body.appendChild(toastContainer);
+  }
+
+  const toast = document.createElement('div');
+  // NOTE: rounded-none and overflow-hidden ensure sharp corners and flush bottom progress bar
+  toast.className = "bg-[#FBF2E3] border-4 border-[#3D2013] pt-4 px-4 pb-0 flex flex-col gap-3 relative shadow-md transition-all duration-300 max-w-xs retro-shadow pointer-events-auto opacity-0 translate-y-[-20px] !rounded-none overflow-hidden";
+  toast.style.boxShadow = "4px 4px 0px #3D2013";
+
+  toast.innerHTML = `
+    <!-- TEXT & ICON ROW -->
+    <div class="flex items-center gap-3 pr-2">
+      <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17L4 12" stroke="#788D55" stroke-width="4" stroke-linecap="square" stroke-linejoin="square"/>
+      </svg>
+      <span class="font-pressstart text-[12px] text-[#482A1D] whitespace-nowrap tracking-wide">Purchase successful!</span>
+    </div>
+
+    <!-- PROGRESS BAR (TOUCHING BOTTOM BORDER DIRECTLY) -->
+    <div class="w-full bg-transparent h-1.5 flex justify-center mt-auto overflow-hidden">
+      <div class="w-full h-full bg-[#788D55] animate-progress-center"></div>
+    </div>
+  `;
+
+  toastContainer.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+    toast.classList.add('opacity-100', 'translate-y-0');
+  });
+
+  setTimeout(() => {
+    toast.classList.remove('opacity-100', 'translate-y-0');
+    toast.classList.add('opacity-0', 'translate-y-[-20px]');
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+// ==========================================
+// 4. RESET MODAL WHEN CLOSED
+// ==========================================
+function resetCoinModal() {
+  const selectionView = document.getElementById('coin-modal-selection');
+  const loadingView = document.getElementById('coin-modal-loading');
+  const successView = document.getElementById('coin-modal-success');
+
+  if (selectionView && loadingView && successView) {
+    selectionView.classList.remove('hidden');
+    loadingView.classList.add('hidden');
+    successView.classList.add('hidden');
+  }
+}
+
+// Hook into your existing closeModal function
+const originalCloseModal = window.closeModal;
+window.closeModal = function(modalId) {
+  if (modalId === 'add-coins-modal') {
+    resetCoinModal();
+  }
+  if (typeof originalCloseModal === 'function') {
+    originalCloseModal(modalId);
+  } else {
+    document.getElementById(modalId)?.classList.add('hidden');
+  }
+};
+
+
+// ==========================================
+// FRIENDS LIST & CHAT SYSTEM LOGIC
+// ==========================================
+
+// Mock database users for search test
+const knownUsersDatabase = [
+  { id: 101, name: "KITSU_MASTER", level: 12, isOnline: true, avatarUrl: "" },
+  { id: 102, name: "PIXEL_SAMURAI", level: 8, isOnline: false, avatarUrl: "" },
+  { id: 103, name: "NEON_STUDY", level: 15, isOnline: true, avatarUrl: "" }
+];
+
+// Current Friends list state
+let friendsList = [
+  { id: 1, name: "PANDA_BEAR", level: 5, isOnline: true, avatarUrl: "" },
+  { id: 2, name: "OTTER_LOVER", level: 14, isOnline: true, avatarUrl: "" },
+  { id: 3, name: "COFFEE_GURU", level: 9, isOnline: true, avatarUrl: "" },
+  { id: 4, name: "NIGHT_OWL", level: 21, isOnline: false, avatarUrl: "" },
+  { id: 5, name: "RETRO_KID", level: 3, isOnline: false, avatarUrl: "" }
+];
+
+// Active chat partner state
+let activeChatFriendId = null;
+let friendChatHistory = {}; // Stores messages key-value: { friendId: [ {sender, text} ] }
+
+// Active open context cloud menu ID
+let openMenuFriendId = null;
+
+/**
+ * Render all friends into Online and Offline sections
+ */
+function renderFriendsList() {
+  const onlineContainer = document.getElementById("friends-online-list");
+  const offlineContainer = document.getElementById("friends-offline-list");
+  const onlineBadge = document.getElementById("friends-online-badge");
+  const offlineBadge = document.getElementById("friends-offline-badge");
+
+  if (!onlineContainer || !offlineContainer) return;
+
+  const onlineFriends = friendsList.filter(f => f.isOnline);
+  const offlineFriends = friendsList.filter(f => !f.isOnline);
+
+  // Update counters
+  if (onlineBadge) onlineBadge.textContent = onlineFriends.length;
+  if (offlineBadge) offlineBadge.textContent = offlineFriends.length;
+
+  // Sync state header/badge
+  playerData.friendsCount = onlineFriends.length;
+  updateDashboardState();
+
+  // Render function helper
+  const generateFriendCardHTML = (friend) => `
+    <div class="relative bg-[#FAE9CE] border-[2px] border-[#3D2013] p-2 flex items-center justify-between hover:bg-[#F6DBBC]/50 transition-colors cursor-pointer group"
+         onclick="handleFriendCardClick(event, ${friend.id})">
+      
+      <!-- LEFT: AVATAR + NAME & LEVEL -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="relative shrink-0">
+          <div class="w-9 h-9 rounded-full border-[2px] border-[#3D2013] bg-[#FAE9CE] flex items-center justify-center overflow-hidden">
+            ${friend.avatarUrl 
+              ? `<img src="${friend.avatarUrl}" class="w-full h-full object-cover">` 
+              : `<span class="font-pressstart text-xs text-[#3D2013]">${friend.name.charAt(0)}</span>`}
+          </div>
+          <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-[1.5px] border-[#3D2013] ${friend.isOnline ? 'bg-[#788D55]' : 'bg-[#B29E8A]'}"></div>
+        </div>
+        
+        <div class="flex flex-col truncate">
+          <span class="font-pressstart text-[10px] text-[#3D2013] truncate">${escapeHtml(friend.name)}</span>
+          <span class="font-pixel text-sm text-[#3D2013]/70 leading-none">LVL ${friend.level}</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: THREE DOT BUTTON -->
+      <div class="relative shrink-0">
+        <button onclick="toggleFriendContextMenu(event, ${friend.id})" 
+                title="Options" 
+                class="w-7 h-7 flex items-center justify-center text-[#3D2013] hover:bg-[#3D2013]/10 rounded transition-colors cursor-pointer">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <circle cx="12" cy="5" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="12" cy="19" r="2"/>
+          </svg>
+        </button>
+
+        <!-- CHAT CLOUD CONTEXT MENU (RECTANGULAR WITH ARROW) -->
+        <div id="friend-menu-${friend.id}" 
+             class="hidden absolute right-0 top-8 z-30 w-44 bg-[#FEF4E0] border-[2px] border-[#3D2013] p-1.5 flex flex-col gap-1 rounded-lg">
+          
+          <!-- ARROW POINTING UP TO THREE DOTS -->
+          <div class="absolute -top-[7px] right-2.5 w-3 h-3 bg-[#FEF4E0] border-t-[2px] border-l-[2px] border-[#3D2013] rotate-45"></div>
+
+          <!-- OPTION 1: SEND MESSAGE -->
+          <button onclick="openFriendChatModal(event, ${friend.id})" 
+                  class="w-full flex items-center gap-2 p-1.5 hover:bg-[#788D55] hover:text-[#FEF4E0] text-[#3D2013] transition-colors rounded-none group/btn text-left cursor-pointer">
+            <svg class="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
+              <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+            </svg>
+            <span class="font-pressstart text-[8px]">Send Message</span>
+          </button>
+
+          <!-- OPTION 2: UNFRIEND (RED) -->
+          <button onclick="removeFriend(event, ${friend.id})" 
+                  class="w-full flex items-center gap-2 p-1.5 hover:bg-[#A53914] hover:text-[#FEF4E0] text-[#A53914] transition-colors rounded-none group/btn text-left cursor-pointer">
+            <svg class="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
+            </svg>
+            <span class="font-pressstart text-[8px]">Unfriend</span>
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  onlineContainer.innerHTML = onlineFriends.length > 0 
+    ? onlineFriends.map(generateFriendCardHTML).join('') 
+    : `<p class="font-pixel text-base text-[#3D2013]/50 italic px-1">No study buddies online</p>`;
+
+  offlineContainer.innerHTML = offlineFriends.length > 0 
+    ? offlineFriends.map(generateFriendCardHTML).join('') 
+    : `<p class="font-pixel text-base text-[#3D2013]/50 italic px-1">No offline friends</p>`;
+}
+
+/**
+ * Toggle custom cloud menu below three dot
+ */
+function toggleFriendContextMenu(event, friendId) {
+  event.stopPropagation();
+
+  if (openMenuFriendId && openMenuFriendId !== friendId) {
+    const prevMenu = document.getElementById(`friend-menu-${openMenuFriendId}`);
+    if (prevMenu) prevMenu.classList.add("hidden");
+  }
+
+  const currentMenu = document.getElementById(`friend-menu-${friendId}`);
+  if (currentMenu) {
+    currentMenu.classList.toggle("hidden");
+    openMenuFriendId = currentMenu.classList.contains("hidden") ? null : friendId;
+  }
+}
+
+// Close open menus when clicking anywhere else
+document.addEventListener("click", () => {
+  if (openMenuFriendId) {
+    const menu = document.getElementById(`friend-menu-${openMenuFriendId}`);
+    if (menu) menu.classList.add("hidden");
+    openMenuFriendId = null;
+  }
+});
+
+/**
+ * Handles clicking a friend card container directly
+ */
+function handleFriendCardClick(event, friendId) {
+  // Prevent trigger if clicking three dots or dropdown items
+  if (event.target.closest("button")) return;
+  openFriendChatModal(event, friendId);
+}
+
+/**
+ * Remove/Unfriend pipeline
+ */
+function removeFriend(event, friendId) {
+  event.stopPropagation();
+  friendsList = friendsList.filter(f => f.id !== friendId);
+  
+  if (openMenuFriendId === friendId) openMenuFriendId = null;
+  
+  renderFriendsList();
+  showFriendsToast("Friend removed", false);
+}
+
+/**
+ * Toast notification handler
+ */
+function showFriendsToast(message, isSuccess = true) {
+  const toast = document.getElementById("friends-toast");
+  const msgEl = document.getElementById("friends-toast-msg");
+  if (!toast || !msgEl) return;
+
+  msgEl.textContent = message;
+  toast.className = `absolute -top-12 left-3 right-3 p-2 border-[2px] border-[#3D2013] flex items-center justify-between z-20 ${
+    isSuccess ? 'bg-[#788D55] text-[#FEF4E0]' : 'bg-[#A53914] text-[#FEF4E0]'
+  }`;
+
+  toast.classList.remove("hidden");
+  setTimeout(() => { hideFriendsToast(); }, 3500);
+}
+
+function hideFriendsToast() {
+  const toast = document.getElementById("friends-toast");
+  if (toast) toast.classList.add("hidden");
+}
+
+/**
+ * Friend Search / Add pipeline
+ */
+function handleAddFriendSearch() {
+  const input = document.getElementById("friend-search-input");
+  if (!input) return;
+
+  const query = input.value.trim().toUpperCase();
+  if (!query) return;
+
+  // Check if already friends
+  const alreadyFriend = friendsList.find(f => f.name.toUpperCase() === query);
+  if (alreadyFriend) {
+    showFriendsToast(`${query} is already your friend!`, false);
+    input.value = "";
+    return;
+  }
+
+  // Check database
+  const foundUser = knownUsersDatabase.find(u => u.name.toUpperCase() === query);
+  if (foundUser) {
+    friendsList.push({ ...foundUser, id: Date.now() });
+    renderFriendsList();
+    showFriendsToast(`${foundUser.name} added successfully!`, true);
+  } else {
+    showFriendsToast("User doesn't exist", false);
+  }
+
+  input.value = "";
+}
+
+/**
+ * CHAT MODAL LOGIC
+ */
+function openFriendChatModal(event, friendId) {
+  if (event) event.stopPropagation();
+
+  const friend = friendsList.find(f => f.id === friendId);
+  if (!friend) return;
+  activeChatFriendId = friendId;
+
+  // Set Modal Header
+  const usernameEl = document.getElementById("chat-modal-username");
+  const statusEl = document.getElementById("chat-modal-status");
+  const fallbackEl = document.getElementById("chat-modal-avatar-fallback");
+  
+  if (usernameEl) usernameEl.textContent = friend.name;
+  if (statusEl) {
+    statusEl.textContent = friend.isOnline ? "Online" : "Offline";
+    statusEl.className = `font-pixel text-sm leading-none ${friend.isOnline ? 'text-[#788D55]' : 'text-[#3D2013]/50'}`;
+  }
+  if (fallbackEl) fallbackEl.textContent = friend.name.charAt(0);
+
+  // Initialize messages array if empty
+  if (!friendChatHistory[friendId]) {
+    friendChatHistory[friendId] = [
+      { sender: friend.name, text: `Hey! Let's study together today!` }
+    ];
+  }
+
+  renderFriendChatMessages();
+  
+  if (openMenuFriendId) {
+    const menu = document.getElementById(`friend-menu-${openMenuFriendId}`);
+    if (menu) menu.classList.add("hidden");
+    openMenuFriendId = null;
+  }
+
+  openModal("friend-chat-modal");
+}
+
+function renderFriendChatMessages() {
+  const container = document.getElementById("friend-chat-messages-container");
+  if (!container || !activeChatFriendId) return;
+  
+  const messages = friendChatHistory[activeChatFriendId] || [];
+
+  container.innerHTML = messages.map(msg => {
+    const isMe = msg.sender === "me";
+    return `
+      <div class="${isMe ? 'self-end bg-[#E87338] text-[#FEF4E0]' : 'self-start bg-[#DCDDC9] text-[#3D2013]'} max-w-[85%] border-[2px] border-[#482A1D] p-2 shadow-[2px_2px_0px_#482A1D]">
+        <p class="font-pixel text-lg leading-snug break-words">${escapeHtml(msg.text)}</p>
+      </div>
+    `;
+  }).join('');
+
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendFriendChatMessage() {
+  const input = document.getElementById("friend-chat-input");
+  if (!input || !activeChatFriendId) return;
+  
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!friendChatHistory[activeChatFriendId]) {
+    friendChatHistory[activeChatFriendId] = [];
+  }
+
+  friendChatHistory[activeChatFriendId].push({ sender: "me", text });
+  input.value = "";
+  renderFriendChatMessages();
+}
+
+// Ensure friends list renders on initial load
+document.addEventListener("DOMContentLoaded", () => {
+  renderFriendsList();
+});
+
+// ==========================================
+// MODAL CLOSE OVERRIDE FOR AUTO-CLOSING CHAT
+// ==========================================
+const baseCloseModal = window.closeModal;
+window.closeModal = function(modalId) {
+  if (modalId === 'friends-modal') {
+    // Automatically close friend chat modal if Friends list is closed
+    const chatModal = document.getElementById('friend-chat-modal');
+    if (chatModal) chatModal.classList.add('hidden');
+  }
+  if (typeof baseCloseModal === 'function') {
+    baseCloseModal(modalId);
+  } else {
+    document.getElementById(modalId)?.classList.add('hidden');
+  }
+};
+
+// ==========================================
+// FRIEND CHAT SCROLL & RESIZE LOGIC
+// ==========================================
+function scrollToBottomFriendChat() {
+  const container = document.getElementById("friend-chat-messages-container");
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("friend-chat-messages-container");
+  const scrollBtn = document.getElementById("friend-scroll-btn");
+
+  if (container && scrollBtn) {
+    container.addEventListener("scroll", () => {
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      if (distanceFromBottom > 60) {
+        scrollBtn.classList.remove("hidden");
+      } else {
+        scrollBtn.classList.add("hidden");
+      }
+    });
+  }
+
+  const friendWindow = document.getElementById("friend-chat-window");
+  if (friendWindow && window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+      scrollToBottomFriendChat();
+    });
+    resizeObserver.observe(friendWindow);
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const handle = document.getElementById("friend-chat-resize-handle");
+  const windowEl = document.getElementById("friend-chat-window");
+
+  if (!handle || !windowEl) return;
+
+  let isResizing = false;
+  let startX, startY, startWidth, startHeight;
+
+  handle.addEventListener("mousedown", (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startWidth = windowEl.offsetWidth;
+    startHeight = windowEl.offsetHeight;
+    document.body.style.userSelect = "none";
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isResizing) return;
+
+    // Dragging top-left increases dimensions as mouse moves left/up
+    const newWidth = Math.min(Math.max(startWidth + (startX - e.clientX), 300), 550);
+    const newHeight = Math.min(Math.max(startHeight + (startY - e.clientY), 280), 520);
+
+    windowEl.style.width = `${newWidth}px`;
+    windowEl.style.height = `${newHeight}px`;
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.userSelect = "";
+    }
+  });
+});
