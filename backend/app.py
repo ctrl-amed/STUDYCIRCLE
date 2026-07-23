@@ -1,13 +1,18 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from config import Config
-
-db = SQLAlchemy()
+from models import db
+from models.user import User
+from routes.auth import auth
+from utils.security import bcrypt
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_object(Config)
 
 db.init_app(app)
+bcrypt.init_app(app)
+app.register_blueprint(auth)
 
 
 @app.route("/")
@@ -18,11 +23,6 @@ def home():
 @app.route("/login")
 def login():
     return "<h2>Login Page</h2>"
-
-
-@app.route("/register")
-def register():
-    return "<h2>Register Page</h2>"
 
 
 if __name__ == "__main__":
