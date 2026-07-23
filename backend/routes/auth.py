@@ -79,3 +79,30 @@ def login():
         "username": user.username,
         "email": user.email
     }), 200
+
+
+# ------------------------
+# FORGOT PASSWORD
+# ------------------------
+@auth.route("/forgot-password", methods=["POST"])
+def forgot_password():
+
+    data = request.get_json()
+
+    email = data.get("email")
+
+    if not email:
+        return jsonify({
+            "message": "Email is required."
+        }), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if user is None:
+        return jsonify({
+            "message": "Email address not found."
+        }), 404
+
+    return jsonify({
+        "message": "Password reset request accepted."
+    }), 200
