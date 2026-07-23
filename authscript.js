@@ -127,7 +127,7 @@ function triggerLoadingAndRedirect(statusText) {
       clearInterval(interval);
       
       setTimeout(() => {
-        window.location.href = "https://dashboard.studycircle.app/placeholder";
+        window.location.href = "homepage.html"; // Redirect to the dashboard or desired page
       }, 350);
     }
     

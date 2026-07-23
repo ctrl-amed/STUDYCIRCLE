@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - Profile</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR (Locked to screen height on desktop) -->
+<body class="bg-[#FAE9CE] min-h-screen md:h-screen md:overflow-hidden relative text-[#3D2013] overflow-x-hidden flex flex-col">
+
+  <!-- 1. FIXED BACKGROUND TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- 3. TOP CENTERED HEADER -->
+  <header class="relative z-10 pt-4 sm:pt-6 flex justify-center w-full px-4 shrink-0">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] md:rounded-[12px] px-4 sm:px-6 md:px-12 py-2 sm:py-2.5 md:py-3 shadow-md flex items-center justify-center">
+      <h1 class="font-pressstart text-[14px] sm:text-[18px] md:text-[22px] text-[#482A1D] tracking-tight text-center leading-none">
+        Profile
+      </h1>
+    </div>
+  </header>
+
+  <!-- 4. MAIN TWO-COLUMN CONTAINER (Flex-1 & min-h-0 prevents overflow on desktop) -->
+<main class="relative z-10 flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-25 sm:pb-36 md:pb-32 flex flex-col md:flex-row gap-5">
+        
+    <!-- COLUMN 1: PROFILE CARD (~35% width on desktop, Auto-sized to fit screen) -->
+<section class="w-full md:w-[35%] bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 md:p-5 flex flex-col items-center justify-center gap-3 md:gap-4 text-center shadow-md shrink-0 overflow-hidden">      
+
+  
+  <!-- AVATAR & LEVEL BADGE CONTAINER -->
+  <div class="relative flex-shrink-0 mx-auto w-40 h-40 xs:w-48 xs:h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 transition-all duration-200">
+    <div class="w-full h-full rounded-full border-[4px] sm:border-[5px] border-[#3D2013] bg-[#FAE9CE] overflow-hidden flex items-center justify-center relative shadow-sm">
+      <img id="player-avatar" src="" alt="Player Avatar" class="w-full h-full object-cover hidden">
+      <svg id="avatar-placeholder" class="w-24 h-24 sm:w-32 sm:h-32 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2L2 9l2 11h16l2-11L12 2zm0 4a3 3 0 110 6 3 3 0 010-6zm-6 12v-1.5c0-1.65 2.7-3 6-3s6 1.35 6 3V18H6z"/>
+      </svg>
+    </div>
+    
+    <!-- Level Badge -->
+    <div class="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 bg-[#E87339] border-[3px] sm:border-[4px] border-[#3D2013] rounded-none w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center shadow-[2px_2px_0px_#3D2013]">
+      <span id="player-level" class="font-pressstart text-[10px] sm:text-[12px] md:text-[14px] text-[#3D2013] font-bold">1</span>
+    </div>
+  </div>
+
+<!-- NAME & USERNAME -->
+  <div class="flex flex-col items-center gap-1 w-full">
+    <h2 id="profile-name" class="font-pressstart text-[16px] sm:text-[20px] md:text-[18px] text-black tracking-tight leading-tight">Name</h2>
+    <p id="profile-username" class="font-pressstart text-[13px] sm:text-[16px] md:text-[14px] text-gray-600 tracking-tight leading-tight">User_name</p>
+  </div>
+
+<!-- LEVEL PROGRESS BAR -->
+  <div class="w-full flex flex-col items-start gap-3 px-4 sm:px-5">
+    <div class="w-full bg-[#FEF4E0] border-[3px] border-[#3D2013] h-7 sm:h-8 relative overflow-hidden">
+      <div id="xp-bar-fill" class="bg-[#FD923E] h-full transition-all duration-300" style="width: 0%;"></div>
+    </div>
+    <div id="xp-text" class="font-pressstart text-[9px] sm:text-[11px] text-[#3D2013] leading-none text-left">
+      0/1,000 XP
+    </div>
+  </div>
+
+<!-- STATS STATUS ROW (COINS & STREAK) -->
+  <div class="flex items-center justify-center gap-2 sm:gap-3 w-full flex-wrap sm:flex-nowrap">
+    <div class="relative flex items-center bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-full pl-3 pr-3.5 py-1">
+      <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 sm:w-5 sm:h-5 object-contain mr-1.5 shrink-0" 
+           onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
+      <svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#FFBA1F] hidden mr-1.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" stroke="#3D2013" stroke-width="2"/>
+        <circle cx="12" cy="12" r="6" fill="#ED8C00"/>
+      </svg>
+      <span id="coins-count" class="font-pressstart text-[10px] sm:text-[13px] text-[#482A1D] tracking-tight">0</span>
+    </div>
+
+    <div class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] px-3 py-1 rounded-[12px] flex items-center gap-1.5">
+      <svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#ED8C00]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M13.5 1.5c.41 2.6-1.12 4.88-2.6 6.88-1.07 1.45-2.28 2.87-2.6 4.67-.32 1.83.24 3.65 1.43 4.95.83.91 1.93 1.5 3.07 1.7-1.31-.38-2.52-1.2-3.32-2.33-.99-1.38-1.12-3.14-.38-4.6.64-1.26 1.76-2.22 2.62-3.37 1.62-2.16 2.37-4.88 1.78-7.9zM12 22c4.42 0 8-3.58 8-8 0-3.38-2.07-6.28-5-7.5.38 2.38-.5 4.88-2.3 6.6-1.8 1.72-4.22 2.5-6.7 2.1 1.28 4.02 5.2 6.8 10 6.8z"/>
+      </svg>
+      <span id="streak-count" class="font-pressstart text-[10px] sm:text-[13px] text-[#3D2013]">0d</span>
+    </div>
+  </div>
+
+<!-- FRIEND STATUS -->
+  <div class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] px-3.5 py-1 rounded-[12px] flex items-center gap-1.5">
+    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#788D55]" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+    </svg>
+    <span id="friends-count" class="font-pressstart text-[10px] sm:text-[13px] text-[#3D2013]">0</span>
+  </div>
+
+    </section>
+
+
+    <!-- COLUMN 2: STATS & SETTINGS CARD CONTAINER -->
+    <section class="flex-1 w-full h-full min-h-0 flex flex-col gap-3 sm:gap-4">
+      
+      <!-- 1. TAB NAV HEADER -->
+      <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-2.5 sm:p-3 shadow-md shrink-0">
+        <div class="flex items-stretch gap-3 w-full">
+          
+          <button id="tab-badges" onclick="switchTab('badges')"
+                  class="flex-1 min-h-[42px] flex items-center justify-center text-center bg-[#E87339] text-[#FFFFF6] border-[3px] border-[#3D2013] !rounded-none px-2 py-1.5 font-pressstart text-[9px] min-[380px]:text-[10px] sm:text-[12px] leading-tight tracking-tight cursor-default transition-all duration-150">
+            BADGES AND STATS
+          </button>
+
+          <button id="tab-settings" onclick="switchTab('settings')"
+                  class="flex-1 min-h-[42px] flex items-center justify-center text-center bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none px-2 py-1.5 font-pressstart text-[9px] min-[380px]:text-[10px] sm:text-[12px] leading-tight tracking-tight cursor-pointer flat-retro-shadow-hover transition-all duration-150">
+            SETTINGS
+          </button>
+
+        </div>
+      </div>
+
+      <!-- 2. FORM 1: BADGES AND STATS -->
+<form id="form-badges" class="flex-1 min-h-0 flex flex-col gap-3 sm:gap-4 overflow-y-auto scrollbar-hide">
+
+<!-- ROW 1: BADGES CONTAINER -->
+  <div class="flex-1 min-h-[160px] flex flex-col bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md">
+    <div class="border-b-[2.5px] border-[#3D2013] pb-1.5 mb-3 shrink-0 -mx-4 sm:-mx-6 px-4 sm:px-6">
+      <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">BADGES</h3>
+    </div>
+    <!-- Dynamically rendered badge list -->
+    <div id="badges-container" class="flex flex-wrap items-center sm:items-start justify-center sm:justify-start gap-1 sm:gap-2"></div>
+  </div>
+
+<!-- ROW 2: STATS GRID -->
+  <div class="flex-1 min-h-[160px] flex flex-col bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md">
+    <div class="border-b-[2.5px] border-[#3D2013] pb-1.5 mb-3 shrink-0 -mx-4 sm:-mx-6 px-4 sm:px-6">
+      <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">STATS</h3>
+    </div>
+    
+    <div class="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-3 h-full">
+      <!-- CARD 1: Total Study Hr -->
+      <div class="bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-[8px] p-3 flex flex-col items-center justify-center text-center gap-1.5 shadow-sm aspect-square w-full h-full">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center shrink-0 text-[#E40000]">
+          <svg class="w-12 h-12 sm:w-14 sm:h-14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <circle cx="12" cy="13" r="8"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4l2.5 2.5M9 3h6M12 3v2"/>
+          </svg>
+        </div>
+        <span class="font-pressstart text-[7px] sm:text-[8px] text-[#3D2013]/70 uppercase tracking-tighter">Total Study Hr</span>
+        <span id="stat-study-hrs" class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013] font-bold">0</span>
+      </div>
+
+      <!-- CARD 2: Rooms Created -->
+      <div class="bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-[8px] p-3 flex flex-col items-center justify-center text-center gap-1.5 shadow-sm aspect-square w-full h-full">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center shrink-0 text-[#000000]">
+          <svg class="w-12 h-12 sm:w-14 sm:h-14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M3 7l9-4 9 4v14H3V7zM9 21v-4a3 3 0 016 0v4"/>
+          </svg>
+        </div>
+        <span class="font-pressstart text-[7px] sm:text-[8px] text-[#3D2013]/70 uppercase tracking-tighter">Rooms Created</span>
+        <span id="stat-rooms" class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013] font-bold">0</span>
+      </div>
+
+      <!-- CARD 3: Avg Quiz Score -->
+      <div class="bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-[8px] p-3 flex flex-col items-center justify-center text-center gap-1.5 shadow-sm aspect-square w-full h-full">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center shrink-0 text-[#2B5370]">
+          <svg class="w-12 h-12 sm:w-14 sm:h-14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+          </svg>
+        </div>
+        <span class="font-pressstart text-[7px] sm:text-[8px] text-[#3D2013]/70 uppercase tracking-tighter">Avg Quiz</span>
+        <span id="stat-quiz" class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013] font-bold">0%</span>
+      </div>
+
+      <!-- CARD 4: Best Streak -->
+      <div class="bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-[8px] p-3 flex flex-col items-center justify-center text-center gap-1.5 shadow-sm aspect-square w-full h-full">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center shrink-0 text-[#ED8C00]">
+          <svg class="w-12 h-12 sm:w-14 sm:h-14" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M13.5 1.5c.41 2.6-1.12 4.88-2.6 6.88-1.07 1.45-2.28 2.87-2.6 4.67-.32 1.83.24 3.65 1.43 4.95.83.91 1.93 1.5 3.07 1.7-1.31-.38-2.52-1.2-3.32-2.33-.99-1.38-1.12-3.14-.38-4.6.64-1.26 1.76-2.22 2.62-3.37 1.62-2.16 2.37-4.88 1.78-7.9zM12 22c4.42 0 8-3.58 8-8 0-3.38-2.07-6.28-5-7.5.38 2.38-.5 4.88-2.3 6.6-1.8 1.72-4.22 2.5-6.7 2.1 1.28 4.02 5.2 6.8 10 6.8z"/>
+          </svg>
+        </div>
+        <span class="font-pressstart text-[7px] sm:text-[8px] text-[#3D2013]/70 uppercase tracking-tighter">Best Streak</span>
+        <span id="stat-streak" class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013] font-bold">0 Days</span>
+      </div>
+
+      <!-- CARD 5: Lifetime Coins -->
+      <div class="bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-[8px] p-3 flex flex-col items-center justify-center text-center gap-1.5 shadow-sm aspect-square w-full h-full">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center shrink-0">
+          <img src="media/coin_logo.png" alt="Coin Logo" class="w-12 h-12 sm:w-14 sm:h-14 object-contain" />
+        </div>
+        <span class="font-pressstart text-[7px] sm:text-[8px] text-[#3D2013]/70 uppercase tracking-tighter">Lifetime Coins</span>
+        <span id="stat-coins" class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013] font-bold">0</span>
+      </div>
+    </div>
+  </div>
+
+      </form>
+
+<!-- TAB CONTENT 2: SETTINGS -->
+<form id="form-settings" class="hidden flex-1 min-h-0 flex-col bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md overflow-y-auto scrollbar-hide">
+  
+  <div class="border-b-[2.5px] border-[#3D2013] pb-1.5 mb-3 sm:mb-4 shrink-0 -mx-4 sm:-mx-6 px-4 sm:px-6">
+    <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">ACCOUNT SETTINGS</h3>
+  </div>
+
+  <div class="flex-1 flex flex-col justify-between gap-4 min-h-[250px]">
+    
+    <!-- 1. ACCOUNT PREFERENCES (Email, Username, Name) -->
+    <div class="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3">
+      
+      <!-- Email Field -->
+      <div class="flex-1 flex flex-col gap-1.5">
+        <label for="settings-email" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] uppercase tracking-tight">Email</label>
+        <input type="email" id="settings-email" placeholder="user@example.com"
+               class="w-full h-11 bg-[#FAE9CE] border-[2.5px] border-[#3D2013] rounded-none px-3 font-pressstart text-[10px] sm:text-[11px] text-[#3D2013] placeholder-[#3D2013]/40 focus:outline-none focus:ring-2 focus:ring-[#FD923E]" />
+      </div>
+
+      <!-- Username Field -->
+      <div class="flex-1 flex flex-col gap-1.5">
+        <label for="settings-username" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] uppercase tracking-tight">Username</label>
+        <input type="text" id="settings-username" placeholder="User_name"
+               class="w-full h-11 bg-[#FAE9CE] border-[2.5px] border-[#3D2013] rounded-none px-3 font-pressstart text-[10px] sm:text-[11px] text-[#3D2013] placeholder-[#3D2013]/40 focus:outline-none focus:ring-2 focus:ring-[#FD923E]" />
+      </div>
+
+      <!-- Name Field -->
+      <div class="flex-1 flex flex-col gap-1.5">
+        <label for="settings-name" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] uppercase tracking-tight">Name</label>
+        <input type="text" id="settings-name" placeholder="Full Name"
+               class="w-full h-11 bg-[#FAE9CE] border-[2.5px] border-[#3D2013] rounded-none px-3 font-pressstart text-[10px] sm:text-[11px] text-[#3D2013] placeholder-[#3D2013]/40 focus:outline-none focus:ring-2 focus:ring-[#FD923E]" />
+      </div>
+
+    </div>
+
+    <!-- SEPARATOR LINE -->
+    <div class="w-full border-b-[2.5px] border-[#3D2013] my-1 shrink-0 -mx-4 sm:-mx-6 !w-[calc(100%+2rem)] sm:!w-[calc(100%+3rem)]"></div>
+
+    <!-- 2. SECURITY OPTIONS (Old, New, Confirm Password) -->
+    <div class="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3">
+      
+      <!-- Old Password Field -->
+      <div class="flex-1 flex flex-col gap-1.5">
+        <label for="settings-old-pass" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] uppercase tracking-tight">Old Password</label>
+        <input type="password" id="settings-old-pass" placeholder="************"
+               class="w-full h-11 bg-[#FAE9CE] border-[2.5px] border-[#3D2013] rounded-none px-3 font-pressstart text-[10px] sm:text-[11px] text-[#3D2013] placeholder-[#3D2013]/40 focus:outline-none focus:ring-2 focus:ring-[#FD923E]" />
+      </div>
+
+      <!-- New Password Field -->
+      <div class="flex-1 flex flex-col gap-1.5">
+        <label for="settings-new-pass" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] uppercase tracking-tight">New Password</label>
+        <input type="password" id="settings-new-pass" placeholder="************"
+               class="w-full h-11 bg-[#FAE9CE] border-[2.5px] border-[#3D2013] rounded-none px-3 font-pressstart text-[10px] sm:text-[11px] text-[#3D2013] placeholder-[#3D2013]/40 focus:outline-none focus:ring-2 focus:ring-[#FD923E]" />
+      </div>
+
+      <!-- Confirm New Password Field -->
+      <div class="flex-1 flex flex-col gap-1.5">
+        <label for="settings-confirm-pass" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] uppercase tracking-tight">Confirm Password</label>
+        <input type="password" id="settings-confirm-pass" placeholder="************"
+               class="w-full h-11 bg-[#FAE9CE] border-[2.5px] border-[#3D2013] rounded-none px-3 font-pressstart text-[10px] sm:text-[11px] text-[#3D2013] placeholder-[#3D2013]/40 focus:outline-none focus:ring-2 focus:ring-[#FD923E]" />
+      </div>
+
+    </div>
+
+    <!-- 3. SAVE BUTTON -->
+    <div class="w-full flex justify-end pt-2 shrink-0">
+      <button type="submit"
+              class="w-full sm:w-auto font-pressstart text-[10px] sm:text-[12px] md:text-[14px] text-[#FFFFF6] bg-[#788D55] border-[2px] md:border-[3px] border-[#3D2013] px-6 sm:px-12 md:px-16 py-1.5 sm:py-2 md:py-2.5 block text-center transition-all duration-150 retro-shadow cursor-pointer">
+        SAVE
+      </button>
+    </div>
+
+  </div>
+
+</form>
+
+    </section>
+
+  </main>
+
+  <div id="global-footer"></div>
+<script src="footer.js"></script>
+
+  <!-- JavaScript for Tab Switching -->
+  <script src="profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,932 @@
+// =========================================================================
+// 📢 BACKEND INTEGRATION NOTE FOR MY AWESOME BACKEND DEVELOPER:
+// 
+// Hey! Below is the `playerData` state object powering all header widgets.
+// To connect database/API:
+// 1. Fetch user data from your endpoint (e.g. GET /api/user/dashboard-summary)
+// 2. Overwrite `playerData` values (name, level, XP, coins, friendsCount, streakDays)
+// 3. Call `updateDashboardState()` to sync the UI elements automatically.
+// =========================================================================
+
+// ==========================================
+// PLAYER DATA STATE
+// ==========================================
+const playerData = {
+  name: "ACORN_HERO",
+  level: 99,
+  currentXP: 1000,
+  maxXP: 10000,
+  avatarUrl: "",       // BACKEND: User avatar URL
+  coins: 12234,        // BACKEND: Total coins earned
+  friendsCount: 5,     // BACKEND: Active/Online friends count
+  streakDays: "2d"     // BACKEND: Current streak value (e.g., "2d" or 2)
+};
+
+// ==========================================
+// CORE UI FUNCTIONS
+// ==========================================
+
+/**
+ * Updates all profile, coins, friends, and streak UI components
+ */
+function updateDashboardState() {
+  // 1. Profile elements (Desktop & Mobile Modal)
+  const levelElement = document.getElementById("player-level");
+  const modalLevelElement = document.getElementById("modal-player-level");
+
+  const nameElement = document.getElementById("player-name");
+  const modalNameElement = document.getElementById("modal-player-name");
+
+  const xpBarFill = document.getElementById("xp-bar-fill");
+  const modalXpBarFill = document.getElementById("modal-xp-bar-fill");
+
+  const xpTextElement = document.getElementById("xp-text");
+  const modalXpTextElement = document.getElementById("modal-xp-text");
+
+  const avatarImg = document.getElementById("player-avatar");
+  const modalAvatarImg = document.getElementById("modal-player-avatar");
+
+  // 2. Status elements
+  const coinsElement = document.getElementById("coins-count");
+  const friendsElement = document.getElementById("friends-count");
+  const streakElement = document.getElementById("streak-count");
+  const modalStreakVal = document.getElementById("modal-streak-val");
+  const modalFriendsVal = document.getElementById("modal-friends-val");
+
+  // Calculate XP percentage
+  let percentage = (playerData.currentXP / playerData.maxXP) * 100;
+  percentage = Math.min(Math.max(percentage, 0), 100);
+
+  // Apply Level
+  if (levelElement) levelElement.textContent = playerData.level;
+  if (modalLevelElement) modalLevelElement.textContent = `LVL ${playerData.level}`;
+
+  // Apply Name
+  if (nameElement) nameElement.textContent = playerData.name;
+  if (modalNameElement) modalNameElement.textContent = playerData.name;
+
+  // Apply Avatars
+  if (playerData.avatarUrl) {
+    if (avatarImg) {
+      avatarImg.src = playerData.avatarUrl;
+      avatarImg.classList.remove("hidden");
+    }
+    if (modalAvatarImg) {
+      modalAvatarImg.src = playerData.avatarUrl;
+      modalAvatarImg.classList.remove("hidden");
+    }
+  }
+
+  // Apply XP Bar Fills
+  const applyBarWidth = (el) => {
+    if (el) {
+      el.style.width = `${percentage}%`;
+      if (percentage > 0) {
+        el.classList.add("border-r-4", "border-[#3D2013]");
+      } else {
+        el.classList.remove("border-r-4", "border-[#3D2013]");
+      }
+    }
+  };
+  applyBarWidth(xpBarFill);
+  applyBarWidth(modalXpBarFill);
+
+  // Apply XP Text
+  const formattedCurrent = playerData.currentXP.toLocaleString();
+  const formattedMax = playerData.maxXP.toLocaleString();
+  const xpFormatted = `${formattedCurrent}/${formattedMax} XP`;
+
+  if (xpTextElement) xpTextElement.textContent = xpFormatted;
+  if (modalXpTextElement) modalXpTextElement.textContent = xpFormatted;
+
+  // 3. Update Status Badges
+  if (coinsElement) coinsElement.textContent = playerData.coins.toLocaleString();
+  if (friendsElement) friendsElement.textContent = playerData.friendsCount;
+  if (streakElement) streakElement.textContent = playerData.streakDays;
+  if (modalStreakVal) modalStreakVal.textContent = `${playerData.streakDays} study`;
+  if (modalFriendsVal) modalFriendsVal.textContent = playerData.friendsCount;
+}
+
+// ==========================================
+// MODAL CONTROLLERS
+// ==========================================
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.add("hidden");
+}
+
+// Initialize on page load
+document.addEventListener("DOMContentLoaded", () => {
+  updateDashboardState();
+});
+
+// ==========================================
+// NAVIGATION CLICK HANDLER (MODAL PLACEHOLDER)
+// ==========================================
+function onNavClick(title, description) {
+  const modalTitle = document.getElementById("nav-modal-title");
+  const modalDesc = document.getElementById("nav-modal-desc");
+  
+  if (modalTitle) modalTitle.textContent = title.toUpperCase();
+  if (modalDesc) modalDesc.textContent = description;
+  
+  openModal("nav-action-modal");
+}
+
+// ==========================================
+// MODAL CONTROLLERS
+// ==========================================
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.add("hidden");
+}
+
+/**
+ * Toggles a modal open or closed.
+ * If the modal is currently visible, it closes it; otherwise, it opens it.
+ */
+function toggleModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+
+  if (modal.classList.contains("hidden")) {
+    openModal(modalId);
+  } else {
+    closeModal(modalId);
+  }
+}
+
+// ==========================================
+// CHECKLIST MANAGEMENT SYSTEM
+// ==========================================
+
+// Initial default tasks state
+let checklistData = [
+];
+
+// Temporary array used during editing inside the Add Task Modal
+let draftChecklistData = [];
+
+/**
+ * Render main view checklist items
+ */
+function renderChecklist() {
+  const total = checklistData.length;
+  const completed = checklistData.filter((task) => task.completed).length;
+
+  // 1. Update existing badge (if present)
+  const taskCountBadge = document.getElementById("checklist-task-count");
+  if (taskCountBadge) {
+    taskCountBadge.textContent = `${completed}/${total} ${total === 1 ? 'Task' : 'Tasks'}`;
+  }
+
+  // 2. Update static bottom ratio text & progress bar
+  const ratioText = document.getElementById("checklist-ratio-text");
+  if (ratioText) {
+    ratioText.textContent = `${completed}/${total} completed`;
+  }
+
+  const progressBar = document.getElementById("checklist-progress-bar");
+  if (progressBar) {
+    const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
+    progressBar.style.width = `${percentage}%`;
+  }
+
+  // 3. Render container tasks or empty state
+  const container = document.getElementById("checklist-tasks-container");
+  if (!container) return;
+
+  if (checklistData.length === 0) {
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center h-full py-8 text-center gap-2">
+        <p class="font-pixel text-2xl text-[#3D2013]">Add your task</p>
+        <p class="font-pressstart text-[10px] text-[#3D2013]/70">Click + above to get started!</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = checklistData.map((task) => `
+    <div class="bg-[#FEF4E0] border-[2px] border-[#482A1D] p-2.5 flex items-start gap-3 w-full">
+      <button onclick="toggleTaskCompletion(${task.id})" 
+              class="w-5 h-5 border-[2px] border-[#482A1D] ${task.completed ? 'bg-[#788D55]' : 'bg-transparent'} flex items-center justify-center shrink-0 cursor-pointer mt-0.5">
+        <svg class="w-3.5 h-3.5 text-[#FEF4E0] ${task.completed ? '' : 'hidden'}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      </button>
+
+      <span class="font-pixel text-lg leading-tight text-[#482A1D] break-words whitespace-normal flex-1 min-w-0 ${task.completed ? 'line-through opacity-60' : ''}">
+        ${escapeHtml(task.text)}
+      </span>
+    </div>
+  `).join('');
+}
+
+/**
+ * Toggle task checkmark state from main checklist view
+ */
+function toggleTaskCompletion(id) {
+  const task = checklistData.find(t => t.id === id);
+  if (task) {
+    task.completed = !task.completed;
+    renderChecklist();
+  }
+}
+
+/**
+ * Open the Add Task Modal and copy actual state to draft state
+ */
+function openAddTaskModal() {
+  draftChecklistData = JSON.parse(JSON.stringify(checklistData));
+  renderDraftTaskList();
+  openModal("add-task-modal");
+}
+
+/**
+ * Render editable list inside the Add Task Modal
+ */
+function renderDraftTaskList() {
+  const container = document.getElementById("edit-task-list");
+  if (!container) return;
+
+  // Empty state for draft modal
+  if (draftChecklistData.length === 0) {
+    container.innerHTML = `
+      <div class="py-6 text-center">
+        <p class="font-pixel text-xl text-[#3D2013]/70">Add your task by clicking "+ Add Task" below!</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = draftChecklistData.map((task, index) => `
+    <div class="flex items-center gap-2 w-full">
+      <div class="bg-[#EBD9C4] border-[2px] border-[#482A1D] p-2 flex items-center gap-2.5 flex-1 min-w-0">
+        <button onclick="toggleDraftTaskCompletion(${index})" 
+                class="w-5 h-5 border-[2px] border-[#482A1D] ${task.completed ? 'bg-[#788D55]' : 'bg-transparent'} flex items-center justify-center shrink-0 cursor-pointer">
+          <svg class="w-3.5 h-3.5 text-[#FEF4E0] ${task.completed ? '' : 'hidden'}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+        </button>
+
+        <input type="text" 
+               value="${escapeHtml(task.text)}" 
+               oninput="updateDraftTaskText(${index}, this.value)"
+               class="font-pixel text-xl leading-none text-[#482A1D] bg-transparent border-b border-transparent hover:border-[#482A1D]/40 focus:border-[#482A1D] focus:outline-none w-full truncate py-0.5"
+               placeholder="Enter task name..." />
+      </div>
+
+      <button onclick="deleteDraftTaskRow(${index})" 
+              title="Delete Task" 
+              class="w-6 h-6 bg-[#A53914] border-[2px] border-[#482A1D] flex items-center justify-center text-[#FEF4E0] font-pressstart text-[10px] hover:brightness-110 active:scale-90 cursor-pointer shrink-0">
+        ✕
+      </button>
+    </div>
+  `).join('');
+}
+
+/**
+ * Handle draft state updates
+ */
+function toggleDraftTaskCompletion(index) {
+  if (draftChecklistData[index]) {
+    draftChecklistData[index].completed = !draftChecklistData[index].completed;
+    renderDraftTaskList();
+  }
+}
+
+function updateDraftTaskText(index, val) {
+  if (draftChecklistData[index]) {
+    draftChecklistData[index].text = val;
+  }
+}
+
+function deleteDraftTaskRow(index) {
+  draftChecklistData.splice(index, 1);
+  renderDraftTaskList();
+}
+
+function addNewTaskRow() {
+  draftChecklistData.push({
+    id: Date.now(),
+    text: "New Task",
+    completed: false
+  });
+  renderDraftTaskList();
+}
+
+/**
+ * Commit draft changes to main checklist state and update UI
+ */
+function saveTaskChanges() {
+  checklistData = draftChecklistData.filter(t => t.text.trim().length > 0);
+  renderChecklist();
+  closeModal("add-task-modal");
+}
+
+// Utility function to escape raw strings for HTML inputs/content
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Ensure checklist initializes when DOM loads
+document.addEventListener("DOMContentLoaded", () => {
+  renderChecklist();
+});
+
+// ==========================================
+// STUDY TIMER SYSTEM LOGIC
+// ==========================================
+
+const TECHNIQUES = {
+  pomodoro: { name: "Pomodoro", study: 1 * 60, break: 5 * 60 },
+  "5217": { name: "52-17", study: 52 * 60, break: 17 * 60 },
+  "90min": { name: "90 Min", study: 90 * 60, break: 20 * 60 }
+};
+
+let timerState = {
+  selectedTechnique: null, // 'pomodoro' | '5217' | '90min' | null
+  totalSessions: 3,
+  currentSession: 1,
+  isBreak: false,
+  secondsLeft: 0,
+  totalSeconds: 0,
+  isRunning: false,
+  timerInterval: null
+};
+
+// Draft state for Edit Settings Modal
+let tempSelectedTechnique = null;
+
+/**
+ * Restricts input field strictly to numbers
+ */
+function validateNumberInput(input) {
+  input.value = input.value.replace(/[^0-9]/g, '');
+  if (parseInt(input.value) === 0) input.value = "1";
+}
+
+/**
+ * Handles technique selection styling inside the Edit Modal
+ */
+function selectTechnique(techKey) {
+  tempSelectedTechnique = techKey;
+  updateTechniqueButtonsUI();
+}
+
+/**
+ * Updates UI of the three technique selection buttons
+ */
+function updateTechniqueButtonsUI() {
+  const keys = ['pomodoro', '5217', '90min'];
+  keys.forEach(key => {
+    const btn = document.getElementById(`btn-tech-${key}`);
+    if (!btn) return;
+
+    if (tempSelectedTechnique === key) {
+      // Chosen Style: Orange Fill, White Text
+      btn.className = "flex-1 min-h-[56px] flex flex-col items-center justify-center gap-1.5 p-2 font-pressstart text-[8px] sm:text-[9px] bg-[#E87339] text-[#FFFFF6] border-[3px] border-[#3D2013] !rounded-none cursor-default transition-all duration-150";
+    } else {
+      // Unchosen Style: Cream Fill, Dark Text
+      btn.className = "flex-1 min-h-[56px] flex flex-col items-center justify-center gap-1.5 p-2 font-pressstart text-[8px] sm:text-[9px] bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer flat-retro-shadow-hover transition-all duration-150";
+    }
+  });
+}
+
+/**
+ * Opens Edit Settings Modal with initial states
+ */
+function openTimerEditModal() {
+  tempSelectedTechnique = timerState.selectedTechnique;
+  const input = document.getElementById("session-input");
+  if (input) input.value = timerState.totalSessions;
+  
+  updateTechniqueButtonsUI();
+  
+  // Directly reveal the modal element to avoid the recursive loop
+  const modal = document.getElementById("timer-edit-modal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+/**
+ * Commits settings from edit modal to main timer state
+ */
+function saveTimerSettings() {
+  if (!tempSelectedTechnique) {
+    closeModal("timer-edit-modal");
+    return;
+  }
+
+  const input = document.getElementById("session-input");
+  const sessions = parseInt(input.value) || 3;
+
+  timerState.selectedTechnique = tempSelectedTechnique;
+  timerState.totalSessions = sessions;
+  timerState.currentSession = 1;
+  timerState.isBreak = false;
+  
+  // Pause any active timer
+  pauseTimer();
+
+  // Reset duration to chosen technique study time
+  const tech = TECHNIQUES[timerState.selectedTechnique];
+  timerState.totalSeconds = tech.study;
+  timerState.secondsLeft = tech.study;
+
+  renderTimerUI();
+  closeModal("timer-edit-modal");
+}
+
+/**
+ * Updates all visual aspects of the main timer modal AND the mini-display
+ */
+function renderTimerUI() {
+  const unselectedView = document.getElementById("timer-unselected-view");
+  const activeView = document.getElementById("timer-active-view");
+
+  // --- NEW: Grab the Mini Timer Display element ---
+  const miniDisplay = document.getElementById("mini-timer-display");
+
+  if (!timerState.selectedTechnique) {
+    if (unselectedView) unselectedView.classList.remove("hidden");
+    if (activeView) activeView.classList.add("hidden");
+    
+    // Optional reset state when no technique is active
+    if (miniDisplay) {
+      miniDisplay.textContent = "00:00";
+      miniDisplay.style.color = "#A53914"; // Default terracotta
+    }
+    return;
+  }
+
+  if (unselectedView) unselectedView.classList.add("hidden");
+  if (activeView) activeView.classList.remove("hidden");
+
+  // Format MM:SS
+  const mins = Math.floor(timerState.secondsLeft / 60);
+  const secs = timerState.secondsLeft % 60;
+  const formattedTime = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  
+  const display = document.getElementById("timer-display");
+  if (display) display.textContent = formattedTime;
+
+  // --- NEW: Sync MM:SS and dynamic colors to the Mini Timer Display ---
+  if (miniDisplay) {
+    miniDisplay.textContent = formattedTime;
+
+    if (timerState.isBreak) {
+      // Break Phase: Green (#788D55)
+      miniDisplay.style.color = "#788D55";
+    } else {
+      // Study Phase: Orange / Terracotta (#A53914)
+      miniDisplay.style.color = "#A53914";
+    }
+  }
+
+  // Phase Label (FOCUS vs BREAK)
+  const phaseLabel = document.getElementById("timer-phase-label");
+  if (phaseLabel) {
+    phaseLabel.textContent = timerState.isBreak ? "BREAK" : "FOCUS";
+    phaseLabel.className = timerState.isBreak 
+      ? "font-pressstart text-[8px] text-[#788D55] mt-1" 
+      : "font-pressstart text-[8px] text-[#A53914] mt-1";
+  }
+
+  // Circular SVG Progress Calculation
+  const circleProgress = document.getElementById("timer-circle-progress");
+  if (circleProgress && timerState.totalSeconds > 0) {
+    const maxOffset = 263.89; // 2 * PI * r (r=42)
+    const progressRatio = timerState.secondsLeft / timerState.totalSeconds;
+    const dashOffset = maxOffset * (1 - progressRatio);
+    circleProgress.style.strokeDashoffset = dashOffset;
+    circleProgress.setAttribute("stroke", timerState.isBreak ? "#788D55" : "#E87338");
+  }
+
+  // Toggle Button Text & Icon
+  const toggleText = document.getElementById("timer-toggle-text");
+  const toggleIcon = document.getElementById("timer-toggle-icon");
+  if (toggleText) toggleText.textContent = timerState.isRunning ? "PAUSE" : "START";
+  if (toggleIcon) {
+    toggleIcon.innerHTML = timerState.isRunning 
+      ? `<rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />`
+      : `<polygon points="5,3 19,12 5,21" />`;
+  }
+
+  // Session Ratio Text & Label
+  const sessionLabel = document.getElementById("session-label-text");
+  const techLabel = document.getElementById("technique-label-text");
+  if (sessionLabel) {
+    sessionLabel.textContent = `Session ${timerState.currentSession} of ${timerState.totalSessions}`;
+  }
+  if (techLabel) {
+    techLabel.textContent = TECHNIQUES[timerState.selectedTechnique].name;
+  }
+
+  // Segmented Progress Bars
+  renderSessionBars();
+}
+
+/**
+ * Generates session ratio progress bars
+ */
+function renderSessionBars() {
+  const container = document.getElementById("session-bars-container");
+  if (!container) return;
+
+  let barsHTML = "";
+  for (let i = 1; i <= timerState.totalSessions; i++) {
+    const isCompleted = i < timerState.currentSession;
+    const isCurrent = i === timerState.currentSession;
+
+    // FEF4E0 default background, FD923E when completed
+    let bgClass = "bg-[#FEF4E0]";
+    if (isCompleted) {
+      bgClass = "bg-[#FD923E]";
+    } else if (isCurrent && timerState.isBreak) {
+      bgClass = "bg-[#E87338]"; // Optional highlight for break phase
+    }
+
+    barsHTML += `<div class="flex-1 h-full ${bgClass} border-[2px] border-[#3D2013] transition-colors duration-300"></div>`;
+  }
+  container.innerHTML = barsHTML;
+}
+
+/**
+ * Timer Control Functions
+ */
+function toggleTimer() {
+  if (timerState.isRunning) {
+    pauseTimer();
+  } else {
+    startTimer();
+  }
+}
+
+function startTimer() {
+  if (!timerState.selectedTechnique || timerState.isRunning) return;
+  timerState.isRunning = true;
+  timerState.timerInterval = setInterval(() => {
+    if (timerState.secondsLeft > 0) {
+      timerState.secondsLeft--;
+      renderTimerUI();
+    } else {
+      handleTimerCompletion();
+    }
+  }, 1000);
+  renderTimerUI();
+}
+
+function pauseTimer() {
+  timerState.isRunning = false;
+  if (timerState.timerInterval) clearInterval(timerState.timerInterval);
+  renderTimerUI();
+}
+
+function resetTimer() {
+  pauseTimer();
+  if (timerState.selectedTechnique) {
+    const tech = TECHNIQUES[timerState.selectedTechnique];
+    timerState.secondsLeft = timerState.isBreak ? tech.break : tech.study;
+    timerState.totalSeconds = timerState.secondsLeft;
+  }
+  renderTimerUI();
+}
+
+/**
+ * Handles transition between study and break phases / next sessions
+ */
+function handleTimerCompletion() {
+  pauseTimer();
+  const tech = TECHNIQUES[timerState.selectedTechnique];
+
+  if (!timerState.isBreak) {
+    // Finished Focus -> Start Break Phase
+    timerState.isBreak = true;
+    timerState.totalSeconds = tech.break;
+    timerState.secondsLeft = tech.break;
+  } else {
+    // Finished Break -> Move to Next Session
+    timerState.isBreak = false;
+    if (timerState.currentSession < timerState.totalSessions) {
+      timerState.currentSession++;
+      timerState.totalSeconds = tech.study;
+      timerState.secondsLeft = tech.study;
+    } else {
+      // Completed All Sessions!
+      alert("Great job! All study sessions completed.");
+      timerState.currentSession = 1;
+      timerState.totalSeconds = tech.study;
+      timerState.secondsLeft = tech.study;
+    }
+  }
+
+  renderTimerUI();
+}
+
+// Bind open modal override
+window.openModal = (function(originalOpenModal) {
+  return function(modalId) {
+    if (modalId === 'timer-edit-modal') {
+      openTimerEditModal();
+    } else {
+      originalOpenModal(modalId);
+    }
+  };
+})(window.openModal);
+
+// Initialize Timer on Load
+document.addEventListener("DOMContentLoaded", () => {
+  renderTimerUI();
+});
+
+// ==========================================
+// STUDY CALENDAR SYSTEM LOGIC
+// ==========================================
+
+const calendarState = {
+  viewDate: new Date(), // Tracks currently displayed month/year in full calendar
+  // BACKEND INTEGRATION: Array of checked-in dates in "YYYY-MM-DD" format
+  checkInDates: [
+    "2026-07-20",
+    "2026-07-21",
+    "2026-07-22"
+  ]
+};
+
+/**
+ * Format Date object to "YYYY-MM-DD" string
+ */
+function formatDateKey(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Checks if today's date is already checked in
+ */
+function isTodayCheckedIn() {
+  const todayStr = formatDateKey(new Date());
+  return calendarState.checkInDates.includes(todayStr);
+}
+
+/**
+ * Main Check-In Action handler
+ */
+function performCheckIn() {
+  const todayStr = formatDateKey(new Date());
+  if (!calendarState.checkInDates.includes(todayStr)) {
+    calendarState.checkInDates.push(todayStr);
+    
+    // Reward user (Backend Hook: update database)
+    playerData.coins += 50; 
+    
+    // Increment streak numerically if formatted like "2d"
+    let currentStreakNum = parseInt(playerData.streakDays) || 0;
+    currentStreakNum += 1;
+    playerData.streakDays = `${currentStreakNum}d`;
+
+    // Sync global dashboard state
+    updateDashboardState();
+    
+    // Re-render calendar UI views
+    renderMiniCalendar();
+    renderFullCalendar();
+  }
+}
+
+/**
+ * Render Mini Calendar view (Inside the small desktop floating window)
+ */
+function renderMiniCalendar() {
+  const container = document.getElementById("calendar-body");
+  if (!container) return;
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  
+  // Get days count for current month
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  const monthName = today.toLocaleString('default', { month: 'short' }).toUpperCase();
+
+  let gridsHTML = '';
+  for (let d = 1; d <= totalDays; d++) {
+    const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isChecked = calendarState.checkInDates.includes(dateKey);
+    const isToday = d === today.getDate();
+
+    // Default: Cream fill | Checked: Green fill (#788D55)
+    const bgClass = isChecked ? "bg-[#788D55] text-[#FEF4E0]" : "bg-[#FEF4E0] text-[#3D2013]";
+    const borderClass = isToday ? "border-[#A53914] border-[2px]" : "border-[#482A1D]/30 border";
+
+    gridsHTML += `
+      <div title="${dateKey}" class="${bgClass} ${borderClass} h-6 flex items-center justify-center font-pressstart text-[8px] rounded-none select-none">
+        ${d}
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <!-- Mini Grid Display (Top Area) -->
+    <div class="grid grid-cols-7 gap-1 overflow-y-auto pr-1 flex-1">
+      ${gridsHTML}
+    </div>
+
+    <!-- Bottom Month Label & Text Button Row -->
+    <div class="flex items-center justify-between pt-2 mt-1 border-t border-[#482A1D]/20 shrink-0">
+      <span class="font-pressstart text-xs text-[#3D2013]">${monthName} ${year}</span>
+      
+      <!-- VIEW FULL BUTTON (Text & Icon Only) -->
+      <button onclick="openModal('full-calendar-modal')" class="font-pressstart text-[9px] text-[#E87338] hover:text-[#A53914] flex items-center gap-1.5 transition-colors cursor-pointer p-0.5">
+        <span>VIEW FULL</span>
+        <svg class="w-3 h-3 text-current" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+        </svg>
+      </button>
+    </div>
+  `;
+}
+
+/**
+ * Render Full Calendar view (Inside centered modal)
+ */
+function renderFullCalendar() {
+  const container = document.getElementById("full-calendar-grid");
+  const monthHeader = document.getElementById("full-calendar-month-label");
+  if (!container || !monthHeader) return;
+
+  const viewYear = calendarState.viewDate.getFullYear();
+  const viewMonth = calendarState.viewDate.getMonth();
+
+  // Set Header Title
+  const monthName = calendarState.viewDate.toLocaleString('default', { month: 'long' }).toUpperCase();
+  monthHeader.textContent = `${monthName} ${viewYear}`;
+
+  // First day offset (0 = Sun, 1 = Mon...)
+  const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay();
+  const totalDays = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  const todayStr = formatDateKey(new Date());
+
+  let daysHTML = '';
+
+  // Blank slots for start of month padding
+  for (let i = 0; i < firstDayIndex; i++) {
+    daysHTML += `<div class="h-9 sm:h-10 bg-transparent"></div>`;
+  }
+
+  // Day tiles
+  for (let d = 1; d <= totalDays; d++) {
+    const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isChecked = calendarState.checkInDates.includes(dateKey);
+    const isToday = dateKey === todayStr;
+
+    const bgStyle = isChecked 
+      ? "bg-[#788D55] text-[#FEF4E0] border-[#3D2013]" 
+      : "bg-[#FEF4E0] text-[#3D2013] border-[#3D2013]";
+    
+    const todayRing = isToday ? "ring-2 ring-[#E87338] ring-offset-1" : "";
+
+    daysHTML += `
+      <div class="h-9 sm:h-10 border-[2px] ${bgStyle} ${todayRing} flex items-center justify-center font-pressstart text-[10px] sm:text-[11px] relative select-none">
+        ${d}
+      </div>
+    `;
+  }
+
+  container.innerHTML = daysHTML;
+
+  // Toggle Check-in Button / Status message
+  const checkInBtn = document.getElementById("calendar-checkin-btn");
+  const checkInMsg = document.getElementById("calendar-checked-msg");
+
+  if (checkInBtn && checkInMsg) {
+    if (isTodayCheckedIn()) {
+      checkInBtn.classList.add("hidden");
+      checkInMsg.classList.remove("hidden");
+    } else {
+      checkInBtn.classList.remove("hidden");
+      checkInMsg.classList.add("hidden");
+    }
+  }
+}
+
+/**
+ * Calendar Navigation (Previous / Next Month)
+ */
+function changeCalendarMonth(offset) {
+  calendarState.viewDate.setMonth(calendarState.viewDate.getMonth() + offset);
+  renderFullCalendar();
+}
+
+// Ensure Calendars initialize on load
+document.addEventListener("DOMContentLoaded", () => {
+  renderMiniCalendar();
+  renderFullCalendar();
+});
+
+// ==========================================
+// KITSU AI SPARKLE CHAT LOGIC
+// ==========================================
+
+/**
+ * Handles sending a message, rendering user/AI boxes, and triggering response
+ */
+function sendSparkleMessage() {
+  const input = document.getElementById("sparkle-chat-input");
+  const container = document.getElementById("sparkle-chat-container");
+  if (!input || !container) return;
+
+  const text = input.value.trim();
+  if (text.length === 0) return;
+
+  // 1. Render User Message Box (#FCB980 BG)
+  const userMsgHTML = `
+    <div class="self-end max-w-[85%] bg-[#FCB980] border-[2px] border-[#482A1D] p-2.5 shadow-[2px_2px_0px_#482A1D]">
+      <p class="font-pixel text-lg leading-snug text-[#3D2013] break-words">
+        ${escapeHtml(text)}
+      </p>
+    </div>
+  `;
+  container.insertAdjacentHTML("beforeend", userMsgHTML);
+
+  // Clear input
+  input.value = "";
+  scrollToBottomSparkleChat();
+
+  // 2. Simulate AI Response (Connect your backend API here)
+  setTimeout(() => {
+    const aiMsgHTML = `
+      <div class="self-start max-w-[85%] bg-[#DCDDC9] border-[2px] border-[#482A1D] p-2.5 shadow-[2px_2px_0px_#482A1D]">
+        <p class="font-pixel text-lg leading-snug text-[#3D2013] break-words">
+          I received: "${escapeHtml(text)}". Let's crush your study goals today!
+        </p>
+      </div>
+    `;
+    container.insertAdjacentHTML("beforeend", aiMsgHTML);
+    scrollToBottomSparkleChat();
+  }, 600);
+}
+
+/**
+ * Scrolls the chat container to the latest message
+ */
+function scrollToBottomSparkleChat() {
+  const container = document.getElementById("sparkle-chat-container");
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+/**
+ * Monitors scroll position to toggle the lower-right floating arrow button
+ */
+document.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("sparkle-chat-container");
+  const scrollBtn = document.getElementById("sparkle-scroll-btn");
+
+  if (container && scrollBtn) {
+    container.addEventListener("scroll", () => {
+      // Reveal button if user scrolls up more than 60px from bottom
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      if (distanceFromBottom > 60) {
+        scrollBtn.classList.remove("hidden");
+      } else {
+        scrollBtn.classList.add("hidden");
+      }
+    });
+  }
+});
+
+// ==========================================
+// KITSU AI SPARKLE CHAT RESIZE OBSERVER
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  const sparkleWindow = document.getElementById("sparkle-window");
+
+  if (sparkleWindow && window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+      // Keep chat scrolled to bottom when window size changes
+      scrollToBottomSparkleChat();
+    });
+
+    resizeObserver.observe(sparkleWindow);
+  }
+});
