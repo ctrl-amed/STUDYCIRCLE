@@ -346,8 +346,11 @@ fetch("http://127.0.0.1:5000/register", {
 
 // Reset Password Form Submission
 // Reset Password Form Submission
+// Forgot Password
 if (formReset) {
+
   formReset.addEventListener("submit", async (e) => {
+
     e.preventDefault();
 
     const emailVal = resetEmailInput.value.trim();
@@ -355,7 +358,7 @@ if (formReset) {
     resetErrorText.classList.add("hidden");
     resetErrorText.textContent = "";
 
-    if (emailVal === "") {
+    if (!emailVal) {
       resetErrorText.textContent = "✘ Please enter your email.";
       resetErrorText.classList.remove("hidden");
       return;
@@ -363,15 +366,18 @@ if (formReset) {
 
     try {
 
-      const response = await fetch("http://127.0.0.1:5000/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          email: emailVal
-        })
-      });
+      const response = await fetch(
+        "http://127.0.0.1:5000/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email: emailVal
+          })
+        }
+      );
 
       const data = await response.json();
 
@@ -391,14 +397,15 @@ if (formReset) {
 
       }
 
-    } catch (error) {
+    } catch (err) {
 
-      console.error(error);
+      console.error(err);
       alert("Unable to connect to backend.");
 
     }
 
   });
+
 }
 
 // --- NEW REDIRECTED TOAST DETECTION SYSTEM ---
