@@ -3,6 +3,9 @@ from models import db
 from models.user import User
 from utils.security import bcrypt
 
+from flask_mail import Mail, Message
+from utils.mail import mail
+
 import secrets
 from datetime import datetime, timedelta
 
@@ -106,10 +109,10 @@ def forgot_password():
             "message": "Email address not found."
         }), 404
 
-    # Generate secure reset token
+    # Generate secure token
     token = secrets.token_urlsafe(32)
 
-    # Token expires in 15 minutes
+    # Expires in 15 minutes
     expiry = datetime.utcnow() + timedelta(minutes=15)
 
     user.reset_token = token
@@ -117,16 +120,39 @@ def forgot_password():
 
     db.session.commit()
 
-    print("\n==============================")
-    print("PASSWORD RESET TOKEN")
-    print(token)
-    print("==============================\n")
+    # Reset link
+    reset_link = f"http://127.0.0.1:5500/changepassword.html?token={token}"
+
+    # Email
+    msg = Message(
+        subject="Reset your StudyCircle Password",
+        recipients=[user.email]
+    )
+
+    msg.body = f"""
+Hello {user.username},
+
+We received a request to reset your StudyCircle password.
+
+Click the link below to reset your password:
+
+{reset_link}
+
+This link will expire in 15 minutes.
+
+If you didn't request this, simply ignore this email.
+
+- StudyCircle Team
+"""
+
+    mail.send(msg)
 
     return jsonify({
-        "message": "Password reset request accepted."
+        "message": "Password reset link sent successfully."
     }), 200
 
-    # ------------------------
+
+# ------------------------
 # RESET PASSWORD
 # ------------------------
 @auth.route("/reset-password", methods=["POST"])
@@ -146,10 +172,13 @@ def reset_password():
 
     if user is None:
         return jsonify({
-            "message": "Invalid reset token."
-        }), 404
+            "message": "Invalid or expired reset token."
+        }), 400
 
-    if user.reset_token_expiry is None or user.reset_token_expiry < datetime.utcnow():
+    if (
+        user.reset_token_expiry is None or
+        user.reset_token_expiry < datetime.utcnow()
+    ):
         return jsonify({
             "message": "Reset token has expired."
         }), 400

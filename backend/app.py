@@ -5,13 +5,22 @@ from models.user import User
 from routes.auth import auth
 from utils.security import bcrypt
 from flask_cors import CORS
+from utils.mail import mail
 
 app = Flask(__name__)
 CORS(app)
 app.config.from_object(Config)
 
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USERNAME"] = "supportstudycircle@gmail.com"
+app.config["MAIL_PASSWORD"] = "utpemiuldngtispu"
+app.config["MAIL_DEFAULT_SENDER"] = "StudyCircle <supportstudycircle@gmail.com>>"
+
 db.init_app(app)
 bcrypt.init_app(app)
+mail.init_app(app)
 app.register_blueprint(auth)
 
 
