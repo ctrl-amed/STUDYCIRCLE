@@ -221,26 +221,43 @@ function showSuccessToast() {
 
 // Login Form Submission
 if (formLogin) {
-  formLogin.addEventListener('submit', (e) => {
+  formLogin.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const emailVal = loginEmailInput.value.trim();
     const passwordVal = loginPasswordInput.value;
-    
+
     loginEmailInput.style.borderColor = "#3D2013";
     loginPasswordInput.style.borderColor = "#3D2013";
-    loginErrorText.classList.add('hidden');
-    loginErrorText.textContent = '';
+    loginErrorText.classList.add("hidden");
+    loginErrorText.textContent = "";
 
-    const validEmail = "user@studycircle.app";
-    const validPassword = "password123";
+    try {
+      const response = await fetch("http://127.0.0.1:5000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: emailVal,
+          password: passwordVal
+        })
+      });
 
-    if (emailVal.toLowerCase() === validEmail && passwordVal === validPassword) {
-      triggerLoadingAndRedirect('◆ LOGGING IN ◆');
-    } else {
-      loginEmailInput.style.borderColor = "#A94A4A";
-      loginPasswordInput.style.borderColor = "#A94A4A";
-      loginErrorText.textContent = "✘ Invalid email or password.";
-      loginErrorText.classList.remove('hidden');
+      const data = await response.json();
+
+      if (response.ok) {
+        triggerLoadingAndRedirect("◆ LOGGING IN ◆");
+      } else {
+        loginEmailInput.style.borderColor = "#A94A4A";
+        loginPasswordInput.style.borderColor = "#A94A4A";
+        loginErrorText.textContent = data.message;
+        loginErrorText.classList.remove("hidden");
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert("Unable to connect to backend.");
     }
   });
 }
@@ -288,39 +305,98 @@ if (formSignup) {
 
     if (hasError) return;
 
-    signupUsernameInput.value = '';
-    signupEmailInput.value = '';
-    signupPasswordInput.value = '';
-    
-    triggerLoadingAndRedirect('◆ CREATING ACCOUNT ◆');
+fetch("http://127.0.0.1:5000/register", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        username: usernameVal,
+        email: emailVal,
+        password: passwordVal
+    })
+})
+.then(response => response.json())
+.then(data => {
+
+    if (data.message === "User registered successfully!") {
+
+        signupUsernameInput.value = '';
+        signupEmailInput.value = '';
+        signupPasswordInput.value = '';
+
+        triggerLoadingAndRedirect("◆ CREATING ACCOUNT ◆");
+
+    } else {
+
+        signupEmailInput.style.borderColor = "#A94A4A";
+        signupEmailError.textContent = data.message;
+        signupEmailError.classList.remove("hidden");
+
+    }
+
+})
+.catch(error => {
+    console.error(error);
+    alert("Unable to connect to the backend.");
+});
   });
 }
 
 // Reset Password Form Submission
+// Reset Password Form Submission
 if (formReset) {
-  formReset.addEventListener('submit', (e) => {
+  formReset.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const emailVal = resetEmailInput.value.trim();
 
-    if (emailVal === '') {
-      resetErrorText.textContent = "✘ Textbox is empty! Please enter your email.";
-      resetErrorText.classList.remove('hidden');
+    resetErrorText.classList.add("hidden");
+    resetErrorText.textContent = "";
+
+    if (emailVal === "") {
+      resetErrorText.textContent = "✘ Please enter your email.";
+      resetErrorText.classList.remove("hidden");
       return;
     }
 
-    if (!mockDatabase.includes(emailVal.toLowerCase())) {
-      resetErrorText.textContent = "✘ Email address not found in our system.";
-      resetErrorText.classList.remove('hidden');
-      return;
+    try {
+
+      const response = await fetch("http://127.0.0.1:5000/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: emailVal
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+
+        resetEmailInput.value = "";
+
+        toggleViews(true, false, false);
+        setTabActive("login");
+
+        showSuccessToast();
+
+      } else {
+
+        resetErrorText.textContent = "✘ " + data.message;
+        resetErrorText.classList.remove("hidden");
+
+      }
+
+    } catch (error) {
+
+      console.error(error);
+      alert("Unable to connect to backend.");
+
     }
 
-    resetErrorText.classList.add('hidden');
-    resetEmailInput.value = '';
-    
-    toggleViews(true, false, false);
-    setTabActive('login');
-    
-    showSuccessToast();
   });
 }
 
