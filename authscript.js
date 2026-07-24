@@ -127,7 +127,7 @@ function triggerLoadingAndRedirect(statusText) {
       clearInterval(interval);
       
       setTimeout(() => {
-        window.location.href = "https://dashboard.studycircle.app/placeholder";
+        window.location.href = "homepage.html"; // Redirect to the dashboard or desired page
       }, 350);
     }
     
@@ -188,7 +188,7 @@ if (btnToggleSignupPassword && signupPasswordInput && signupEyeIcon) {
 // Toast Generator Function for internal screen reset
 function showSuccessToast() {
   const toast = document.createElement('div');
-  toast.className = "bg-[#FBF2E3] border-4 border-[#3D2013] p-4 flex flex-col gap-2 relative shadow-md transition-all duration-300 max-w-xs retro-shadow pointer-events-auto opacity-0 translate-y-[-20px]";
+  toast.className = "bg-[#FBF2E3] border-4 border-[#3D2013] p-4 flex flex-col gap-2 relative shadow-md transition-all duration-300 max-w-xs retro-shadow pointer-events-auto opacity-0 translate-y-[-20px] !rounded-none overflow-hidden";
   toast.style.boxShadow = "4px 4px 0px #3D2013";
 
   toast.innerHTML = `
@@ -198,7 +198,8 @@ function showSuccessToast() {
       </svg>
       <span class="font-pixel text-[14px] text-[#482A1D] whitespace-nowrap tracking-wide">Password link sent!</span>
     </div>
-    <div class="w-32 bg-transparent h-1.5 flex justify-center mt-1 mx-auto overflow-hidden">
+    <!-- PROGRESS BAR (TOUCHING BOTTOM BORDER DIRECTLY) -->
+    <div class="w-full bg-transparent h-1.5 flex justify-center mt-auto overflow-hidden">
       <div class="w-full h-full bg-[#788D55] animate-progress-center"></div>
     </div>
   `;

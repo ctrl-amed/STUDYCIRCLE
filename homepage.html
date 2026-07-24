@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<!-- 1. BASE BACKGROUND COLOR (ADDED BOTTOM PADDING TO PREVENT NAV OVERLAP) -->
+<body class="bg-[#FAE9CE] min-h-screen relative text-[#3D2013] overflow-x-hidden">
+
+  <!-- 2. FIXED BACKGROUND TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 3. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- CENTER STUDY ROOM IMAGE CONTAINER -->
+  <div class="fixed inset-0 z-0 flex items-center justify-center pointer-events-none p-4 pb-20 pt-20">
+    <img src="media/study_room.png" alt="Study Room" class="max-w-full max-h-full object-contain drop-shadow-md">
+  </div>
+
+  <!-- 4. MAIN CONTENT LAYER -->
+  <div class="relative z-10 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Container -->
+    <main class="flex-1 w-full py-4 sm:py-6 px-3 sm:px-6">
+      
+      <!-- TOP NAVIGATION BAR GRID -->
+      <div class="flex items-start justify-between gap-2 sm:gap-4 flex-nowrap">
+        
+        <!-- LEFT GROUP: PLAYER PROFILE & LEADERBOARD BUTTON -->
+        <div class="flex items-start sm:items-start gap-2 sm:gap-3 shrink-0">
+          
+          <!-- PLAYER PROFILE WIDGET (BORDERLESS/COMPACT ON MOBILE, FULL CARD ON SM+) -->
+          <div onclick="if(window.innerWidth < 640) openModal('profile-modal')" 
+               class="cursor-pointer sm:cursor-default bg-transparent sm:bg-[#FEF4E0] border-0 sm:border-[3px] border-[#3D2013] sm:rounded-[10px] p-0 sm:p-4 flex items-start gap-3 sm:gap-4 w-auto sm:min-w-[320px]">
+            
+            <!-- AVATAR & LEVEL BADGE -->
+            <div class="relative flex-shrink-0">
+              <div class="w-11 h-11 sm:w-16 sm:h-16 rounded-full border-[3px] border-[#3D2013] bg-[#FAE9CE] overflow-hidden flex items-center justify-center">
+                <img id="player-avatar" src="" alt="Player Avatar" class="w-full h-full object-cover hidden">
+                <svg id="avatar-placeholder" class="w-7 h-7 sm:w-10 sm:h-10 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L2 9l2 11h16l2-11L12 2zm0 4a3 3 0 110 6 3 3 0 010-6zm-6 12v-1.5c0-1.65 2.7-3 6-3s6 1.35 6 3V18H6z"/>
+                </svg>
+              </div>
+              <div class="absolute -bottom-1 -right-1 bg-[#FD923E] border-[2px] sm:border-[3px] border-[#3D2013] px-1 sm:px-1.5 py-0.5 text-center flex items-center justify-center min-w-[20px] sm:min-w-[24px] rounded-[4px]">
+                <span id="player-level" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] font-bold">1</span>
+              </div>
+            </div>
+
+            <!-- PLAYER DETAILS (HIDDEN ON MOBILE, VISIBLE ON SM+) -->
+            <div class="hidden sm:flex flex-1 flex-col gap-1.5">
+              <h2 id="player-name" class="font-pressstart text-[14px] sm:text-[16px] text-[#3D2013] tracking-tight truncate leading-none">ACORN_HERO</h2>
+              <div class="w-full bg-[#FEF4E0] border-[3px] border-[#3D2013] h-4 sm:h-5 relative overflow-hidden rounded-[4px]">
+                <div id="xp-bar-fill" class="bg-[#FD923E] h-full transition-all duration-300" style="width: 0%;"></div>
+              </div>
+              <div id="xp-text" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] mt-0.5 leading-none">
+                0/10,000 XP
+              </div>
+            </div>
+          </div>
+
+          <!-- LEADERBOARD BUTTON -->
+          <a href="leaderboard.html" title="Leaderboard" 
+            class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1 sm:p-1.5 flex items-start justify-center transition-all duration-150 retro-shadow shrink-0">
+            <svg class="w-6 h-6 sm:w-8 sm:h-8 text-[#788D55]" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <rect x="9.5" y="5" width="5" height="14" rx="1" />
+              <rect x="4" y="10" width="5" height="9" rx="1" />
+              <rect x="15" y="12" width="5" height="7" rx="1" />
+            </svg>
+          </a>
+
+        </div>
+
+        <!-- RIGHT GROUP: STATUS COMPONENTS (FITS ON ONE ROW) -->
+        <div class="flex items-center sm:items-start gap-1 sm:gap-2 flex-nowrap shrink-0">
+          
+          <!-- 4. OUTER RIGHT: COINS STATUS (COMPACT FOR MOBILE) -->
+          <div class="relative flex items-center bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-full pl-2 sm:pl-4 pr-7 sm:pr-12 py-1 mr-1 sm:mr-1.5">
+            <!-- Coin Icon -->
+            <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 sm:w-7 sm:h-7 object-contain mr-1 sm:mr-2 shrink-0" 
+                 onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
+            <!-- Fallback SVG Coin Icon -->
+            <svg class="w-4 h-4 sm:w-6 sm:h-6 text-[#FFBA1F] hidden mr-1 sm:mr-2 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="#3D2013" stroke-width="2"/>
+              <circle cx="12" cy="12" r="6" fill="#ED8C00"/>
+            </svg>
+
+            <!-- Dynamic Coins Number -->
+            <span id="coins-count" class="font-pressstart text-[10px] sm:text-[16px] text-[#482A1D] tracking-tight">12,234</span>
+
+            <!-- Plus Add Button -->
+            <button onclick="openModal('add-coins-modal')" title="Add Coins"
+                    class="absolute -right-1.5 sm:-right-3 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-[#FFBA1F] border-[2px] sm:border-[3px] border-[#ED8C00] flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform shadow-[1px_1px_0px_#3D2013] sm:shadow-[2px_2px_0px_#3D2013] cursor-pointer">
+              <svg class="w-3.5 h-3.5 sm:w-6 sm:h-6 text-white stroke-[3] sm:stroke-[4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 3. BESIDE COINS: FRIENDS STATUS (ICON-ONLY ON MOBILE) -->
+          <button onclick="openModal('friends-modal')" title="Friends Status"
+                  class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-2 transition-all duration-150 retro-shadow cursor-pointer">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#788D55]" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+            </svg>
+            <span id="friends-count" class="hidden sm:inline font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">5</span>
+          </button>
+
+          <!-- 2. BESIDE FRIENDS: STREAK STATUS (ICON-ONLY ON MOBILE) -->
+          <button onclick="openModal('full-calendar-modal')" title="Streak Status"
+                  class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 transition-all duration-150 retro-shadow cursor-pointer">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#ED8C00]" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13.5 1.5c.41 2.6-1.12 4.88-2.6 6.88-1.07 1.45-2.28 2.87-2.6 4.67-.32 1.83.24 3.65 1.43 4.95.83.91 1.93 1.5 3.07 1.7-1.31-.38-2.52-1.2-3.32-2.33-.99-1.38-1.12-3.14-.38-4.6.64-1.26 1.76-2.22 2.62-3.37 1.62-2.16 2.37-4.88 1.78-7.9zM12 22c4.42 0 8-3.58 8-8 0-3.38-2.07-6.28-5-7.5.38 2.38-.5 4.88-2.3 6.6-1.8 1.72-4.22 2.5-6.7 2.1 1.28 4.02 5.2 6.8 10 6.8z"/>
+            </svg>
+            <span id="streak-count" class="hidden sm:inline font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">2d</span>
+          </button>
+
+<!-- 1. INNER RIGHT: LOGOUT BUTTON -->
+<button onclick="openModal('logout-modal')" title="Logout"
+        class="bg-[#A53914] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow shrink-0 cursor-pointer">
+  <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+  </svg>
+</button>
+
+        </div>
+
+      </div>
+
+<!-- SEPARATE INDEPENDENT CONTAINER: 4 ACTION ROWS (UNDER PROFILE CARD) -->
+<div class="mt-3 flex flex-col gap-2 w-full sm:max-w-[320px]">
+  
+  <!-- ROW 1: CHECKLIST -->
+  <div class="group inline-flex items-center gap-3 self-start cursor-pointer">
+    <button onclick="toggleModal('checklist-modal')" title="Checklist"
+            class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
+      <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#788D55]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M9 11l3 3L22 4" />
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+      </svg>
+    </button>
+    <span id="checklist-task-count" class="hidden group-hover:inline-block font-pressstart text-[11px] sm:text-[12px] text-[#788D55] whitespace-nowrap select-none">
+    3 Tasks
+  </span>
+  </div>
+
+<!-- ROW 2: TIMER -->
+<div class="group inline-flex items-center gap-3 self-start cursor-pointer">
+  <button onclick="toggleModal('timer-modal')" title="Timer"
+          class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
+    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#A53914]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 15 15" />
+    </svg>
+  </button>
+  
+  <!-- ADDED ID AND TRANSITION COLOR HERE -->
+  <span id="mini-timer-display" class="hidden group-hover:inline-block font-pressstart text-[11px] sm:text-[12px] text-[#A53914] transition-colors duration-200 whitespace-nowrap select-none">
+    00:00
+  </span>
+</div>
+
+<!-- ROW 3: CALENDAR ACTION BUTTON -->
+<div class="inline-flex items-center self-start">
+  <button onclick="toggleModal('calendar-modal')" title="Calendar"
+          class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
+    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#708EA4]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  </button>
+</div>
+
+  <!-- ROW 4: SPARKLE [AI] -->
+  <div class="inline-flex items-center self-start">
+    <button onclick="toggleModal('sparkle-modal')" title="AI Sparkle"
+            class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
+      <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#FD923E]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2z" />
+      </svg>
+    </button>
+  </div>
+
+</div>
+    </main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODALS PLACEHOLDERS (CENTERED WITH BLURRED BACKDROP)                      -->
+  <!-- ========================================================================= -->
+
+  <!-- PROFILE MODAL (TRIGGERED ON MOBILE) -->
+  <div id="profile-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] p-6 max-w-sm w-full relative flex flex-col items-center text-center">
+      <button onclick="closeModal('profile-modal')" class="absolute top-3 right-3 text-[#3D2013] font-pressstart text-xs hover:text-[#A53914] cursor-pointer">[X]</button>
+      
+      <!-- Avatar & Level -->
+      <div class="relative mb-4">
+        <div class="w-20 h-20 rounded-full border-[3px] border-[#3D2013] bg-[#FAE9CE] overflow-hidden flex items-center justify-center">
+          <img id="modal-player-avatar" src="" alt="Player Avatar" class="w-full h-full object-cover hidden">
+          <svg id="modal-avatar-placeholder" class="w-12 h-12 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L2 9l2 11h16l2-11L12 2zm0 4a3 3 0 110 6 3 3 0 010-6zm-6 12v-1.5c0-1.65 2.7-3 6-3s6 1.35 6 3V18H6z"/>
+          </svg>
+        </div>
+        <div class="absolute -bottom-1 -right-1 bg-[#FD923E] border-[3px] border-[#3D2013] px-2 py-0.5 text-center flex items-center justify-center rounded-[4px]">
+          <span id="modal-player-level" class="font-pressstart text-[10px] text-[#3D2013] font-bold">1</span>
+        </div>
+      </div>
+
+      <!-- Username -->
+      <h2 id="modal-player-name" class="font-pressstart text-[16px] text-[#3D2013] tracking-tight mb-3">ACORN_HERO</h2>
+      
+      <!-- XP Progress -->
+      <div class="w-full bg-[#FAE9CE] border-[3px] border-[#3D2013] h-5 relative overflow-hidden rounded-[4px] mb-2">
+        <div id="modal-xp-bar-fill" class="bg-[#FD923E] h-full transition-all duration-300" style="width: 0%;"></div>
+      </div>
+      <span id="modal-xp-text" class="font-pressstart text-[10px] text-[#3D2013]">0 / 10,000 XP</span>
+    </div>
+  </div>
+
+
+<!-- ========================================================================= -->
+<!-- FRIENDS MODAL (RIGHT SIDE DOCK: ~1/4 SCREEN ON DESKTOP)                   -->
+<!-- ========================================================================= -->
+<div id="friends-modal" class="modal hidden fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm transition-all duration-300">
+  <!-- RIGHT SIDE DOCKED CONTAINER -->
+  <div class="bg-[#FEF4E0] border-l-[3px] sm:border-l-[4px] border-[#3D2013] h-full w-full sm:w-2/3 md:w-1/3 lg:w-1/4 max-w-md flex flex-col justify-between shadow-2xl relative overflow-hidden transition-transform duration-300">
+    
+    <!-- HEADER -->
+    <div class="bg-[#482A1D] border-b-[3px] border-[#3D2013] px-4 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-6 h-6 text-[#F9EDDA]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+        </svg>
+        <h3 class="font-pressstart text-xs text-[#F9EDDA] tracking-wide">FRIENDS</h3>
+      </div>
+      <!-- CLOSE BUTTON (CLOSES BOTH FRIENDS LIST & CHAT MODAL) -->
+      <button onclick="closeModal('friends-modal')" title="Close" class="text-[#F9EDDA] hover:text-[#A53914] cursor-pointer p-0.5 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- MAIN FRIENDS SCROLLABLE BODY -->
+    <div id="friends-list-container" class="flex-1 overflow-y-auto p-3 flex flex-col gap-4 relative">
+<!-- ONLINE FRIENDS SECTION -->
+<div>
+  <div class="flex items-center gap-1.5 mb-2 px-1">
+    <!-- GREEN ONLINE STATUS SQUARE -->
+    <span class="w-2.5 h-2.5 bg-[#788D55] shrink-0"></span>
+
+    <!-- LABEL & DYNAMIC COUNT -->
+    <span class="font-pressstart text-[10px] text-[#795F4A] uppercase tracking-wider flex items-center">
+      ONLINE - <span id="friends-online-badge" class="ml-1">0</span>
+    </span>
+  </div>
+  <div id="friends-online-list" class="flex flex-col gap-2"></div>
+</div>
+
+<!-- OFFLINE FRIENDS SECTION -->
+<div>
+  <div class="flex items-center gap-1.5 mb-2 px-1 mt-2">
+    <!-- GREY OFFLINE STATUS SQUARE -->
+    <span class="w-2.5 h-2.5 bg-[#B29E8A] shrink-0"></span>
+
+    <!-- LABEL & DYNAMIC COUNT -->
+    <span class="font-pressstart text-[10px] text-[#795F4A] uppercase tracking-wider flex items-center">
+      OFFLINE - <span id="friends-offline-badge" class="ml-1">0</span>
+    </span>
+  </div>
+  <div id="friends-offline-list" class="flex flex-col gap-2"></div>
+</div>
+    </div>
+
+    <!-- SEARCH BAR & ADD USER FOOTER -->
+    <div class="border-t-[3px] border-[#3D2013] p-3 bg-[#FEF4E0] shrink-0 relative">
+      
+      <div id="friends-toast" class="hidden absolute -top-12 left-3 right-3 p-2 bg-[#FEF4E0] border-[2px] border-[#3D2013] shadow-[2px_2px_0px_#3D2013] flex items-center justify-between z-20 transition-all duration-200">
+        <span id="friends-toast-msg" class="font-pixel text-lg leading-none text-[#FEF4E0] truncate pr-2"></span>
+        <button onclick="hideFriendsToast()" class="font-pressstart text-[8px] text-[#3D2013] hover:text-[#A53914] cursor-pointer">✕</button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input type="text" id="friend-search-input" 
+               placeholder="Search user..." 
+               onkeydown="if(event.key === 'Enter') handleAddFriendSearch()"
+               class="flex-1 bg-[#FAE9CE] border-[2px] border-[#3D2013] px-2.5 py-1.5 font-pixel text-lg text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none focus:bg-[#FEF4E0]" />
+<button onclick="handleAddFriendSearch()" 
+        title="Add Friend"
+        class="bg-[#F9EDDA] border-[2.5px] border-[#3D2013] p-3 text-[#482A1D] rounded-lg transition-all duration-150 retro-shadow hover:brightness-105 active:translate-x-[1px] active:translate-y-[1px] cursor-pointer shrink-0">
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- FRIEND CHAT MODAL (RETRO RESIZABLE DOCKED WINDOW AT BOTTOM LEFT OF DOCK) -->
+<!-- ========================================================================= -->
+<div id="friend-chat-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 md:bg-transparent md:backdrop-blur-none md:p-0 md:inset-auto md:bottom-0 md:right-[calc(25%+1px)]">
+  <div id="friend-chat-window" 
+       class="bg-[#FEF4E0] border-[3px] border-[#482A1D] rounded-none p-0 relative overflow-hidden shadow-2xl flex flex-col resize-tl"
+       style="width: 380px; height: 420px; min-width: 300px; min-height: 280px; max-width: 550px; max-height: 520px;">
+    
+<!-- RESIZE HANDLE (TOP-LEFT CORNER) -->
+<div id="friend-chat-resize-handle" class="absolute top-0 left-0 w-4 h-4 z-30 cursor-nwse-resize flex items-center justify-center">
+  <div class="w-2.5 h-2.5 border-t-[2px] border-l-[2px] border-[#482A1D]"></div>
+</div>
+
+    <!-- HEADER -->
+    <div class="bg-[#EBD9C4] border-b-[3px] border-[#482A1D] px-4 py-2.5 flex items-center justify-between shrink-0 pl-5">
+      <div class="flex items-center gap-2.5">
+        <!-- AVATAR WITH BOTTOM-RIGHT ONLINE STATUS DOT -->
+        <div class="relative shrink-0">
+          <div class="w-7 h-7 rounded-full bg-[#788D55] border-[1.5px] border-[#3D2013] flex items-center justify-center overflow-hidden">
+            <img id="chat-modal-avatar" src="" alt="" class="w-full h-full object-cover hidden">
+            <span id="chat-modal-avatar-fallback" class="font-pressstart text-[8px] text-[#FEF4E0]">?</span>
+          </div>
+          <div id="chat-modal-status-dot" class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-[1.5px] border-[#3D2013] bg-[#788D55]"></div>
+        </div>
+        
+        <!-- USERNAME (VERTICALLY CENTERED) -->
+        <div class="flex items-center">
+          <h3 id="chat-modal-username" class="font-pressstart text-xs text-[#3D2013] leading-none">FRIEND</h3>
+        </div>
+      </div>
+
+      <button onclick="closeModal('friend-chat-modal')" title="Close" class="text-[#3D2013] hover:text-[#A53914] cursor-pointer p-0.5 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- CHAT BODY -->
+    <div class="flex-1 flex flex-col justify-between overflow-hidden p-3 gap-2 bg-[#FEF4E0] relative">
+      <div id="friend-chat-messages-container" class="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 scroll-smooth">
+        <!-- Chat messages rendered dynamically -->
+      </div>
+
+      <!-- SCROLL TO BOTTOM BUTTON -->
+      <button id="friend-scroll-btn" onclick="scrollToBottomFriendChat()"
+              class="hidden absolute bottom-14 right-4 w-7 h-7 bg-[#FD923E] border-[2px] border-[#482A1D] text-[#FEF4E0] flex items-center justify-center shadow-[2px_2px_0px_#482A1D] hover:scale-105 active:scale-95 transition-all cursor-pointer z-10"
+              title="Scroll to latest message">
+        <svg class="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <!-- INPUT FOOTER -->
+      <div class="flex items-center gap-2 pt-1 border-t-[2px] border-[#482A1D]/20 shrink-0">
+        <input type="text" id="friend-chat-input" 
+               placeholder="Type a message..." 
+               onkeydown="if(event.key === 'Enter') sendFriendChatMessage()"
+               class="flex-1 bg-[#FAE9CE] border-[2px] border-[#482A1D] px-3 py-1.5 font-pixel text-lg text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none focus:bg-[#FEF4E0]" />
+<button onclick="sendFriendChatMessage()" title="Send Message"
+        class="w-9 h-9 bg-[#FD923E] border-[2.5px] border-[#482A1D] flex items-center justify-center text-[#FEF4E0] !rounded-none transition-all duration-150 retro-shadow [@media(hover:hover)]:hover:brightness-105 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus:outline-none cursor-pointer shrink-0">
+  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+  </svg>
+</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD COINS MODAL -->
+<div id="add-coins-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+  
+  <!-- Outer Border: #3D2013 | Inner Border: #F6DBBC | Fixed Container -->
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-8 max-w-lg w-full min-h-[360px] flex flex-col items-center justify-center text-center relative">
+    
+    <!-- ========================================== -->
+    <!-- VIEW 1: SELECTION STATE (DEFAULT) -->
+    <!-- ========================================== -->
+    <div id="coin-modal-selection" class="w-full flex flex-col items-center justify-center">
+      
+      <!-- HEADER -->
+      <h3 class="font-pressstart text-lg sm:text-xl text-[#3D2013] mb-3">Buy Coins</h3>
+
+      <!-- MESSAGE -->
+      <p class="font-pixel text-2xl text-[#3D2013] mb-6 leading-tight">
+        Get more coins to decorate and unlock new items!
+      </p>
+
+      <!-- COIN PACKAGES GRID (3 CARDS) -->
+      <div class="grid grid-cols-3 gap-3.5 w-full mb-7">
+        
+        <!-- CARD 1: 500 COINS -->
+        <button type="button" 
+                onclick="selectCoinPackage(this)"
+                data-package="500"
+                class="coin-card bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0">
+          <div class="check-badge hidden absolute -top-2 -right-2 bg-[#788D55] border-[2px] border-[#3D2013] text-[#FEF4E0] text-[8px] font-pressstart rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10">✓</div>
+          
+          <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+            <img src="media/coin_logo.png" alt="Coin Logo" class="w-6 h-6 object-contain shrink-0" />
+            <span class="font-pressstart text-xs text-[#3D2013]">500</span>
+          </div>
+          <div class="w-full bg-[#F6DBBC] rounded-md py-1.5 text-center">
+            <span class="font-pressstart text-[10px] text-[#3D2013]">₱200</span>
+          </div>
+        </button>
+
+        <!-- CARD 2: 1250 COINS (POPULAR / GREEN DESIGN - PRE-SELECTED) -->
+        <button type="button" 
+                onclick="selectCoinPackage(this)"
+                data-package="1250"
+                class="coin-card selected-card bg-[#E4E2CA] border-[3px] border-[#788D55] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0">
+          <div class="check-badge absolute -top-2 -right-2 bg-[#788D55] border-[2px] border-[#3D2013] text-[#FEF4E0] text-[8px] font-pressstart rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10">✓</div>
+
+          <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+            <img src="media/coin_logo.png" alt="Coin Logo" class="w-6 h-6 object-contain shrink-0" />
+            <span class="font-pressstart text-xs text-[#3D2013]">1250</span>
+          </div>
+          <div class="w-full bg-[#DFDABD] rounded-md py-1 text-center flex flex-col items-center justify-center gap-0.5">
+            <span class="bg-[#788D55] text-[#FEF4E0] font-pressstart text-[7px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Popular</span>
+            <span class="font-pressstart text-[10px] text-[#3D2013]">₱500</span>
+          </div>
+        </button>
+
+        <!-- CARD 3: 3000 COINS -->
+        <button type="button" 
+                onclick="selectCoinPackage(this)"
+                data-package="3000"
+                class="coin-card bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0">
+          <div class="check-badge hidden absolute -top-2 -right-2 bg-[#788D55] border-[2px] border-[#3D2013] text-[#FEF4E0] text-[8px] font-pressstart rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10">✓</div>
+
+          <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+            <img src="media/coin_logo.png" alt="Coin Logo" class="w-6 h-6 object-contain shrink-0" />
+            <span class="font-pressstart text-xs text-[#3D2013]">3000</span>
+          </div>
+          <div class="w-full bg-[#F6DBBC] rounded-md py-1.5 text-center">
+            <span class="font-pressstart text-[10px] text-[#3D2013]">₱1000</span>
+          </div>
+        </button>
+
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="flex items-center gap-4 w-full">
+        <!-- CANCEL BUTTON -->
+        <button 
+          onclick="closeModal('add-coins-modal')" 
+          class="flex-1 font-pressstart text-xs bg-[#F6DBBC] border-[2.5px] border-[#3D2013] text-[#3D2013] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+          CANCEL
+        </button>
+
+        <!-- PURCHASE BUTTON -->
+        <button 
+          onclick="processPurchase()" 
+          class="flex-1 font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+          PURCHASE
+        </button>
+      </div>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: LOADING STATE -->
+    <!-- ========================================== -->
+    <div id="coin-modal-loading" class="hidden w-full flex flex-col items-center justify-center py-6 gap-4">
+      <div class="w-12 h-12 border-4 border-[#3D2013] border-t-[#788D55] rounded-full animate-spin"></div>
+      <h3 class="font-pressstart text-sm text-[#3D2013] animate-pulse">PROCESSING...</h3>
+      <p class="font-pixel text-xl text-[#3D2013]/80">Please wait while we prepare your coins.</p>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: SUCCESS STATE -->
+    <!-- ========================================== -->
+    <div id="coin-modal-success" class="hidden w-full flex flex-col items-center justify-center py-2 relative">
+      
+      <!-- SUCCESS ICON -->
+      <div class="w-16 h-16 bg-[#788D55] border-[3px] border-[#3D2013] rounded-full flex items-center justify-center mb-4 retro-shadow">
+        <svg class="w-8 h-8 text-[#FEF4E0]" viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="square" stroke-linejoin="square"/>
+        </svg>
+      </div>
+
+      <h3 class="font-pressstart text-lg text-[#3D2013] mb-2">Purchase Successful!</h3>
+      <p class="font-pixel text-2xl text-[#3D2013] mb-6">
+        <span id="purchased-coin-amount" class="font-bold text-[#788D55]">1,250</span> Coins have been added to your balance.
+      </p>
+
+      <button 
+        onclick="closeModal('add-coins-modal')" 
+        class="font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 px-8 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+        DONE
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- LOGOUT MODAL -->
+<div id="logout-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+  
+  <!-- Expanded Container: max-w-md, p-8, larger text -->
+<div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-8 max-w-md w-full flex flex-col items-center justify-center text-center">    
+    <!-- HEADER -->
+    <h3 class="font-pressstart text-base sm:text-lg text-[#3D2013] mb-4">LOGOUT</h3>
+
+    <!-- MESSAGE -->
+    <p class="font-pixel text-2xl text-[#3D2013] mb-6">
+      Are you sure you want to log out?
+    </p>
+
+    <!-- ACTION BUTTONS -->
+    <div class="flex items-center gap-4 w-full">
+      
+      <!-- CANCEL BUTTON -->
+      <button 
+        onclick="closeModal('logout-modal')" 
+        class="flex-1 font-pressstart text-xs bg-[#F6DBBC] border-[2.5px] border-[#3D2013] text-[#3D2013] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+        CANCEL
+      </button>
+
+      <!-- CONFIRM BUTTON -->
+      <a 
+        href="index.html" 
+        class="flex-1 text-center font-pressstart text-xs bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer block">
+        CONFIRM
+      </a>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+  <!-- CHECKLIST MODALS                                                         -->
+  <!-- ========================================================================= -->
+
+<!-- MAIN CHECKLIST MODAL -->
+<div id="checklist-modal" class="modal hidden fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 md:bg-transparent md:backdrop-blur-none md:p-0 md:inset-auto md:top-20 md:right-6">
+  <!-- Set explicit fixed dimensions: w-[340px] and h-[380px] -->
+  <div class="bg-[#FEF4E0] border-[3px] border-[#482A1D] rounded-none p-0 w-[400px] h-[300px] relative overflow-hidden shadow-lg flex flex-col">
+    
+    <!-- HEADER (Fixed height header) -->
+    <div class="bg-[#EBD9C4] border-b-[3px] border-[#482A1D] px-4 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2.5">
+        <!-- Checkbox Icon -->
+        <div class="w-6 h-6 bg-[#788D55] border-[2px] border-[#482A1D] flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-[#FEF4E0]" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+        </div>
+        <h3 class="font-pressstart text-xs text-[#3D2013]">CHECKLIST</h3>
+      </div>
+
+<!-- RIGHT HEADER ACTIONS -->
+<div class="flex items-center gap-2">
+  <!-- ADD / EDIT TASKS BUTTON -->
+  <button onclick="openAddTaskModal()" title="Add / Edit Tasks" class="text-[#3D2013] hover:text-[#788D55] cursor-pointer p-0.5 transition-colors">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  </button>
+
+  <!-- CLOSE BUTTON -->
+  <button onclick="closeModal('checklist-modal')" title="Close" class="text-[#3D2013] hover:text-[#A53914] cursor-pointer p-0.5 transition-colors">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  </button>
+</div>
+    </div>
+
+    <!-- TASK LIST BODY (Fills remaining height, scrolls vertically) -->
+    <!-- Scrollable task list container -->
+<div class="p-4 flex-1 flex flex-col gap-2.5 overflow-y-auto" id="checklist-tasks-container">
+  <!-- Rendered dynamically via JavaScript -->
+</div>
+
+<!-- Static Footer Ratio Bar (Stays pinned at bottom, outside the scrollable area) -->
+<div class="px-4 py-2.5 bg-[#EBD9C4] border-t-[2px] border-[#482A1D] flex items-center justify-between shrink-0">
+  <span id="checklist-ratio-text" class="font-pixel text-lg text-[#482A1D]">
+    0/0 completed
+  </span>
+  
+  <!-- Optional Progress Bar Visual -->
+  <div class="w-28 h-3 bg-[#FEF4E0] border-[2px] border-[#482A1D] overflow-hidden p-[1px]">
+    <div id="checklist-progress-bar" 
+         class="h-full bg-[#788D55] transition-all duration-300" 
+         style="width: 0%;">
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+
+
+  <!-- ADD / EDIT TASK MODAL (CENTERED POPUP) -->
+  <div id="add-task-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[23px] p-5 sm:p-6 max-w-md w-full relative flex flex-col gap-4 shadow-xl">
+      
+<!-- HEADER -->
+<div class="w-full flex flex-col gap-3">
+  <div class="flex items-center gap-3 w-full">
+    <div class="w-8 h-8 bg-[#788D55] border-[2px] border-[#3D2013] flex items-center justify-center shrink-0">
+      <svg class="w-5 h-5 text-[#FEF4E0]" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+    </div>
+    <h3 class="font-pressstart text-[14px] sm:text-[16px] text-[#3D2013]">Add Task</h3>
+  </div>
+
+  <!-- DIVIDER LINE (Full Width of Content Area) -->
+<div class="w-[calc(100%+2.5rem)] sm:w-[calc(100%+3rem)] -mx-5 sm:-mx-6 border-b-[2px] border-[#3D2013]"></div>
+</div>
+
+      <!-- EDITABLE TASKS LIST CONTAINER -->
+      <div id="edit-task-list" class="bg-[#FEF4E0] gap-1 flex flex-col max-h-[280px] overflow-y-auto scrollbar-hide">
+        <!-- Dynamically rendered editable task rows -->
+      </div>
+
+<!-- ADD NEW TASK BUTTON CONTAINER -->
+<div class="w-full flex justify-start">
+  <button onclick="addNewTaskRow()" class="w-1/2 bg-[#788D55] border-[2px] border-[#482A1D] rounded-none py-2 px-3 flex items-center justify-center gap-2 text-[#FEF4E0] transition-all retro-shadow shrink-0">
+    <span class="font-pressstart text-sm">+</span>
+    <span class="font-pressstart text-xs">Add Task</span>
+  </button>
+</div>
+
+<!-- FOOTER BUTTONS -->
+<div class="flex items-center gap-3 mt-1 pt-2 w-full">
+  
+  <!-- CANCEL BUTTON (Cream Fill, Dark Text & Border) -->
+  <button 
+    onclick="closeModal('add-task-modal')" 
+    class="flex-1 font-pressstart text-[11px] bg-[#FEF4E0] border-[2.5px] border-[#3D2013] text-[#3D2013] py-2.5 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+    CANCEL
+  </button>
+
+  <!-- SAVE BUTTON (Terracotta/Orange Fill, Light Text) -->
+  <button 
+    onclick="saveTaskChanges()" 
+    class="flex-1 font-pressstart text-[11px] bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-2.5 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+    SAVE
+  </button>
+
+</div>
+
+    </div>
+  </div>
+
+<!-- ========================================================================= -->
+<!-- TIMER MODALS                                                              -->
+<!-- ========================================================================= -->
+
+<!-- MAIN TIMER MODAL -->
+<div id="timer-modal" class="modal hidden fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 md:bg-transparent md:backdrop-blur-none md:p-0 md:inset-auto md:top-[635px] md:right-6">
+  <div class="bg-[#FEF4E0] border-[3px] border-[#482A1D] rounded-none p-0 w-[400px] min-h-[300px] relative overflow-hidden shadow-lg flex flex-col">
+    
+    <!-- HEADER -->
+    <div class="bg-[#EBD9C4] border-b-[3px] border-[#482A1D] px-4 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="w-6 h-6 bg-[#A53914] border-[2px] border-[#482A1D] flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-[#FEF4E0]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 7 12 12 15 15" />
+          </svg>
+        </div>
+        <h3 class="font-pressstart text-xs text-[#3D2013]">STUDY TIMER</h3>
+      </div>
+
+      <!-- RIGHT HEADER ACTIONS -->
+      <div class="flex items-center gap-2">
+        <button onclick="openModal('timer-edit-modal')" title="Timer Settings" class="text-[#3D2013] hover:text-[#A53914] cursor-pointer p-0.5 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+          </svg>
+        </button>
+        <button onclick="closeModal('timer-modal')" title="Close" class="text-[#3D2013] hover:text-[#A53914] cursor-pointer p-0.5 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- TIMER BODY -->
+    <div class="p-4 flex-1 flex flex-col justify-between overflow-y-auto">
+      
+      <!-- UNSELECTED STATE -->
+      <div id="timer-unselected-view" class="flex-1 flex items-center justify-center py-6">
+        <p class="font-pixel text-2xl text-[#3D2013]/70 text-center">No study technique chosen</p>
+      </div>
+
+      <!-- ACTIVE TIMER STATE -->
+      <div id="timer-active-view" class="hidden flex-1 flex flex-col justify-between">
+        <!-- TWO COLUMNS (CIRCULAR PROGRESS & CONTROL BUTTONS) -->
+        <div class="grid grid-cols-2 gap-4 items-center my-auto">
+          
+          <!-- COLUMN 1: CIRCULAR PROGRESS BAR & TIMER -->
+          <div class="flex flex-col items-center justify-center relative">
+            <div class="relative w-32 h-32 flex items-center justify-center">
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <!-- Background Circle -->
+                <circle cx="50" cy="50" r="42" stroke="#EBD9C4" stroke-width="8" fill="none" />
+                <!-- Progress Circle -->
+                <circle id="timer-circle-progress" cx="50" cy="50" r="42" stroke="#A53914" stroke-width="8" stroke-dasharray="263.89" stroke-dashoffset="0" stroke-linecap="round" fill="none" class="transition-all duration-1000 ease-linear" />
+              </svg>
+              <!-- Center Text -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span id="timer-display" class="font-pressstart text-xs sm:text-sm text-[#3D2013]">25:00</span>
+                <span id="timer-phase-label" class="font-pressstart text-[8px] text-[#A53914] mt-1">FOCUS</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMN 2: ACTION BUTTONS -->
+          <div class="flex flex-col gap-3 justify-center">
+            <!-- PAUSE / START BUTTON -->
+            <button id="timer-toggle-btn" onclick="toggleTimer()" class="w-full font-pressstart text-[10px] bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] !rounded-none py-2 px-3 flex items-center justify-center gap-2 transition-all duration-150 retro-shadow cursor-pointer">
+              <svg id="timer-toggle-icon" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                <rect x="6" y="4" width="4" height="16" />
+                <rect x="14" y="4" width="4" height="16" />
+              </svg>
+              <span id="timer-toggle-text">PAUSE</span>
+            </button>
+
+            <!-- RESET BUTTON -->
+            <button onclick="resetTimer()" class="w-full font-pressstart text-[10px] bg-[#FEF4E0] border-[2.5px] border-[#3D2013] text-[#3D2013] !rounded-none py-2 px-3 flex items-center justify-center gap-2 transition-all duration-150 retro-shadow cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              <span>RESET</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- BOTTOM SESSION TRACKER -->
+        <div class="mt-4 pt-3 border-t-[2px] border-[#482A1D]/20 flex flex-col gap-2">
+          <!-- Session Progress Segmented Bars -->
+          <div id="session-bars-container" class="flex items-center gap-1.5 w-full h-3">
+            <!-- Dynamic segments generated via JS -->
+          </div>
+          <!-- Session Ratio Text -->
+          <div class="flex justify-between items-center">
+            <span id="session-label-text" class="font-pressstart text-[9px] text-[#3D2013]">Session 1 of 3</span>
+            <span id="technique-label-text" class="font-pressstart text-[8px] text-[#A53914]/80">Pomodoro</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- TIMER EDIT / SETTINGS MODAL -->
+<div id="timer-edit-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[23px] p-5 sm:p-6 max-w-md w-full relative flex flex-col gap-4 shadow-xl">
+    
+    <!-- HEADER -->
+    <div class="w-full flex flex-col gap-3">
+      <div class="flex items-center gap-3 w-full">
+        <div class="w-8 h-8 bg-[#A53914] border-[2px] border-[#3D2013] flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-[#FEF4E0]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 7 12 12 15 15" />
+          </svg>
+        </div>
+        <h3 class="font-pressstart text-[14px] sm:text-[16px] text-[#3D2013]">Timer Settings</h3>
+      </div>
+      <div class="w-[calc(100%+2.5rem)] sm:w-[calc(100%+3rem)] -mx-5 sm:-mx-6 border-b-[2px] border-[#3D2013]"></div>
+    </div>
+
+    <!-- EDITABLE TIMER FORM BODY -->
+    <div class="flex flex-col gap-4">
+      
+      <!-- TITLE 1: Study Techniques -->
+      <span class="font-pressstart text-xs text-[#3D2013]">Study Techniques</span>
+
+<!-- THREE TECHNIQUE BUTTONS (HORIZONTALLY ARRANGED) -->
+<div class="grid grid-cols-3 gap-2 w-full">
+  
+  <!-- 1. POMODORO (Tomato / Focus) -->
+  <button type="button" id="btn-tech-pomodoro" onclick="selectTechnique('pomodoro')" 
+          class="flex-1 min-h-[56px] flex flex-col items-center justify-center gap-1.5 p-2 font-pressstart text-[8px] sm:text-[9px] border-[3px] border-[#3D2013] !rounded-none transition-all duration-150 cursor-pointer">
+    <!-- Heroicon: Sparkles / Focus -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+    </svg>
+    <span>Pomodoro</span>
+  </button>
+
+  <!-- 2. 52-17 (Notebook) -->
+  <button type="button" id="btn-tech-5217" onclick="selectTechnique('5217')" 
+          class="flex-1 min-h-[56px] flex flex-col items-center justify-center gap-1.5 p-2 font-pressstart text-[8px] sm:text-[9px] border-[3px] border-[#3D2013] !rounded-none transition-all duration-150 cursor-pointer">
+    <!-- Heroicon: Notebook / Document Text -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+    </svg>
+    <span>52-17</span>
+  </button>
+
+  <!-- 3. 90-MIN (Read / Academic) -->
+  <button type="button" id="btn-tech-90min" onclick="selectTechnique('90min')" 
+          class="flex-1 min-h-[56px] flex flex-col items-center justify-center gap-1.5 p-2 font-pressstart text-[8px] sm:text-[9px] border-[3px] border-[#3D2013] !rounded-none transition-all duration-150 cursor-pointer">
+    <!-- Heroicon: Read / Academic Cap -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+    </svg>
+    <span>90-mins</span>
+  </button>
+
+</div>
+
+      <!-- TITLE 2: No. of Sessions -->
+      <span class="font-pressstart text-xs text-[#3D2013] mt-2">No. of Sessions</span>
+
+      <!-- EDITABLE TEXTFIELD (NUMBERS ONLY) -->
+      <input type="text" id="session-input" value="3" inputmode="numeric" oninput="validateNumberInput(this)"
+             class="font-pressstart text-sm bg-[#FAE9CE] border-[3px] border-[#3D2013] px-3 py-2 text-[#3D2013] focus:outline-none w-full"
+             placeholder="Enter sessions..." />
+
+    </div>
+
+    <!-- FOOTER BUTTONS -->
+    <div class="flex items-center gap-3 mt-1 pt-2 w-full">
+      <button onclick="closeModal('timer-edit-modal')" 
+        class="flex-1 font-pressstart text-[11px] bg-[#FEF4E0] border-[2.5px] border-[#3D2013] text-[#3D2013] py-2.5 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+        CANCEL
+      </button>
+
+      <button onclick="saveTimerSettings()" 
+        class="flex-1 font-pressstart text-[11px] bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-2.5 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+        SAVE
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- CALENDAR MODAL (FLOATING WIDGET) -->
+<div id="calendar-modal" class="modal hidden fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 md:bg-transparent md:backdrop-blur-none md:p-0 md:inset-auto md:top-[400px] md:right-6">
+  <!-- Retro Window Container -->
+  <div class="bg-[#FEF4E0] border-[3px] border-[#482A1D] rounded-none p-0 w-[400px] h-[215px] relative overflow-hidden shadow-lg flex flex-col">
+    
+    <!-- HEADER -->
+    <div class="bg-[#EBD9C4] border-b-[3px] border-[#482A1D] px-4 py-2.5 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2.5">
+        <!-- Calendar Icon Badge -->
+        <div class="w-6 h-6 bg-[#708EA4] border-[2px] border-[#482A1D] flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-[#FEF4E0]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="1" ry="1" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <h3 class="font-pressstart text-xs text-[#3D2013]">STUDY CALENDAR</h3>
+      </div>
+
+      <!-- RIGHT HEADER ACTIONS -->
+      <div class="flex items-center gap-2">
+        <button onclick="closeModal('calendar-modal')" title="Close" class="text-[#3D2013] hover:text-[#A53914] cursor-pointer p-0.5 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- CALENDAR BODY (Rendered via JS) -->
+    <div id="calendar-body" class="p-3.5 flex-1 flex flex-col overflow-y-auto">
+      <!-- Mini calendar content dynamically inserted here -->
+    </div>
+
+  </div>
+</div>
+
+<!-- FULL CALENDAR POPUP MODAL (CENTERED POPUP) -->
+<div id="full-calendar-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+  
+  <div class="flex flex-col items-center gap-4 max-w-md w-full">
+    
+    <!-- TOP STATS ROW (SEPARATE CONTAINER OUTSIDE WINDOW) -->
+    <div class="flex items-center justify-center gap-2 sm:gap-3 w-full flex-wrap sm:flex-nowrap">
+      
+      <!-- COINS BADGE -->
+      <div class="relative flex items-center bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-full px-3.5 py-1">
+        <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 sm:w-5 sm:h-5 object-contain mr-1.5 shrink-0" 
+             onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#FFBA1F] hidden mr-1.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="#3D2013" stroke-width="2"/>
+          <circle cx="12" cy="12" r="6" fill="#ED8C00"/>
+        </svg>
+        <span id="coins-count" class="font-pressstart text-[10px] sm:text-[13px] text-[#482A1D] tracking-tight">0</span>
+      </div>
+
+      <!-- STREAK BADGE -->
+      <div class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] px-3.5 py-1 rounded-[12px] flex items-center gap-1.5">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#ED8C00]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M13.5 1.5c.41 2.6-1.12 4.88-2.6 6.88-1.07 1.45-2.28 2.87-2.6 4.67-.32 1.83.24 3.65 1.43 4.95.83.91 1.93 1.5 3.07 1.7-1.31-.38-2.52-1.2-3.32-2.33-.99-1.38-1.12-3.14-.38-4.6.64-1.26 1.76-2.22 2.62-3.37 1.62-2.16 2.37-4.88 1.78-7.9zM12 22c4.42 0 8-3.58 8-8 0-3.38-2.07-6.28-5-7.5.38 2.38-.5 4.88-2.3 6.6-1.8 1.72-4.22 2.5-6.7 2.1 1.28 4.02 5.2 6.8 10 6.8z"/>
+        </svg>
+        <span id="streak-count" class="font-pressstart text-[10px] sm:text-[13px] text-[#3D2013]">0d</span>
+      </div>
+
+    </div>
+
+    <!-- MAIN CALENDAR CARD CONTAINER -->
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[23px] p-5 sm:p-6 w-full relative flex flex-col gap-4 shadow-xl">
+      
+      <!-- HEADER & MONTH NAVIGATION -->
+      <div class="w-full flex flex-col gap-3">
+        <div class="flex items-center justify-between w-full">
+          <!-- Month Prev Button -->
+          <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 bg-[#EBD9C4] border-[2px] border-[#3D2013] flex items-center justify-center text-[#3D2013] font-pressstart text-xs hover:bg-[#FD923E] hover:text-white transition-colors cursor-pointer">
+            &#9664;
+          </button>
+
+          <!-- Month Title -->
+          <h3 id="full-calendar-month-label" class="font-pressstart text-[13px] sm:text-[15px] text-[#3D2013] tracking-tight">
+            JULY 2026
+          </h3>
+
+          <!-- Month Next Button -->
+          <button onclick="changeCalendarMonth(1)" class="w-8 h-8 bg-[#EBD9C4] border-[2px] border-[#3D2013] flex items-center justify-center text-[#3D2013] font-pressstart text-xs hover:bg-[#FD923E] hover:text-white transition-colors cursor-pointer">
+            &#9654;
+          </button>
+        </div>
+
+        <!-- DIVIDER LINE -->
+        <div class="w-[calc(100%+2.5rem)] sm:w-[calc(100%+3rem)] -mx-5 sm:-mx-6 border-b-[2px] border-[#3D2013]"></div>
+      </div>
+
+      <!-- DAYS OF WEEK HEADER ROW -->
+      <div class="grid grid-cols-7 gap-1 text-center font-pressstart text-[9px] text-[#3D2013]">
+        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+      </div>
+
+      <!-- FULL MONTH DAYS GRID -->
+      <div id="full-calendar-grid" class="grid grid-cols-7 gap-1 max-h-[260px] overflow-y-auto pr-0.5 scrollbar-hide">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- LEGEND / INFO ROW -->
+      <div class="flex items-center justify-start gap-4 pt-1">
+        <div class="flex items-center gap-1.5">
+          <div class="w-3.5 h-3.5 bg-[#788D55] border border-[#3D2013]"></div>
+          <span class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">Study Day</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <div class="w-3.5 h-3.5 bg-[#FEF4E0] border border-[#3D2013]"></div>
+          <span class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">Rest Day</span>
+        </div>
+      </div>
+
+      <!-- FOOTER ACTION BUTTONS -->
+      <div class="flex items-center gap-3 mt-1 pt-2 w-full">
+        <!-- BACK BUTTON -->
+        <button 
+          onclick="closeModal('full-calendar-modal')" 
+          class="flex-1 font-pressstart text-[11px] bg-[#FEF4E0] border-[2.5px] border-[#3D2013] text-[#3D2013] py-2.5 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+          BACK
+        </button>
+
+        <!-- CHECK-IN BUTTON -->
+        <button 
+          id="calendar-checkin-btn"
+          onclick="performCheckIn()" 
+          class="flex-1 font-pressstart text-[11px] bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-2.5 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+          CHECK IN
+        </button>
+
+        <!-- ALREADY CHECKED IN TEXT -->
+        <span 
+          id="calendar-checked-msg" 
+          class="hidden flex-1 font-pressstart text-[9px] text-[#788D55] text-center leading-tight py-2">
+          You have already checked in today!
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- SPARKLE (AI) MODAL -->
+<div id="sparkle-modal" class="modal hidden fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 md:bg-transparent md:backdrop-blur-none md:p-0 md:inset-auto md:top-[360px] md:left-6">
+  
+  <!-- RESIZABLE RETRO WINDOW CONTAINER -->
+  <!-- CSS 'resize: both' enables the corner drag handle with min/max bounds -->
+  <div id="sparkle-window" 
+       class="bg-[#FEF4E0] border-[3px] border-[#482A1D] rounded-none p-0 relative overflow-hidden shadow-lg flex flex-col resize both"
+       style="width: 400px; height: 400px; min-width: 320px; min-height: 280px; max-width: 600px; max-height: 500px;">
+    
+    <!-- HEADER -->
+    <div class="bg-[#EBD9C4] border-b-[3px] border-[#482A1D] px-4 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="w-6 h-6 bg-[#FD923E] border-[2px] border-[#482A1D] flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2z" />
+          </svg>
+        </div>
+        <h3 class="font-pressstart text-xs text-[#3D2013]">KitsuAI Help</h3>
+      </div>
+
+      <!-- RIGHT HEADER ACTIONS -->
+      <div class="flex items-center gap-2">
+        <a href="kitsu-ai.html" target="_blank" title="Open Fullscreen Page" class="text-[#3D2013] hover:text-[#FD923E] cursor-pointer p-0.5 transition-colors flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+        </a>
+
+        <button onclick="closeModal('sparkle-modal')" title="Close" class="text-[#3D2013] hover:text-[#A53914] cursor-pointer p-0.5 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- AI CHAT / CONTENT BODY CONTAINER -->
+    <div id="sparkle-ai-body" class="flex-1 flex flex-col justify-between overflow-hidden p-3 gap-2 bg-[#FEF4E0]">
+      
+      <!-- CHAT MESSAGES CONTAINER -->
+      <div id="sparkle-chat-container" class="relative flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 scroll-smooth">
+        
+        <div class="self-start max-w-[85%] bg-[#DCDDC9] border-[2px] border-[#482A1D] p-2.5 shadow-[2px_2px_0px_#482A1D]">
+          <p class="font-pixel text-lg leading-snug text-[#3D2013]">
+            Konnichiwa! I am KitsuAI. How can I assist with your studies today?
+          </p>
+        </div>
+
+        <button id="sparkle-scroll-btn" onclick="scrollToBottomSparkleChat()" 
+                class="hidden absolute bottom-2 right-2 w-7 h-7 bg-[#FD923E] border-[2px] border-[#482A1D] text-[#FEF4E0] flex items-center justify-center shadow-[2px_2px_0px_#482A1D] hover:scale-105 active:scale-95 transition-all cursor-pointer z-10"
+                title="Scroll to latest message">
+          <svg class="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+      </div>
+
+      <!-- CHATBOX INPUT CONTAINER -->
+      <div class="flex items-center gap-2 pt-1 border-t-[2px] border-[#482A1D]/20 shrink-0">
+        <input type="text" id="sparkle-chat-input" 
+               placeholder="Type your message..." 
+               onkeydown="if(event.key === 'Enter') sendSparkleMessage()"
+               class="flex-1 bg-[#FAE9CE] border-[2px] border-[#482A1D] px-3 py-1.5 font-pixel text-lg text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none focus:bg-[#FEF4E0] transition-colors" />
+        
+<button onclick="sendSparkleMessage()" title="Send Message"
+        class="w-9 h-9 bg-[#FD923E] border-[2.5px] border-[#482A1D] flex items-center justify-center text-[#FEF4E0] !rounded-none transition-all duration-150 retro-shadow [@media(hover:hover)]:hover:brightness-105 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus:outline-none cursor-pointer shrink-0">
+  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+  </svg>
+</button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+  <!-- ========================================================================= -->
+  <!-- NAVIGATION ACTION MODAL PLACEHOLDER (TRIGGERED BY BOTTOM NAV ITEMS)       -->
+  <!-- ========================================================================= -->
+  <div id="nav-action-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] p-6 max-w-sm w-full relative text-center">
+      <button onclick="closeModal('nav-action-modal')" class="absolute top-3 right-3 text-[#3D2013] font-pressstart text-xs hover:text-[#A53914] cursor-pointer">[X]</button>
+      <h3 id="nav-modal-title" class="font-pressstart text-sm text-[#3D2013] mb-3">ACTION</h3>
+      <p id="nav-modal-desc" class="font-pixel text-xl text-[#3D2013]">Navigating to section...</p>
+    </div>
+  </div>
+
+<div id="global-footer"></div>
+<script src="footer.js"></script>
+
+  <!-- JS SCRIPT -->
+  <script src="homepage.js"></script>
+</body>
+</html>
