@@ -38,3 +38,19 @@ class User(db.Model):
         db.DateTime(timezone=True),
         nullable=True
     )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            # If you don't have these columns in your database yet, 
+            # we can hardcode default fallback values for now:
+            "level": getattr(self, 'level', 1),
+            "currentXP": getattr(self, 'current_xp', 0),
+            "maxXP": getattr(self, 'max_xp', 10000),
+            "coins": getattr(self, 'coins', 0),
+            "streakDays": getattr(self, 'streak_days', 0),
+            "friendsCount": getattr(self, 'friends_count', 0),
+            "avatarUrl": getattr(self, 'avatar_url', "")
+        }

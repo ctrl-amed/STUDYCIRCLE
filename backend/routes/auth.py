@@ -3,8 +3,10 @@ from models import db
 from models.user import User
 from utils.security import bcrypt
 
-from flask_mail import Mail, Message
+from flask_mail import Message
 from utils.mail import mail
+
+from flask_jwt_extended import create_access_token
 
 import secrets
 from datetime import datetime, timedelta
@@ -80,8 +82,11 @@ def login():
             "message": "Invalid email or password."
         }), 401
 
+    access_token = create_access_token(identity=str(user.id))
+
     return jsonify({
         "message": "Login successful!",
+        "token": access_token,
         "username": user.username,
         "email": user.email
     }), 200
@@ -120,10 +125,9 @@ def forgot_password():
 
     db.session.commit()
 
-    # Reset link
+    # Change this when deployed
     reset_link = f"http://127.0.0.1:5500/changepassword.html?token={token}"
 
-    # Email
     msg = Message(
         subject="Reset your StudyCircle Password",
         recipients=[user.email]
@@ -138,7 +142,7 @@ Click the link below to reset your password:
 
 {reset_link}
 
-This link will expire in 15 minutes.
+This link expires in 15 minutes.
 
 If you didn't request this, simply ignore this email.
 
