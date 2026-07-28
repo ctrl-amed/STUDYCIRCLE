@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full overflow-hidden">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>StudyCircle - Create Room</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] h-dvh w-screen overflow-hidden relative text-[#3D2013] flex flex-col justify-between select-none">
+
+  <!-- ========================================================================= -->
+  <!-- 1. BACKGROUND DESIGN (TEXTURE & AMBIENT GLOWS)                            -->
+  <!-- ========================================================================= -->
+  
+  <!-- Fixed Background Texture Layer -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- Ambient Glows Container -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. HEADER LAYER WITH CLOSE (X) BUTTON                                    -->
+  <!-- ========================================================================= -->
+  <header class="relative z-20 pt-3 sm:pt-6 px-4 sm:px-6 w-full max-w-7xl mx-auto flex items-center justify-end shrink-0">
+    <button onclick="goBack()" title="Close and Go Back" 
+            style="border-radius: 50% !important;"
+            class="w-8 h-8 sm:w-10 sm:h-10 bg-[#FEF4E0] border-[2px] md:border-[3px] border-[#3D2013] text-[#3D2013] hover:bg-[#E87339] hover:text-[#FFFFF6] transition-all duration-150 retro-shadow cursor-pointer flex items-center justify-center shrink-0">
+      <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTENT CONTAINER                                                    -->
+  <!-- ========================================================================= -->
+  <main class="relative z-10 w-full max-w-3xl mx-auto px-4 sm:px-6 py-2 flex flex-col max-h-[85vh] overflow-hidden">    
+    <!-- 1. LEFT-ALIGNED TITLE -->
+    <h1 class="font-pressstart text-[18px] sm:text-[26px] md:text-[32px] text-[#482A1D] tracking-tight leading-none mb-2 sm:mb-3 shrink-0">
+      CREATE ROOM
+    </h1>
+
+    <!-- 2. STEP COUNTER TEXT -->
+    <p class="font-pressstart text-[9px] sm:text-[11px] text-[#3D2013]/80 tracking-tight leading-none mb-2.5 sm:mb-3 shrink-0">
+      Step <span id="step-number-text">1</span> • <span id="step-title-text">Details</span>
+    </p>
+
+    <!-- 3. PROGRESS BAR (5 BARS) -->
+    <div id="session-bars-container" class="w-full h-3 sm:h-3.5 flex gap-1.5 sm:gap-2 mb-4 shrink-0">
+      <!-- Injected via JavaScript -->
+    </div>
+
+    <!-- 4. STEP FORMS DETAILS CONTAINER -->
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] !rounded-none flex-1 flex flex-col justify-between overflow-hidden shadow-lg w-full min-h-0">
+      
+      <!-- DYNAMIC FORM STEPS CONTENT AREA -->
+      <div class="flex-1 p-4 sm:p-6 overflow-y-auto min-h-0">
+        
+        <!-- STEP 1: ROOM DETAILS -->
+        <div id="step-form-1" class="step-form-panel flex flex-col gap-4 sm:gap-5">
+
+          <!-- 1 & 2. ROOM NAME & TEXT FIELD -->
+          <div class="flex flex-col gap-1.5">
+            <label for="room-name" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">
+              Room Name
+            </label>
+            <input type="text" id="room-name" name="roomName" placeholder="e.g. Pixel Pioneers Study Den" oninput="clearError('room-name')"
+                   class="w-full bg-[#FAE9CE] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none p-2.5 sm:p-3 font-pixel text-[15px] sm:text-[20px] focus:outline-none focus:bg-[#FEF4E0] placeholder-[#3D2013]/40 transition-colors">
+            <!-- Validation Error Text -->
+            <span id="error-room-name" class="hidden font-pixel text-[10px] sm:text-[15px] text-[#D9383A]">
+              * Room name is required!
+            </span>
+          </div>
+
+          <!-- 3 & 4. TOPIC & TEXT FIELD -->
+          <div class="flex flex-col gap-1.5">
+            <label for="room-topic" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">
+              Topic
+            </label>
+            <input type="text" id="room-topic" name="roomTopic" placeholder="e.g. Computer Science / Algorithms" oninput="clearError('room-topic')"
+                   class="w-full bg-[#FAE9CE] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none p-2.5 sm:p-3 font-pixel text-[15px] sm:text-[20px] focus:outline-none focus:bg-[#FEF4E0] placeholder-[#3D2013]/40 transition-colors">
+            <!-- Validation Error Text -->
+            <span id="error-room-topic" class="hidden font-pixel text-[10px] sm:text-[15px] text-[#D9383A]">
+              * Topic is required!
+            </span>
+          </div>
+
+          <!-- 4. MAX PLAYERS DROPDOWN SELECTOR (1-6) -->
+          <div class="flex flex-col gap-1.5">
+            <label for="room-players" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">
+              Players
+            </label>
+            
+            <div class="relative w-full">
+              <select id="room-players" name="roomPlayers" 
+                      onchange="handlePlayersChange(this)"
+                      onfocus="toggleDropdownArrow(true)"
+                      onblur="toggleDropdownArrow(false)"
+                      class="w-full bg-[#FAE9CE] text-[#3D2013]/40 border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none p-2.5 sm:p-3 font-pressstart text-[9px] sm:text-[10px] focus:outline-none focus:bg-[#FEF4E0] transition-colors appearance-none cursor-pointer pr-10">
+                <option value="" disabled selected class="text-[#3D2013]/40 bg-[#FAE9CE]">Select number of players (1-6)</option>
+                <option value="1" class="text-[#3D2013] bg-[#FAE9CE]">1 Player (Solo)</option>
+                <option value="2" class="text-[#3D2013] bg-[#FAE9CE]">2 Players</option>
+                <option value="3" class="text-[#3D2013] bg-[#FAE9CE]">3 Players</option>
+                <option value="4" class="text-[#3D2013] bg-[#FAE9CE]">4 Players</option>
+                <option value="5" class="text-[#3D2013] bg-[#FAE9CE]">5 Players</option>
+                <option value="6" class="text-[#3D2013] bg-[#FAE9CE]">6 Players</option>
+              </select>
+
+              <!-- Retro Custom Arrow Icon -->
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#3D2013]">
+                <svg id="arrow-icon-players" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" 
+                     class="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Validation Error Text -->
+            <span id="error-room-players" class="hidden font-pressstart text-[8px] text-[#D9383A]">
+              * Please select number of players!
+            </span>
+          </div>
+
+          <!-- 5 & 6. STUDY TECHNIQUES BUTTON SELECTOR -->
+          <div class="flex flex-col gap-1.5">
+            <label class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">
+              Study Technique
+            </label>
+            
+            <!-- THREE TECHNIQUE BUTTONS (HORIZONTALLY ARRANGED) -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-3 w-full">
+              
+              <!-- 1. POMODORO (Selected by default) -->
+              <button type="button" id="btn-tech-pomodoro" onclick="selectTechnique('pomodoro')" 
+                      class="flex-1 min-h-[56px] flex flex-col items-center justify-center gap-1.5 p-2 font-pressstart text-[8px] sm:text-[9px] bg-[#FD923E] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none transition-all duration-150 cursor-pointer">
+                <!-- Heroicon: Sparkles / Focus -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09LB15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+                </svg>
+                <span>Pomodoro</span>
+              </button>
+
+              <!-- 2. 52-17 (Notebook) -->
+              <button type="button" id="btn-tech-5217" onclick="selectTechnique('5217')" 
+                      class="flex-1 min-h-[56px] flex flex-col items-center justify-center gap-1.5 p-2 font-pressstart text-[8px] sm:text-[9px] bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none transition-all duration-150 cursor-pointer flat-retro-shadow-hover">
+                <!-- Heroicon: Notebook / Document Text -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                </svg>
+                <span>52-17</span>
+              </button>
+
+              <!-- 3. 90-MIN (Read / Academic) -->
+              <button type="button" id="btn-tech-90min" onclick="selectTechnique('90min')" 
+                      class="flex-1 min-h-[56px] flex flex-col items-center justify-center gap-1.5 p-2 font-pressstart text-[8px] sm:text-[9px] bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none transition-all duration-150 cursor-pointer flat-retro-shadow-hover">
+                <!-- Heroicon: Read / Academic Cap -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                </svg>
+                <span>90-mins</span>
+              </button>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- STEP 2: PRIVACY & ACCESS -->
+        <div id="step-form-2" class="step-form-panel hidden flex flex-col gap-4 sm:gap-5">
+          <!-- 1. TWO CARDS: PUBLIC & PRIVATE (HORIZONTALLY ARRANGED) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
+            
+            <!-- PUBLIC CARD (Selected by default) -->
+            <div id="card-privacy-public" onclick="selectPrivacy('public')"
+                 class="flex flex-col gap-2 p-3 sm:p-4 bg-[#FD923E] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer transition-all duration-150 select-none">
+              
+              <!-- Row 1: Icon -->
+              <div class="flex items-center justify-start w-full">
+                <!-- Earth / Globe Icon -->
+                <svg class="w-6 h-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 13 16h-2a3.987 3.987 0 0 0-3.951 3.512A8.949 8.949 0 0 0 12 21Zm0-18a8.949 8.949 0 0 1 4.951 1.488A3.987 3.987 0 0 1 13 8h-2a3.987 3.987 0 0 1-3.951-3.512A8.949 8.949 0 0 1 12 3Zm0 0v18M3 12h18" />
+                </svg>
+              </div>
+
+              <!-- Row 2: Title -->
+              <span class="font-pressstart text-[10px] sm:text-[11px] uppercase">Public</span>
+
+              <!-- Row 3: Description -->
+              <p class="font-pressstart text-[8px] sm:text-[9px] leading-relaxed opacity-90">
+                Anyone can join directly from the study board.
+              </p>
+            </div>
+
+            <!-- PRIVATE CARD -->
+            <div id="card-privacy-private" onclick="selectPrivacy('private')"
+                 class="flex flex-col gap-2 p-3 sm:p-4 bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer flat-retro-shadow-hover transition-all duration-150 select-none">
+              
+              <!-- Row 1: Icon -->
+              <div class="flex items-center justify-start w-full">
+                <!-- Lock Icon -->
+                <svg class="w-6 h-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+              </div>
+
+              <!-- Row 2: Title -->
+              <span class="font-pressstart text-[10px] sm:text-[11px] uppercase">Private</span>
+
+              <!-- Row 3: Description -->
+              <p class="font-pressstart text-[8px] sm:text-[9px] leading-relaxed opacity-90">
+                Invite-only with a unique room code or link.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- 2. UNDERNEATH: INVITE CODE CARD -->
+          <div class="border-[3px] border-[#3D2013] !rounded-none p-3 sm:p-4 flex flex-col gap-3">
+            
+            <!-- INVITE CODE SECTION -->
+            <div class="flex flex-col gap-1 cursor-pointer group" onclick="copyText('K7P9-X2M4', 'Invite Code')" title="Click to copy code">
+              <span class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">Invite Code</span>
+              <span id="invite-code-display" 
+                    class="font-pressstart text-[16px] sm:text-[20px] text-[#3D2013] group-hover:text-[#E87339] transition-colors select-none">
+                K7P9-X2M4
+              </span>
+            </div>
+
+            <!-- LINK SECTION -->
+            <div class="flex items-center gap-2 cursor-pointer group" onclick="copyText('studycircle.app/join/K7P9-X2M4', 'Room Link')" title="Click to copy link">
+              <span class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] shrink-0">Link:</span>
+              <span id="invite-link-display" 
+                    class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]/80 group-hover:text-[#E87339] underline decoration-[2px] transition-colors truncate select-none">
+                studycircle.app/join/K7P9-X2M4
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- STEP 3: CHECKLIST -->
+        <div id="step-form-3" class="step-form-panel hidden flex flex-col gap-4 sm:gap-5">
+          <h2 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">Shared Checklist</h2>
+
+          <!-- CHECKLIST CONTAINER (DYNAMICALLY POPULATED) -->
+          <div id="tasks-list-container" class="flex flex-col gap-2.5 max-h-[370px] overflow-y-auto pr-1">
+            <!-- Dynamic task items will be rendered here via JS -->
+          </div>
+
+          <!-- ADD TASK BUTTON -->
+          <button type="button" onclick="addDraftTaskRow()" 
+                  class="self-start w-auto bg-[#97B591] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none px-4 py-2 font-pressstart text-[8px] sm:text-[9px] cursor-pointer transition-all duration-150 flat-retro-shadow-hover flex items-center justify-center gap-1.5">
+            <span>+ Add Task</span>
+          </button>
+        </div>
+
+        <!-- STEP 4: INVITE MEMBERS -->
+        <div id="step-form-4" class="step-form-panel hidden flex flex-col gap-4 sm:gap-5">
+          <h2 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">Invite Friends</h2>
+
+          <!-- FRIENDS LIST CONTAINER (DYNAMICALLY POPULATED) -->
+          <div id="friends-list-container" class="flex flex-col gap-2.5 max-h-[370px] overflow-y-auto pr-1">
+            <!-- Dynamic friends list items will render here via JS -->
+          </div>
+        </div>
+
+        <!-- STEP 5: REVIEW & LAUNCH -->
+        <div id="step-form-5" class="step-form-panel hidden flex flex-col gap-3">
+          <h2 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">Review Summary</h2>
+
+          <!-- SUMMARY DETAILS CONTAINER (DYNAMICALLY POPULATED) -->
+          <div id="review-summary-container" class="flex flex-col gap-2 max-h-[370px] overflow-y-auto pr-1">
+            <!-- Dynamic summary cards rendered via JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FOOTER NAVIGATION BUTTONS AREA -->
+      <div class="p-3 sm:p-4 flex items-center justify-between shrink-0 min-h-[60px]">
+        
+        <!-- BACK BUTTON CONTAINER (LEFT) -->
+        <div id="back-btn-container" class="flex-1 max-w-[140px] sm:max-w-[180px]">
+          <button id="btn-back" onclick="previousStep()"
+                  class="w-full h-[40px] sm:h-[44px] hidden items-center justify-center gap-2 bg-[#FEF4E0] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none px-2 sm:px-3 font-pressstart text-[9px] sm:text-[10px] cursor-pointer flat-retro-shadow-hover transition-all duration-150 uppercase">
+            <!-- Left Arrow Icon -->
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+            <span>Back</span>
+          </button>
+        </div>
+
+        <!-- NEXT / CREATE BUTTON CONTAINER (RIGHT) -->
+        <div id="next-btn-container" class="flex-1 max-w-[160px] sm:max-w-[200px] ml-auto">
+          <!-- Next Button (Steps 1 to 4) -->
+          <button id="btn-next" onclick="nextStep()"
+                  class="w-full h-[40px] sm:h-[44px] flex items-center justify-center gap-2 bg-[#FD923E] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none px-2 sm:px-3 font-pressstart text-[9px] sm:text-[10px] cursor-pointer flat-retro-shadow-hover transition-all duration-150 uppercase">
+            <span>Next</span>
+            <!-- Right Arrow Icon -->
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+          <!-- Create Room Button (Step 5 Only) -->
+          <button id="btn-create" onclick="submitCreateRoom()"
+                  class="w-full h-[40px] sm:h-[44px] hidden items-center justify-center gap-2 bg-[#EAB246] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none px-2 sm:px-3 font-pressstart text-[9px] sm:text-[10px] cursor-pointer flat-retro-shadow-hover transition-all duration-150 uppercase">
+            <!-- Sparkle Icon -->
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/>
+            </svg>
+            <span>Create Room</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- 3. BRAND NAME & LOGO (Standalone, No Gradient Overlay)                    -->
+  <!-- ========================================================================= -->
+  <div class="relative z-30 p-4 flex items-center gap-2 select-none pointer-events-auto shrink-0">
+    <img src="media/kitsu_logo.png" alt="Kitsu Logo" class="h-8 sm:h-9 md:h-10 w-auto block">
+    <span class="font-pressstart text-[11px] md:text-[14px] text-[#4A2E21] hidden sm:block">StudyCircle</span>
+  </div>
+
+  <!-- Loading Overlay Script Inclusion -->
+  <script src="loading-overlay.js"></script>
+  <script src="createroom.js"></script>
+
+</body>
+</html>

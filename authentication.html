@@ -6,28 +6,12 @@
   <title>StudyCircle</title>
   
   <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Custom Fonts Import -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
 
   <!-- Link your custom external stylesheet right here -->
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="authstyle.css">
   
-  <!-- Configure Tailwind to use our custom fonts -->
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            pixel: ['"Press Start 2P"', 'monospace'],
-            vt: ['"VT323"', 'monospace']
-          }
-        }
-      }
-    }
-  </script>
 </head>
 <body class="bg-gray-100 antialiased">
 
@@ -41,24 +25,24 @@
     <!-- Left Side: Logo & Brand Name -->
     <a href="#" class="flex items-center gap-2 no-underline">
       <img src="media/kitsu_logo.png" alt="Kitsu Logo" class="h-8 sm:h-9 md:h-10 w-auto block">
-      <span class="font-pixel text-[11px] md:text-[15px] text-[#4A2E21] hidden sm:block">StudyCircle</span>
+      <span class="font-pressstart text-[11px] md:text-[15px] text-[#4A2E21] hidden sm:block">StudyCircle</span>
     </a>
 
     <!-- Right Side: Auth Buttons -->
     <div class="flex items-center gap-2 sm:gap-3 order-2 md:order-3">
-      <a href="authentication.html#login" class="font-pixel text-[6px] sm:text-[8px] md:text-[12px] text-[#4A2E21] bg-[#F8E9D2] border-[2px] md:border-[3px] px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5 block text-center transition-all duration-150 retro-shadow">
+      <a href="authentication.html#login" class="font-pressstart text-[6px] sm:text-[8px] md:text-[12px] text-[#4A2E21] bg-[#F8E9D2] border-[2px] md:border-[3px] px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5 block text-center transition-all duration-150 retro-shadow">
         LOGIN
       </a>
-      <a href="authentication.html#signup" class="font-pixel text-[6px] sm:text-[8px] md:text-[12px] text-white bg-[#E87339] border-[2px] md:border-[3px] px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5 block text-center transition-all duration-150 retro-shadow">
+      <a href="authentication.html#signup" class="font-pressstart text-[6px] sm:text-[8px] md:text-[12px] text-white bg-[#E87339] border-[2px] md:border-[3px] px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5 block text-center transition-all duration-150 retro-shadow">
         SIGN UP
       </a>
     </div>
 
     <!-- Middle: Navigation Links -->
     <nav class="w-full md:w-auto flex justify-center gap-4 sm:gap-5 md:gap-6 order-3 md:order-2 pt-2 md:pt-0 border-t-2 border-dashed border-[#4A2E21] md:border-none">
-      <a href="index.html#" class="font-pixel text-[6px] sm:text-[8px] md:text-[12px] text-[#4A2E21] hover:text-[#E87339] no-underline transition-colors">Home</a>
-      <a href="index.html#section-2" class="font-pixel text-[6px] sm:text-[8px] md:text-[12px] text-[#4A2E21] hover:text-[#E87339] no-underline transition-colors">Features</a>
-      <a href="index.html#section-3" class="font-pixel text-[6px] sm:text-[8px] md:text-[12px] text-[#4A2E21] hover:text-[#E87339] no-underline transition-colors">FAQs</a>
+      <a href="index.html#" class="font-pressstart text-[6px] sm:text-[8px] md:text-[12px] text-[#4A2E21] hover:text-[#E87339] no-underline transition-colors">Home</a>
+      <a href="index.html#section-2" class="font-pressstart text-[6px] sm:text-[8px] md:text-[12px] text-[#4A2E21] hover:text-[#E87339] no-underline transition-colors">Features</a>
+      <a href="index.html#section-3" class="font-pressstart text-[6px] sm:text-[8px] md:text-[12px] text-[#4A2E21] hover:text-[#E87339] no-underline transition-colors">FAQs</a>
     </nav>
 
   </div>
@@ -103,7 +87,7 @@
   <div class="bg-[#FBF2E3] border-4 border-[#3D2013] rounded-3xl p-6 w-full max-w-md shadow-md">
     
     <!-- TOP TOGGLE BAR (Hidden when viewing Reset Password) -->
-    <div id="modal-tabs" class="flex border-2 border-[#3D2013] rounded-xl p-1 bg-transparent mb-6 font-pixel text-xs">
+    <div id="modal-tabs" class="flex border-2 border-[#3D2013] rounded-xl p-1 bg-transparent mb-6 font-pressstart text-xs">
       <!-- Login Button Tab -->
       <button id="tab-login" class="flex-1 py-2 text-center text-white bg-[#788D55] rounded-lg border-2 border-[#3D2013] transition-all duration-150">
         LOGIN
@@ -118,25 +102,25 @@
 <!-- 1. LOGIN FORM CONTEXT                      -->
 <!-- ========================================== -->
 <form id="form-login" class="flex flex-col gap-4">
-  <h2 class="font-pixel text-xl text-[#3D2013]">Welcome back!</h2>
-  <p class="font-vt text-lg text-[#3D2013]">Pick up right where you left off.</p>
+  <h2 class="font-pressstart text-xl text-[#3D2013]">Welcome back!</h2>
+  <p class="font-pixel text-lg text-[#3D2013]">Pick up right where you left off.</p>
   
   <!-- Email Field -->
   <div class="flex flex-col gap-1">
-    <label class="font-pixel text-[10px] text-[#3D2013]">EMAIL</label>
-    <input type="email" id="login-email" placeholder="you@studycircle.app" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-vt text-lg outline-none w-full transition-colors duration-150">
+    <label class="font-pressstart text-[10px] text-[#3D2013]">EMAIL</label>
+    <input type="email" id="login-email" placeholder="you@studycircle.app" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-pixel text-lg outline-none w-full transition-colors duration-150">
   </div>
 
   <!-- Password Field -->
   <div class="flex flex-col gap-1">
-    <label class="font-pixel text-[10px] text-[#3D2013]">PASSWORD</label>
+    <label class="font-pressstart text-[10px] text-[#3D2013]">PASSWORD</label>
     <!-- Relative wrapper keeps the eye icon button inside the field boundaries safely -->
     <div class="relative w-full">
-      <input type="password" id="login-password" placeholder="........" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 pr-10 font-vt text-lg outline-none w-full transition-colors duration-150">
+      <input type="password" id="login-password" placeholder="........" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 pr-10 font-pixel text-lg outline-none w-full transition-colors duration-150">
       
       <!-- Retro-styled Toggle Eye Button -->
       <button type="button" id="btn-toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-[#563B2D] hover:text-[#E87339] bg-transparent border-none p-0 cursor-pointer flex items-center justify-center focus:outline-none">
-        <!-- SVG Pixel/Retro style Eye Icon -->
+        <!-- SVG pressstart/Retro style Eye Icon -->
         <svg id="eye-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="square" stroke-linejoin="square" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           <path stroke-linecap="square" stroke-linejoin="square" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -144,16 +128,16 @@
       </button>
     </div>
     <!-- Dynamic Validation Error Container -->
-    <p id="login-error" class="font-vt text-sm text-[#A94A4A] hidden mt-0.5"></p>
+    <p id="login-error" class="font-pixel text-sm text-[#A94A4A] hidden mt-0.5"></p>
   </div>
   
-  <button type="submit" class="font-pixel text-white bg-[#E87339] border-4 border-[#3D2013] py-3 mt-4 transition-all duration-150 retro-shadow">
+  <button type="submit" class="font-pressstart text-white bg-[#E87339] border-4 border-[#3D2013] py-3 mt-4 transition-all duration-150 retro-shadow">
     LOGIN
   </button>
 
   <!-- Forgot Password Link -->
   <div class="text-center mt-2">
-    <button type="button" id="link-forgot" class="font-pixel text-[11px] text-[#563B2D] hover:underline decoration-2 transition-all duration-150 bg-transparent border-none p-0 cursor-pointer">
+    <button type="button" id="link-forgot" class="font-pressstart text-[11px] text-[#563B2D] hover:underline decoration-2 transition-all duration-150 bg-transparent border-none p-0 cursor-pointer">
       Forgot Password?
     </button>
   </div>
@@ -163,35 +147,35 @@
 <!-- 2. SIGN UP FORM CONTEXT                    -->
 <!-- ========================================== -->
 <form id="form-signup" class="flex flex-col gap-4 hidden">
-  <h2 class="font-pixel text-xl text-[#3D2013]">Join the circle!</h2>
-  <p class="font-vt text-lg text-[#3D2013]">Create your StudyCircle account now.</p>
+  <h2 class="font-pressstart text-xl text-[#3D2013]">Join the circle!</h2>
+  <p class="font-pixel text-lg text-[#3D2013]">Create your StudyCircle account now.</p>
   
   <!-- Username Field -->
   <div class="flex flex-col gap-1">
-    <label class="font-pixel text-[10px] text-[#3D2013]">USERNAME</label>
-    <input type="text" id="signup-username" placeholder="acorn_hero" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-vt text-lg outline-none w-full transition-colors duration-150">
+    <label class="font-pressstart text-[10px] text-[#3D2013]">USERNAME</label>
+    <input type="text" id="signup-username" placeholder="acorn_hero" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-pixel text-lg outline-none w-full transition-colors duration-150">
     <!-- Dynamic Error Element -->
-    <p id="signup-username-error" class="font-vt text-sm text-[#A94A4A] hidden mt-0.5"></p>
+    <p id="signup-username-error" class="font-pixel text-sm text-[#A94A4A] hidden mt-0.5"></p>
   </div>
 
   <!-- Email Field -->
   <div class="flex flex-col gap-1">
-    <label class="font-pixel text-[10px] text-[#3D2013]">EMAIL</label>
-    <input type="email" id="signup-email" placeholder="you@studycircle.app" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-vt text-lg outline-none w-full transition-colors duration-150">
+    <label class="font-pressstart text-[10px] text-[#3D2013]">EMAIL</label>
+    <input type="email" id="signup-email" placeholder="you@studycircle.app" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-pixel text-lg outline-none w-full transition-colors duration-150">
     <!-- Dynamic Error Element -->
-    <p id="signup-email-error" class="font-vt text-sm text-[#A94A4A] hidden mt-0.5"></p>
+    <p id="signup-email-error" class="font-pixel text-sm text-[#A94A4A] hidden mt-0.5"></p>
   </div>
 
   <!-- Password Field -->
   <div class="flex flex-col gap-1">
-    <label class="font-pixel text-[10px] text-[#3D2013]">PASSWORD</label>
+    <label class="font-pressstart text-[10px] text-[#3D2013]">PASSWORD</label>
     <!-- Relative wrapper keeps the eye icon button inside the field boundaries safely -->
     <div class="relative w-full">
-      <input type="password" id="signup-password" placeholder="........" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 pr-10 font-vt text-lg outline-none w-full transition-colors duration-150">
+      <input type="password" id="signup-password" placeholder="........" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 pr-10 font-pixel text-lg outline-none w-full transition-colors duration-150">
       
       <!-- Retro-styled Toggle Eye Button -->
       <button type="button" id="btn-toggle-signup-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-[#563B2D] hover:text-[#E87339] bg-transparent border-none p-0 cursor-pointer flex items-center justify-center focus:outline-none">
-        <!-- SVG Pixel/Retro style Eye Icon -->
+        <!-- SVG pressstart/Retro style Eye Icon -->
         <svg id="signup-eye-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="square" stroke-linejoin="square" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           <path stroke-linecap="square" stroke-linejoin="square" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -199,12 +183,12 @@
       </button>
     </div>
     <!-- Password Requirement / Error Text Note -->
-    <p id="signup-password-note" class="font-vt text-[#3D2013] text-[20px] leading-tight mt-1 transition-colors duration-150">
+    <p id="signup-password-note" class="font-pressstart text-[#3D2013] text-[20px] leading-tight mt-1 transition-colors duration-150">
       Create a strong password using 8 or more characters, including uppercase and lowercase letters, a number, and a special character.
     </p>
   </div>
   
-  <button type="submit" class="font-pixel text-white bg-[#E87339] border-4 border-[#3D2013] py-3 mt-4 transition-all duration-150 retro-shadow">
+  <button type="submit" class="font-pressstart text-white bg-[#E87339] border-4 border-[#3D2013] py-3 mt-4 transition-all duration-150 retro-shadow">
     SIGN UP
   </button>
 </form>
@@ -215,22 +199,22 @@
 <form id="form-reset" class="flex flex-col gap-4 hidden">
   <!-- Back Link -->
   <div class="mb-1">
-    <button type="button" id="link-back-to-login" class="font-pixel text-[11px] text-[#3D2013] hover:underline flex items-center gap-1 bg-transparent border-none p-0 cursor-pointer">
+    <button type="button" id="link-back-to-login" class="font-pressstart text-[11px] text-[#3D2013] hover:underline flex items-center gap-1 bg-transparent border-none p-0 cursor-pointer">
       ← Back to login page
     </button>
   </div>
 
-  <h2 class="font-pixel text-xl text-[#3D2013] mt-2">Reset Password</h2>
-  <p class="font-vt text-lg text-[#3D2013]">We've sent a password reset link to your email.</p>
+  <h2 class="font-pressstart text-xl text-[#3D2013] mt-2">Reset Password</h2>
+  <p class="font-pixel text-lg text-[#3D2013]">We've sent a password reset link to your email.</p>
   
   <!-- Email Field -->
   <div class="flex flex-col gap-1">
-    <label class="font-pixel text-[10px] text-[#3D2013]">EMAIL</label>
-    <input type="email" id="reset-email" placeholder="you@studycircle.app" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-vt text-lg outline-none w-full">
-    <p id="reset-error" class="font-vt text-sm text-[#E87339] hidden mt-0.5"></p>
+    <label class="font-pressstart text-[10px] text-[#3D2013]">EMAIL</label>
+    <input type="email" id="reset-email" placeholder="you@studycircle.app" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-pixel text-lg outline-none w-full">
+    <p id="reset-error" class="font-pixel text-sm text-[#E87339] hidden mt-0.5"></p>
   </div>
   
-  <button type="submit" class="font-pixel text-white bg-[#E87339] border-4 border-[#3D2013] py-3 mt-4 transition-all duration-150 retro-shadow">
+  <button type="submit" class="font-pressstart text-white bg-[#E87339] border-4 border-[#3D2013] py-3 mt-4 transition-all duration-150 retro-shadow">
     SEND RESET LINK
   </button>
 </form>
@@ -239,50 +223,6 @@
 <!-- GLOBAL RETRO NOTIFICATION TOAST CONTAINER   -->
 <!-- ========================================== -->
 <div id="toast-container" class="fixed top-28 right-6 z-50 pointer-events-none flex flex-col gap-3"></div>
-
-<!-- ========================================== -->
-<!-- RETRO LOADING OVERLAY                      -->
-<!-- ========================================== -->
-<div id="loading-overlay" class="fixed inset-0 bg-[#FBF2E3] flex flex-col items-center justify-center z-50 hidden select-none">
-  <!-- Exact line texture layer from your header -->
-  <div class="absolute inset-0 pointer-events-none style-strips" 
-       style="background-image: linear-gradient(rgba(61, 32, 19, 0.08) 1px, transparent 1px); background-size: 100% 5px;">
-  </div>
-
-  <!-- Smaller, Focused Cozy Ambient Glow centered in the screen backdrop -->
-<div class="absolute w-[50%] h-[50%] sm:w-[25%] sm:h-[50%] max-w-xl rounded-full pointer-events-none opacity-75 filter blur-3xl z-0"
-     style="background: radial-gradient(circle, rgba(253, 146, 62, 0.5) 0%, rgba(253, 146, 62, 0) 100%);">
-</div>
-
-  <!-- Content Container (Sits cleanly over the glow via z-10) -->
-  <div class="relative z-10 flex flex-col items-center max-w-md w-full px-6 text-center">
-    <!-- Pixel Fox Mascot -->
-    <img src="media/kitsu_logo.png" alt="StudyCircle Fox" class="w-24 h-24 mb-4 object-contain animate-bounce" style="animation-duration: 2s;">
-
-    <!-- StudyCircle Title Logo -->
-    <h1 class="font-pixel text-4xl text-[#3D2013] tracking-wide mb-2 drop-shadow-[2px_2px_0px_rgba(232,115,57,0.4)]">StudyCircle</h1>
-    
-    <!-- Dynamic Status Subtitle -->
-    <p id="loading-status" class="font-pixel text-xs text-[#E87339] tracking-widest uppercase mb-8">◆ Creating Account ◆</p>
-
-    <!-- Retro Progress Container -->
-    <div class="w-full max-w-xs border-4 border-[#3D2013] bg-[#F8E9D2] p-1 shadow-[4px_4px_0px_#3D2013]">
-      <div class="h-5 bg-[#E87339] w-0 transition-all duration-200 ease-out" id="loading-bar"></div>
-    </div>
-
-    <!-- Retro Bar Footnotes -->
-    <div class="w-full max-w-xs flex justify-between font-vt text-[#3D2013] text-lg mt-1 px-1">
-      <span>LOADING</span>
-      <span id="loading-percentage">0%</span>
-    </div>
-
-    <!-- Motivational Quote Footer -->
-    <p class="font-vt text-[#3D2013] text-xl italic tracking-wide mt-12 opacity-90 max-w-xs leading-snug">
-      "Success comes from consistent, small efforts..."
-    </p>
-  </div>
-</div>
-
 
   </div>
 </div>
@@ -304,16 +244,16 @@
         <img src="media/kitsu_logo.png" alt="Kitsu Logo" class="h-10 w-auto sm:h-16 md:h-20 lg:h-24 block shrink-0">
         <div class="flex flex-col gap-1 sm:gap-2">
           <div class="flex items-center gap-1">
-            <span class="font-pixel text-[8px] sm:text-[10px] md:text-[12px] text-[#E16F37]">&#9733;</span>
-            <span class="font-pixel text-[8px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">JOIN THE CIRCLE</span>
-            <span class="font-pixel text-[8px] sm:text-[10px] md:text-[12px] text-[#E16F37]">&#9733;</span>
+            <span class="font-pressstart text-[8px] sm:text-[10px] md:text-[12px] text-[#E16F37]">&#9733;</span>
+            <span class="font-pressstart text-[8px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">JOIN THE CIRCLE</span>
+            <span class="font-pressstart text-[8px] sm:text-[10px] md:text-[12px] text-[#E16F37]">&#9733;</span>
           </div>
-          <h3 class="font-pixel text-[11px] sm:text-lg md:text-[24px] text-[#FBF2E3] leading-none">Kitsu is waiting.</h3>
-          <p class="font-vt text-[15px] sm:text-[20px] md:text-[20px] text-white leading-[1] select-none">Level up your learning with AI-powered study adventures.</p>
+          <h3 class="font-pressstart text-[11px] sm:text-lg md:text-[24px] text-[#FBF2E3] leading-none">Kitsu is waiting.</h3>
+          <p class="font-pixel text-[15px] sm:text-[20px] md:text-[20px] text-white leading-[1] select-none">Level up your learning with AI-powered study adventures.</p>
         </div>
       </div>
       <div class="shrink-0">
-        <a href="#" class="font-pixel text-[7px] sm:text-[10px] md:text-[12px] text-white bg-[#788D55] border-[2px] md:border-[3px] border-[#3D2013] px-3 py-2 sm:px-5 sm:py-3 md:px-6 md:py-3.5 block text-center transition-all duration-150 retro-shadow">JOIN NOW!</a>
+        <a href="#" class="font-pressstart text-[7px] sm:text-[10px] md:text-[12px] text-white bg-[#788D55] border-[2px] md:border-[3px] border-[#3D2013] px-3 py-2 sm:px-5 sm:py-3 md:px-6 md:py-3.5 block text-center transition-all duration-150 retro-shadow">JOIN NOW!</a>
       </div>
     </div>
 
@@ -324,46 +264,46 @@
       <div class="flex flex-col gap-4 lg:col-span-4">
         <div class="flex items-center gap-3">
           <img src="media/kitsu_logo.png" alt="Kitsu Logo" class="h-8 w-auto block select-none">
-          <span class="font-pixel text-[10px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">StudyCircle</span>
+          <span class="font-pressstart text-[10px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">StudyCircle</span>
         </div>
-        <p class="font-vt text-[15px] sm:text-[20px] md:text-[20px] text-white leading-[1.2] select-none">
-          Turn studying into an adventure with StudyCircle! Upload your notes, let AI create personalized quizzes, join cozy pixel-art study rooms, and level up with XP, badges, and exciting rewards as you learn.
+        <p class="font-pixel text-[15px] sm:text-[20px] md:text-[20px] text-white leading-[1.2] select-none">
+          Turn studying into an adventure with StudyCircle! Upload your notes, let AI create personalized quizzes, join cozy pressstart-art study rooms, and level up with XP, badges, and exciting rewards as you learn.
         </p>
         <div class="flex items-center gap-2 mt-2 select-none">
           <img src="media/coin_logo.png" alt="Coin Logo" class="w-[31px] h-[31px] object-contain block">
-          <span class="font-vt text-[15px] sm:text-[20px] md:text-[20px] text-white leading-[1] select-none">12,000+ students leveling up today</span>
+          <span class="font-pixel text-[15px] sm:text-[20px] md:text-[20px] text-white leading-[1] select-none">12,000+ students leveling up today</span>
         </div>
       </div>
 
       <!-- COLUMN 2: Product Links -->
       <div class="flex flex-col gap-4 lg:col-span-2 lg:col-start-7">
-        <h4 class="font-pixel text-[10px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">PRODUCT</h4>
+        <h4 class="font-pressstart text-[10px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">PRODUCT</h4>
         <nav class="flex flex-col gap-2">
-          <a href="#features" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Features</a>
-          <a href="#faqs" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">FAQs</a>
-          <a href="#learn" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Learn Now!</a>
-          <a href="#login" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Login</a>
+          <a href="#features" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Features</a>
+          <a href="#faqs" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">FAQs</a>
+          <a href="#learn" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Learn Now!</a>
+          <a href="#login" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Login</a>
         </nav>
       </div>
 
       <!-- COLUMN 3: Community Links -->
       <div class="flex flex-col gap-4 lg:col-span-2">
-        <h4 class="font-pixel text-[10px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">COMMUNITY</h4>
+        <h4 class="font-pressstart text-[10px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">COMMUNITY</h4>
         <nav class="flex flex-col gap-2">
-          <a href="https://discord.com" target="_blank" rel="noopener noreferrer" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Discord</a>
-          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Facebook</a>
-          <a href="https://reddit.com" target="_blank" rel="noopener noreferrer" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Reddit</a>
+          <a href="https://discord.com" target="_blank" rel="noopener noreferrer" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Discord</a>
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Facebook</a>
+          <a href="https://reddit.com" target="_blank" rel="noopener noreferrer" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Reddit</a>
         </nav>
       </div>
 
       <!-- COLUMN 4: Company Links -->
       <div class="flex flex-col gap-4 lg:col-span-2">
-        <h4 class="font-pixel text-[10px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">COMPANY</h4>
+        <h4 class="font-pressstart text-[10px] sm:text-[10px] md:text-[12px] text-[#E16F37] tracking-wider uppercase">COMPANY</h4>
         <nav class="flex flex-col gap-2">
-          <a href="#about" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">About</a>
-          <a href="#privacy" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Privacy</a>
-          <a href="#terms" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Terms</a>
-          <a href="#contact" class="font-vt text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Contact</a>
+          <a href="#about" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">About</a>
+          <a href="#privacy" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Privacy</a>
+          <a href="#terms" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Terms</a>
+          <a href="#contact" class="font-pixel text-[15px] sm:text-[20px] md:text-[24px] text-white leading-[1] select-none transition-all duration-150 hover:translate-x-1 inline-block w-fit">Contact</a>
         </nav>
       </div>
 
@@ -377,10 +317,10 @@
       <div class="flex flex-col md:flex-row items-center justify-between select-none">
         <div class="flex items-center gap-2">
           <img src="media/sparkle_icon.png" alt="Sparkle" class="h-3.5 w-auto object-contain block shrink-0 animate-pulse">
-          <p class="font-pixel text-[5px] sm:text-[10px] md:text-[12px] text-[#B6AAA5] tracking-wide leading-none">© 2026 StudyCircle · Brewed with chamomile</p>
+          <p class="font-pressstart text-[5px] sm:text-[10px] md:text-[12px] text-[#B6AAA5] tracking-wide leading-none">© 2026 StudyCircle · Brewed with chamomile</p>
         </div>
         <div class="flex items-center">
-          <p class="font-pixel text-[5px] sm:text-[10px] md:text-[12px] text-[#B6AAA5] tracking-wide leading-none">V1.0 · All rights reserved</p>
+          <p class="font-pressstart text-[5px] sm:text-[10px] md:text-[12px] text-[#B6AAA5] tracking-wide leading-none">V1.0 · All rights reserved</p>
         </div>
       </div>
     </div>
@@ -388,6 +328,7 @@
   </div>
 </footer>
 
+<script src="loading-overlay.js"></script>
 <script src="script.js"></script>
 <script src="authscript.js"></script>
 </body>

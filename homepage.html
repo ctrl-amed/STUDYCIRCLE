@@ -7,6 +7,8 @@
   
   <!-- External CSS Stylesheet -->
   <link rel="stylesheet" href="style.css">
+  <!-- Avatar Animation Styles (or include inside your style.css) 
+   <link rel="stylesheet" href="avatar-style.css"> -->
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -35,10 +37,26 @@
     </div>
   </div>
 
-  <!-- CENTER STUDY ROOM IMAGE CONTAINER -->
-  <div class="fixed inset-0 z-0 flex items-center justify-center pointer-events-none p-4 pb-20 pt-20">
+<!-- CENTER STUDY ROOM IMAGE & AVATAR CONTAINER -->
+<div class="fixed inset-0 z-0 flex items-center justify-center pointer-events-none p-4 pb-20 pt-20">
+  
+  <!-- Relative wrapper matching room dimensions -->
+  <div class="relative flex items-center justify-center max-w-full max-h-full">
+    
+    <!-- 1. Background Study Room -->
     <img src="media/study_room.png" alt="Study Room" class="max-w-full max-h-full object-contain drop-shadow-md">
+
+<!-- 2. Overlay Avatar Container (Responsive S / M / L) -->
+<div class="absolute 
+            w-[160px] h-[160px] scale-100 bottom-[18%]   <!-- S: Mobile (Default) -->
+            md:w-[200px] md:h-[200px] md:scale-125 md:bottom-[19%] <!-- M: Tablet -->
+            lg:w-[240px] lg:h-[240px] lg:scale-150 lg:bottom-[20%] <!-- L: Desktop -->
+            left-[50%] -translate-x-1/2 origin-bottom pointer-events-auto">
+  <custom-avatar state="idle"></custom-avatar>
+</div>
   </div>
+
+</div>
 
   <!-- 4. MAIN CONTENT LAYER -->
   <div class="relative z-10 min-h-screen flex flex-col">
@@ -555,7 +573,7 @@
       <!-- CONFIRM BUTTON -->
       <a 
         href="index.html" 
-        class="flex-1 text-center font-pressstart text-xs bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer block">
+        class="flex-1 text-center font-pressstart text-xs bg-[#A53914] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer block">
         CONFIRM
       </a>
 
@@ -1121,5 +1139,7 @@
 
   <!-- JS SCRIPT -->
   <script src="homepage.js"></script>
+  <!-- Centralized Avatar Web Component Script -->
+<script src="avatar-system.js"></script>
 </body>
 </html>
