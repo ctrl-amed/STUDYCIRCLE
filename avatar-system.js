@@ -2,15 +2,15 @@
 // CENTRALIZED AVATAR CUSTOMIZATION SYSTEM
 // ==========================================
 
-// Default Configuration (fallback when no saved avatar exists)
+// DEFAULT_AVATAR_CONFIG (fallback when no saved avatar exists)
 const DEFAULT_AVATAR_CONFIG = {
   body: "BODY1",
   face: "FACE1",
-  tops: "TOP1",
-  bottoms: "BOTTOM1",
-  shoes: "SHOE1",
-  hair: "HAIR5",
-  accessories: "ACCESSORY1" // Set to "" or "NONE" if optional
+  tops: "",
+  bottoms: "",
+  shoes: "",
+  hair: "",
+  accessories: ""
 };
 
 // 1. Helper to fetch saved configuration from LocalStorage

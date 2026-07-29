@@ -38,25 +38,25 @@
   </div>
 
 <!-- CENTER STUDY ROOM IMAGE & AVATAR CONTAINER -->
-<div class="fixed inset-0 z-0 flex items-center justify-center pointer-events-none p-4 pb-20 pt-20">
+<div class="fixed inset-0 z-0 flex items-center justify-center pointer-events-none p-2 sm:p-4 pb-12 pt-12">
   
-  <!-- Relative wrapper matching room dimensions -->
-  <div class="relative flex items-center justify-center max-w-full max-h-full">
+  <!-- Relative wrapper (Increased max width from 780px to 1100px for a larger display) -->
+  <div class="relative flex items-center justify-center max-w-[1100px] w-full max-h-full mx-auto">
     
-    <!-- 1. Background Study Room -->
-    <img src="media/study_room.png" alt="Study Room" class="max-w-full max-h-full object-contain drop-shadow-md">
+    <!-- 1. Background Study Room (Increased max height to allow a bigger image footprint) -->
+    <img src="ASSETS/ROOMS/ROOM1.png" alt="Study Room" class="w-full h-auto max-h-[80vh] object-contain drop-shadow-md">
 
-<!-- 2. Overlay Avatar Container (Responsive S / M / L) -->
-<div class="absolute 
-            w-[160px] h-[160px] scale-100 bottom-[18%]   <!-- S: Mobile (Default) -->
-            md:w-[200px] md:h-[200px] md:scale-125 md:bottom-[19%] <!-- M: Tablet -->
-            lg:w-[240px] lg:h-[240px] lg:scale-150 lg:bottom-[20%] <!-- L: Desktop -->
-            left-[50%] -translate-x-1/2 origin-bottom pointer-events-auto">
-  <custom-avatar state="idle"></custom-avatar>
-</div>
+    <!-- 2. Overlay Avatar Container (Responsive S / M / L) -->
+    <div class="absolute 
+                w-[160px] h-[160px] scale-100 bottom-[18%]   <!-- S: Mobile (Default) -->
+                md:w-[200px] md:h-[200px] md:scale-125 md:bottom-[19%] <!-- M: Tablet -->
+                lg:w-[240px] lg:h-[240px] lg:scale-150 lg:bottom-[20%] <!-- L: Desktop -->
+                left-[50%] -translate-x-1/2 origin-bottom pointer-events-auto">
+      <custom-avatar state="idle"></custom-avatar>
+    </div>
   </div>
 
-</div>
+</div>Z
 
   <!-- 4. MAIN CONTENT LAYER -->
   <div class="relative z-10 min-h-screen flex flex-col">
@@ -126,7 +126,7 @@
             </svg>
 
             <!-- Dynamic Coins Number -->
-            <span id="coins-count" class="font-pressstart text-[10px] sm:text-[16px] text-[#482A1D] tracking-tight">12,234</span>
+              <span id="coins-count" class="user-coin-balance font-pressstart text-[10px] sm:text-[16px] text-[#482A1D] tracking-tight">0</span>
 
             <!-- Plus Add Button -->
             <button onclick="openModal('add-coins-modal')" title="Add Coins"
@@ -498,12 +498,13 @@
           CANCEL
         </button>
 
-        <!-- PURCHASE BUTTON -->
-        <button 
-          onclick="processPurchase()" 
-          class="flex-1 font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
-          PURCHASE
-        </button>
+<!-- PURCHASE BUTTON -->
+<button 
+  id="btn-process-purchase"
+  onclick="processPurchase()" 
+  class="flex-1 font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+  PURCHASE
+</button>
       </div>
 
     </div>
@@ -536,11 +537,11 @@
         <span id="purchased-coin-amount" class="font-bold text-[#788D55]">1,250</span> Coins have been added to your balance.
       </p>
 
-      <button 
-        onclick="closeModal('add-coins-modal')" 
-        class="font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 px-8 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
-        DONE
-      </button>
+<button 
+  onclick="resetCoinModal(); closeModal('add-coins-modal');" 
+  class="font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 px-8 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+  DONE
+</button>
 
     </div>
 
@@ -951,7 +952,7 @@
           <circle cx="12" cy="12" r="10" stroke="#3D2013" stroke-width="2"/>
           <circle cx="12" cy="12" r="6" fill="#ED8C00"/>
         </svg>
-        <span id="coins-count" class="font-pressstart text-[10px] sm:text-[13px] text-[#482A1D] tracking-tight">0</span>
+              <span id="coins-count" class="user-coin-balance font-pressstart text-[10px] sm:text-[16px] text-[#482A1D] tracking-tight">0</span>
       </div>
 
       <!-- STREAK BADGE -->
@@ -1136,6 +1137,7 @@
 
 <div id="global-footer"></div>
 <script src="footer.js"></script>
+<script src="add-coins.js"></script>
 
   <!-- JS SCRIPT -->
   <script src="homepage.js"></script>

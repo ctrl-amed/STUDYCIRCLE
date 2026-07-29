@@ -261,7 +261,11 @@ if (formSignup) {
     signupEmailInput.value = '';
     signupPasswordInput.value = '';
     
-    triggerLoadingAndRedirect(' CREATING ACCOUNT ');
+    // Set flag indicating the user just signed up
+    localStorage.setItem("justSignedUp", "true");
+
+    // Redirect to Custom Avatar Page
+    triggerLoadingAndRedirect(' CREATING ACCOUNT ', 'customavatar.html');
   });
 }
 

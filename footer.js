@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const room = getNavClasses('myroom');
   const join = getNavClasses('join');
   const kitsu = isActive('/kitsu-ai');
-  const avatar = getNavClasses('/avatar');
+  const avatar = getNavClasses('customavatar');
   const furniture = getNavClasses('/furniture');
   const profile = getNavClasses('profile');
 
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <!-- 5. AVATAR -->
-        <a href="/avatar" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] ${avatar.bgClass} overflow-hidden no-underline">
+        <a href="customavatar.html" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] ${avatar.bgClass} overflow-hidden no-underline">
           <svg class="w-5 h-5 sm:w-6 sm:h-6 ${avatar.iconClass} transition-transform" fill="currentColor" viewBox="0 0 24 24">
             <path d="M21.6 4.2l-3.2-2.1c-.4-.3-.9-.2-1.2.2L15 5.2c-.3.4-.3 1 0 1.4l1.3 1.4H7.7L9 6.6c.3-.4.3-1 0-1.4L6.8 2.3c-.3-.4-.8-.5-1.2-.2L2.4 4.2C2.1 4.4 2 4.8 2.1 5.2l1.9 6.8c.1.4.5.7.9.7h1.6v8c0 .6.4 1 1 1h13c.6 0 1-.4 1-1v-8h1.6c.4 0 .8-.3.9-.7l1.9-6.8c.1-.4 0-.8-.3-1z"/>
           </svg>
