@@ -52,7 +52,7 @@
 <!-- ========================================================= -->
 <!-- UNIFIED HERO & FEATURES SECTION (SECTION 1)               -->
 <!-- ========================================================= -->
-<section id="hero-and-showcase" class="relative w-full min-h-screen bg-[#FBF2E3] pt-28 md:pt-36 flex flex-col items-center overflow-hidden">
+<section id="hero-and-showcase" class="relative w-full min-h-screen bg-[#FBF2E3] pt-15 md:pt-20 flex flex-col items-center overflow-hidden">
       
   <!-- BACKGROUND TEXTURE (Horizontal Lines) -->
   <div class="absolute inset-0 w-full h-full pointer-events-none z-0" 
@@ -183,9 +183,27 @@
       </button>
     </div>
     <!-- Password Requirement / Error Text Note -->
-    <p id="signup-password-note" class="font-pressstart text-[#3D2013] text-[20px] leading-tight mt-1 transition-colors duration-150">
+    <p id="signup-password-note" class="font-pixel text-[#3D2013] text-[10px] sm:text-[12px] md:text-[14px] lg:text-[16px] leading-tight mt-1 transition-colors duration-150">
       Create a strong password using 8 or more characters, including uppercase and lowercase letters, a number, and a special character.
     </p>
+  </div>
+
+  <!-- Confirm Password Field -->
+  <div class="flex flex-col gap-1">
+    <label class="font-pressstart text-[10px] text-[#3D2013]">CONFIRM PASSWORD</label>
+    <div class="relative w-full">
+      <input type="password" id="signup-confirm-password" placeholder="........" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 pr-10 font-pixel text-lg outline-none w-full transition-colors duration-150">
+      
+      <!-- Retro-styled Toggle Eye Button for Confirm Password -->
+      <button type="button" id="btn-toggle-signup-confirm-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-[#563B2D] hover:text-[#E87339] bg-transparent border-none p-0 cursor-pointer flex items-center justify-center focus:outline-none">
+        <svg id="signup-confirm-eye-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="square" stroke-linejoin="square" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="square" stroke-linejoin="square" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+      </button>
+    </div>
+    <!-- Dynamic Error Element for Confirm Password -->
+    <p id="signup-confirm-password-error" class="font-pixel text-sm text-[#A94A4A] hidden mt-0.5"></p>
   </div>
   
   <button type="submit" class="font-pressstart text-white bg-[#E87339] border-4 border-[#3D2013] py-3 mt-4 transition-all duration-150 retro-shadow">

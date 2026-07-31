@@ -6,8 +6,8 @@
 const DEFAULT_AVATAR_CONFIG = {
   body: "BODY1",
   face: "FACE1",
-  tops: "",
-  bottoms: "",
+  tops: "TOP7",
+  bottoms: "BOTTOM6",
   shoes: "",
   hair: "",
   accessories: ""

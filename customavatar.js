@@ -37,7 +37,7 @@ const ASSET_CATALOG = {
     { id: "BOTTOM1", price: 100 },
     { id: "BOTTOM2", price: 120 },
     { id: "BOTTOM3", price: 150 },
-    { id: "BOTTOM4", price: 200 },
+    { id: "BOTTOM4", price: 0 },
     { id: "BOTTOM5", price: 250 }
   ],
   accessory: [
@@ -78,46 +78,47 @@ let userCoins = 0;
 let ownedAssets = JSON.parse(localStorage.getItem("ownedAssets")) || [];
 
 // 3. Initialization
+// 3. Initialization in customavatar.html
 document.addEventListener("DOMContentLoaded", () => {
+  if (typeof getCoins === "function") {
+    userCoins = getCoins();
+  }
+
   const isJustSignedUp = localStorage.getItem("justSignedUp") === "true";
   const savedConfig = window.getSavedAvatarConfig ? window.getSavedAvatarConfig() : null;
 
-// Inside document.addEventListener("DOMContentLoaded", ...) in CUSTOM AVATAR PAGE LOGIC
-
   if (isJustSignedUp) {
-    // New Signup Flow: Reset default to FACE1 and BODY1 ONLY
+    // New Signup Flow: Mark tutorial as pending for next page load
     localStorage.removeItem("justSignedUp");
+    localStorage.setItem("pendingTutorial", "true"); // 👈 Set flag for tutorial
+
     activeConfig = {
       body: "BODY1",
       face: "FACE1",
       hair: "",
-      tops: "",
-      bottoms: "",
+      tops: "TOP7",
+      bottoms: "BOTTOM6",
       accessories: "",
       shoes: ""
     };
-    // Register default base owned assets for new users
     if (!ownedAssets.includes("FACE1")) ownedAssets.push("FACE1");
     if (!ownedAssets.includes("BODY1")) ownedAssets.push("BODY1");
     localStorage.setItem("ownedAssets", JSON.stringify(ownedAssets));
   } else if (savedConfig && Object.keys(savedConfig).length > 0) {
-    // Returning User Flow: Use existing saved avatar
     activeConfig = savedConfig;
   } else {
-    // Default Fallback: Only BODY1 and FACE1
     activeConfig = {
       body: "BODY1",
       face: "FACE1",
       hair: "",
-      tops: "",
-      bottoms: "",
+      tops: "TOP7",
+      bottoms: "BOTTOM6",
       accessories: "",
       shoes: ""
     };
   }
 
   historyStack.push(JSON.parse(JSON.stringify(activeConfig)));
-  
   updateCoinsDisplay();
   renderBodySection();
   switchCategory("face");
@@ -140,11 +141,22 @@ function getCoinBadgeHTML(item) {
 
 // Update Coins UI
 function updateCoinsDisplay() {
+  // Always get fresh coin count from storage if available
+  if (typeof getCoins === "function") {
+    userCoins = getCoins();
+  }
+
+  // Update elements in customavatar page
   const coinsElem = document.getElementById("coins-count");
   const modalCoinsElem = document.getElementById("modal-coins-count");
-  
+
   if (coinsElem) coinsElem.textContent = userCoins.toLocaleString();
   if (modalCoinsElem) modalCoinsElem.textContent = userCoins.toLocaleString();
+
+  // Also trigger central display updater to sync header/modal badges
+  if (typeof updateCoinDisplays === "function") {
+    updateCoinDisplays();
+  }
 }
 
 function switchCategory(cat) {
@@ -221,6 +233,21 @@ function renderBodySection() {
   }).join("");
 }
 
+// Clear current category asset (Returns layer to default empty state)
+// Excludes 'body' and 'face'
+function clearCategory(category) {
+  if (category === "body" || category === "face") return;
+
+  const meta = CATEGORY_MAP[category];
+  if (!meta) return;
+
+  historyStack.push(JSON.parse(JSON.stringify(activeConfig)));
+  activeConfig[meta.layerKey] = "";
+  
+  updateAvatarPreview();
+  renderAssets();
+}
+
 // Render Current Category Assets
 function renderAssets() {
   const container = document.getElementById("asset-grid");
@@ -231,14 +258,14 @@ function renderAssets() {
 
   let htmlMarkup = "";
 
-  // Insert No Accessory/Clear Button if we are in the accessory category
-  if (currentCategory === "accessory") {
-    const isNoAccessorySelected = !activeConfig[meta.layerKey] || activeConfig[meta.layerKey] === "";
+  // Insert No Asset / Clear Button for all categories EXCEPT body and face
+  if (currentCategory !== "body" && currentCategory !== "face") {
+    const isNoneSelected = !activeConfig[meta.layerKey] || activeConfig[meta.layerKey] === "";
     
     htmlMarkup += `
-      <div onclick="clearAccessory()"
+      <div onclick="clearCategory('${currentCategory}')"
            style="background: linear-gradient(180deg, #FFF2DD 0%, #FFEAC8 100%);"
-           class="relative aspect-square border-[2.5px] ${isNoAccessorySelected ? 'border-[#E87339] ring-2 ring-[#E87339]' : 'border-[#3D2013]'} rounded-[8px] p-1.5 flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-xs overflow-hidden">
+           class="relative aspect-square border-[2.5px] ${isNoneSelected ? 'border-[#E87339] ring-2 ring-[#E87339]' : 'border-[#3D2013]'} rounded-[8px] p-1.5 flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-xs overflow-hidden">
         <div class="w-full h-full flex flex-col items-center justify-center gap-1 text-[#3D2013]">
           <svg class="w-8 h-8 opacity-70" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
@@ -269,22 +296,22 @@ function renderAssets() {
   container.innerHTML = htmlMarkup;
 }
 
-// Clear Accessory (Returns accessory to default empty state)
-function clearAccessory() {
-  historyStack.push(JSON.parse(JSON.stringify(activeConfig)));
-  activeConfig[CATEGORY_MAP.accessory.layerKey] = "";
-  
-  updateAvatarPreview();
-  renderAssets();
-}
-
 // Asset Selection Event
+// Asset Selection Event (With Toggle/Unequip Logic)
 function selectAsset(category, assetId) {
   const meta = CATEGORY_MAP[category];
-  
+  if (!meta) return;
+
   historyStack.push(JSON.parse(JSON.stringify(activeConfig)));
-  activeConfig[meta.layerKey] = assetId;
-  
+
+  // If clicking an already equipped asset (excluding body and face), unequip it
+  if (category !== "body" && category !== "face" && activeConfig[meta.layerKey] === assetId) {
+    activeConfig[meta.layerKey] = "";
+  } else {
+    // Otherwise, equip the selected asset
+    activeConfig[meta.layerKey] = assetId;
+  }
+
   updateAvatarPreview();
   if (category === "face" || category === "body") {
     renderBodySection();
@@ -292,28 +319,30 @@ function selectAsset(category, assetId) {
   renderAssets();
 }
 
-// Update Avatar Component & Calculate Added Cost
 function updateAvatarPreview() {
   const preview = document.getElementById("main-avatar-preview");
   if (preview) {
     preview.setAttribute("config", JSON.stringify(activeConfig));
   }
 
+  const unownedItems = getUnownedSelectedItems();
   let totalCost = 0;
 
-  Object.keys(CATEGORY_MAP).forEach(cat => {
-    const layerKey = CATEGORY_MAP[cat].layerKey;
-    const currentSelectedId = activeConfig[layerKey];
-    
-    if (currentSelectedId && !ownedAssets.includes(currentSelectedId)) {
-      const item = ASSET_CATALOG[cat].find(i => i.id === currentSelectedId);
-      if (item) totalCost += item.price;
-    }
+  unownedItems.forEach(item => {
+    const catalogItem = ASSET_CATALOG[item.cat]?.find(i => i.id === item.id);
+    if (catalogItem) totalCost += catalogItem.price;
   });
 
+  // Update additional cost readout
   const costDisplay = document.getElementById("additional-cost-display");
   if (costDisplay) {
     costDisplay.textContent = totalCost.toLocaleString();
+  }
+
+  // Update main action button text
+  const mainBtn = document.getElementById("main-action-btn");
+  if (mainBtn) {
+    mainBtn.textContent = unownedItems.length > 0 ? "BUY AND SAVE" : "SAVE";
   }
 }
 
@@ -517,6 +546,7 @@ function openPurchaseModal() {
 }
 
 // Confirm Purchase & Save Configuration
+// Confirm Purchase & Save Configuration
 function confirmPurchaseAndSave() {
   const unownedItems = [];
 
@@ -534,7 +564,6 @@ function confirmPurchaseAndSave() {
   noItemsMsg?.classList.add("hidden");
   insufficientCoinsMsg?.classList.add("hidden");
 
-  // Show unsuccessful text if confirm is clicked with no new items selected
   if (unownedItems.length === 0) {
     noItemsMsg?.classList.remove("hidden");
     return;
@@ -546,15 +575,25 @@ function confirmPurchaseAndSave() {
     if (catalogItem) totalCost += catalogItem.price;
   });
 
-  if (userCoins < totalCost) {
+  // Check balance using central function if available
+  const currentBalance = typeof getCoins === "function" ? getCoins() : userCoins;
+
+  if (currentBalance < totalCost) {
     insufficientCoinsMsg?.classList.remove("hidden");
     return;
   }
 
-  // Deduct coins & register owned items
-  userCoins -= totalCost;
-  updateCoinsDisplay();
+  // Deduct coins via add-coins.js helper
+  if (typeof deductCoins === "function") {
+    deductCoins(totalCost); // Deducts & automatically updates localStorage and UI
+    userCoins = getCoins();
+  } else {
+    // Fallback if add-coins.js is missing
+    userCoins -= totalCost;
+    updateCoinsDisplay();
+  }
 
+  // Register newly owned items
   unownedItems.forEach(item => {
     ownedAssets.push(item.id);
   });
@@ -610,6 +649,35 @@ function showCustomizerSuccessToast(message = "Purchase Successful!") {
   }, 4000);
 }
 
+// Helper: Get array of currently selected unowned items
+function getUnownedSelectedItems() {
+  const unownedItems = [];
+  Object.keys(CATEGORY_MAP).forEach(cat => {
+    const layerKey = CATEGORY_MAP[cat].layerKey;
+    const currentId = activeConfig[layerKey];
+    if (currentId && !ownedAssets.includes(currentId)) {
+      unownedItems.push({ cat, id: currentId });
+    }
+  });
+  return unownedItems;
+}
+
+// Action button click handler
+function handleSaveOrBuy() {
+  const unownedItems = getUnownedSelectedItems();
+
+  if (unownedItems.length > 0) {
+    // Has unowned items -> Open Purchase Modal
+    openPurchaseModal();
+  } else {
+    // Only equipped owned items -> Directly Save Configuration
+    if (window.saveAvatarConfig) {
+      window.saveAvatarConfig(activeConfig);
+    }
+    showCustomizerSuccessToast("Avatar saved");
+  }
+}
+
 // Modal Utilities
 function openModal(id) {
   const el = document.getElementById(id);
@@ -621,3 +689,12 @@ function closeModal(id) {
   if (el) el.classList.add("hidden");
 }
 
+// Sync avatar page userCoins when coins are purchased or updated in storage
+window.addEventListener("storage", (event) => {
+  if (event.key === "player_user_coins") {
+    if (typeof getCoins === "function") {
+      userCoins = getCoins();
+    }
+    updateCoinsDisplay();
+  }
+});

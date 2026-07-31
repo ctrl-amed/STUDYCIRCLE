@@ -26,11 +26,17 @@ const eyeIcon = document.getElementById('eye-icon');
 const signupUsernameInput = document.getElementById('signup-username');
 const signupEmailInput = document.getElementById('signup-email');
 const signupPasswordInput = document.getElementById('signup-password');
+const signupConfirmPasswordInput = document.getElementById('signup-confirm-password');
+
 const signupUsernameError = document.getElementById('signup-username-error');
 const signupEmailError = document.getElementById('signup-email-error');
 const signupPasswordNote = document.getElementById('signup-password-note');
+const signupConfirmPasswordError = document.getElementById('signup-confirm-password-error');
+
 const btnToggleSignupPassword = document.getElementById('btn-toggle-signup-password');
 const signupEyeIcon = document.getElementById('signup-eye-icon');
+const btnToggleSignupConfirmPassword = document.getElementById('btn-toggle-signup-confirm-password');
+const signupConfirmEyeIcon = document.getElementById('signup-confirm-eye-icon');
 
 // Mock database arrays for validation checks
 const mockDatabase = ['user@studycircle.app', 'acorn@studycircle.app'];
@@ -62,15 +68,17 @@ function toggleViews(showLogin, showSignup, showReset) {
   }
 
   // Clear signup view errors and reset layout
-  if (signupUsernameInput && signupEmailInput && signupPasswordInput) {
+  if (signupUsernameInput && signupEmailInput && signupPasswordInput && signupConfirmPasswordInput) {
     signupUsernameInput.style.borderColor = "#3D2013";
     signupEmailInput.style.borderColor = "#3D2013";
     signupPasswordInput.style.borderColor = "#3D2013";
+    signupConfirmPasswordInput.style.borderColor = "#3D2013";
     
     signupUsernameError.classList.add('hidden');
     signupEmailError.classList.add('hidden');
+    if (signupConfirmPasswordError) signupConfirmPasswordError.classList.add('hidden');
     
-    signupPasswordNote.className = "font-pixel text-[#3D2013] text-[20px] leading-tight mt-1";
+    signupPasswordNote.className = "font-pixel text-[#3D2013] text-lg leading-tight mt-1";
     signupPasswordNote.textContent = "Create a strong password using 8 or more characters, including uppercase and lowercase letters, a number, and a special character.";
   }
 }
@@ -154,6 +162,17 @@ if (btnToggleSignupPassword && signupPasswordInput && signupEyeIcon) {
   });
 }
 
+// Sign Up Confirm Password Field Eye Toggle Visibility
+if (btnToggleSignupConfirmPassword && signupConfirmPasswordInput && signupConfirmEyeIcon) {
+  btnToggleSignupConfirmPassword.addEventListener('click', () => {
+    const isPassword = signupConfirmPasswordInput.getAttribute('type') === 'password';
+    signupConfirmPasswordInput.setAttribute('type', isPassword ? 'text' : 'password');
+    signupConfirmEyeIcon.innerHTML = isPassword
+      ? `<path stroke-linecap="square" stroke-linejoin="square" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.243L9.88 9.88" />`
+      : `<path stroke-linecap="square" stroke-linejoin="square" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="square" stroke-linejoin="square" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+  });
+}
+
 // Toast Generator Function for internal screen reset
 function showSuccessToast() {
   const toast = document.createElement('div');
@@ -222,17 +241,24 @@ if (formSignup) {
     const usernameVal = signupUsernameInput.value.trim();
     const emailVal = signupEmailInput.value.trim();
     const passwordVal = signupPasswordInput.value;
+    const confirmPasswordVal = signupConfirmPasswordInput.value;
 
+    // Reset styles and errors
     signupUsernameInput.style.borderColor = "#3D2013";
     signupEmailInput.style.borderColor = "#3D2013";
     signupPasswordInput.style.borderColor = "#3D2013";
+    signupConfirmPasswordInput.style.borderColor = "#3D2013";
+
     signupUsernameError.classList.add('hidden');
     signupEmailError.classList.add('hidden');
-    signupPasswordNote.className = "font-pixel text-[#3D2013] text-[20px] leading-tight mt-1";
+    if (signupConfirmPasswordError) signupConfirmPasswordError.classList.add('hidden');
+
+    signupPasswordNote.className = "font-pixel text-lg text-[#3D2013]";
     signupPasswordNote.textContent = "Create a strong password using 8 or more characters, including uppercase and lowercase letters, a number, and a special character.";
 
     let hasError = false;
 
+    // Validate Username
     if (mockUsernames.includes(usernameVal.toLowerCase())) {
       signupUsernameInput.style.borderColor = "#A94A4A";
       signupUsernameError.textContent = "✘ Username is already taken.";
@@ -240,6 +266,7 @@ if (formSignup) {
       hasError = true;
     }
 
+    // Validate Email
     if (mockDatabase.includes(emailVal.toLowerCase())) {
       signupEmailInput.style.borderColor = "#A94A4A";
       signupEmailError.textContent = "✘ This email is already registered.";
@@ -247,6 +274,7 @@ if (formSignup) {
       hasError = true;
     }
 
+    // Validate Password Complexity
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_+\-\[\]\\\/]).{8,}$/;
     if (!passwordRegex.test(passwordVal)) {
       signupPasswordInput.style.borderColor = "#A94A4A";
@@ -255,11 +283,24 @@ if (formSignup) {
       hasError = true;
     }
 
+    // Validate Password and Confirm Password Match
+    if (passwordVal !== confirmPasswordVal) {
+      signupConfirmPasswordInput.style.borderColor = "#A94A4A";
+      if (signupConfirmPasswordError) {
+        signupConfirmPasswordError.textContent = "✘ Passwords do not match.";
+        signupConfirmPasswordError.classList.remove('hidden');
+      }
+      hasError = true;
+    }
+
+    // Prevent submission if errors exist
     if (hasError) return;
 
+    // Reset input values upon success
     signupUsernameInput.value = '';
     signupEmailInput.value = '';
     signupPasswordInput.value = '';
+    signupConfirmPasswordInput.value = '';
     
     // Set flag indicating the user just signed up
     localStorage.setItem("justSignedUp", "true");

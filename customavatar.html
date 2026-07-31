@@ -201,12 +201,13 @@
 
   <!-- SEPARATE BUTTON CONTAINER -->
   <!-- Adjusted mt-6 sm:mt-8 to give room for the platform graphic while keeping the button tightly grouped -->
-  <div class="w-full max-w-[220px] sm:max-w-[260px] md:max-w-[300px] mt-9 sm:mt-1 z-20">
-    <button onclick="openPurchaseModal()" type="button"
-            class="w-full font-pressstart text-[9px] sm:text-[10px] text-[#FFFFF6] bg-[#E87339] border-[2.5px] sm:border-[3px] border-[#3D2013] px-3 sm:px-4 py-2.5 sm:py-3 block text-center transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#d4652d] active:scale-95">
-      BUY AND SAVE
-    </button>
-  </div>
+<!-- MAIN ACTION BUTTON CONTAINER -->
+<div class="w-full max-w-[220px] sm:max-w-[260px] md:max-w-[300px] mt-9 sm:mt-1 z-20">
+  <button id="main-action-btn" onclick="handleSaveOrBuy()" type="button"
+          class="w-full font-pressstart text-[9px] sm:text-[10px] text-[#FFFFF6] bg-[#E87339] border-[2.5px] sm:border-[3px] border-[#3D2013] px-3 sm:px-4 py-2.5 sm:py-3 block text-center transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#d4652d] active:scale-95">
+    SAVE
+  </button>
+</div>
 
 </section>
 

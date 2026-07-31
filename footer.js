@@ -28,9 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const home = getNavClasses('homepage');
   const room = getNavClasses('myroom');
   const join = getNavClasses('join');
-  const kitsu = isActive('/kitsu-ai');
+  const kitsu = isActive('kitsuai');
   const avatar = getNavClasses('customavatar');
-  const furniture = getNavClasses('/furniture');
+  const furniture = getNavClasses('customroom');
   const profile = getNavClasses('profile');
 
   footerContainer.innerHTML = `
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- 4. KITSU AI -->
         <div class="relative flex-1 h-full flex items-center justify-center pointer-events-none">
-          <a href="/kitsu-ai" class="pointer-events-auto absolute -top-5 sm:-top-7 flex flex-col items-center group cursor-pointer no-underline">
+          <a href="kitsuai.html" class="pointer-events-auto absolute -top-5 sm:-top-7 flex flex-col items-center group cursor-pointer no-underline">
             <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#FEF4E0] border-[3px] border-[#3D2013] flex items-center justify-center overflow-hidden transition-transform ${kitsu ? 'scale-110 ring-4 ring-[#E16F37]/40' : 'group-hover:scale-105'}">
               <img src="media/kitsu_logo.png" alt="Kitsu AI" class="w-12 h-12 sm:w-15 sm:h-15 object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
               <svg class="w-10 h-10 text-[#E16F37] hidden" fill="currentColor" viewBox="0 0 24 24">
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
 
         <!-- 6. FURNITURE -->
-        <a href="/furniture" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] ${furniture.bgClass} overflow-hidden no-underline">
+        <a href="customroom.html" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] ${furniture.bgClass} overflow-hidden no-underline">
           <svg class="w-5 h-5 sm:w-6 sm:h-6 ${furniture.iconClass} transition-transform" fill="currentColor" viewBox="0 0 24 24">
             <path d="M20 10V7c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v3c-1.1 0-2 .9-2 2v5h1.33L4 19h1.67l.67-2h11.33l.67 2H20l.67-2H22v-5c0-1.1-.9-2-2-2zm-9 0H6V7h5v3zm7 0h-5V7h5v3z"/>
           </svg>

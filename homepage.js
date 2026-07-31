@@ -36,6 +36,7 @@ function updateDashboardState() {
 
   const nameElement = document.getElementById("player-name");
   const modalNameElement = document.getElementById("modal-player-name");
+  const avatarNametagElement = document.getElementById("avatar-nametag"); // 👈 Added Name Tag Reference
 
   const xpBarFill = document.getElementById("xp-bar-fill");
   const modalXpBarFill = document.getElementById("modal-xp-bar-fill");
@@ -64,6 +65,7 @@ function updateDashboardState() {
   // Apply Name
   if (nameElement) nameElement.textContent = playerData.name;
   if (modalNameElement) modalNameElement.textContent = playerData.name;
+  if (avatarNametagElement) avatarNametagElement.textContent = playerData.name; // 👈 Set Name Tag Text
 
   // Apply Avatars
   if (playerData.avatarUrl) {
@@ -455,6 +457,9 @@ function saveTimerSettings() {
 /**
  * Updates all visual aspects of the main timer modal AND the mini-display
  */
+
+const timerChannel = new BroadcastChannel('study_timer_channel');
+
 function renderTimerUI() {
   const unselectedView = document.getElementById("timer-unselected-view");
   const activeView = document.getElementById("timer-active-view");
@@ -481,6 +486,13 @@ function renderTimerUI() {
   const mins = Math.floor(timerState.secondsLeft / 60);
   const secs = timerState.secondsLeft % 60;
   const formattedTime = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  // --- BROADCAST TIME TO OTHER PAGES ---
+  timerChannel.postMessage({
+    formattedTime: formattedTime,
+    isBreak: timerState.isBreak,
+    isRunning: timerState.isRunning
+  });
   
   const display = document.getElementById("timer-display");
   if (display) display.textContent = formattedTime;
@@ -1325,3 +1337,223 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// ==========================================
+// 🎓 KITSU INTERACTIVE TUTORIAL SYSTEM
+// ==========================================
+
+const tutorialSteps = [
+  {
+    // Step 1: Welcome (Centered)
+    targetSelector: null,
+    position: "center",
+    title: "Hi there! I'm Kitsu!",
+    message: "Welcome to StudyCircle! Let me show you around so you can get started!"
+  },
+  {
+    // Step 2: Tasks Checklist
+    targetSelector: 'button[onclick*="checklist-modal"]',
+    position: "side",
+    title: "Tasks Checklist",
+    message: "Add your tasks here and complete them to earn Coins and Level Up."
+  },
+  {
+    // Step 3: Study Timer
+    targetSelector: 'button[onclick*="timer-modal"]',
+    position: "side",
+    title: "Study Timer",
+    message: "Choose your preferred study technique and keep track of your study sessions with the built-in timer."
+  },
+  {
+    // Step 4: Calendar and Streak
+    targetSelector: 'button[onclick*="calendar-modal"]',
+    position: "side",
+    title: "Calendar and Streak",
+    message: "Check in daily to build your streak! Keep your streak alive by checking in to get rewards."
+  },
+  {
+    // Step 5: AI Sparkle Assistance
+    targetSelector: 'button[onclick*="sparkle-modal"]',
+    position: "side",
+    title: "AI Assistance",
+    message: "Click here to chat with Kitsu! Ask questions, get study tips, and receive help whenever you need it."
+  },
+  {
+    // Step 6: Study Coins
+    targetSelector: '.user-coin-balance', // Target parent container or coin badge
+    position: "under",
+    title: "Study Coins",
+    message: "This is where you can view your Study Coins. Earn coins by completing tasks and use them to customize your character and room."
+  },
+  {
+    // Step 7: Add Friends
+    targetSelector: 'button[onclick*="friends-modal"]',
+    position: "under",
+    title: "Add Friends",
+    message: "Connect with friends by sending or accepting friend requests. Study together and stay motivated!"
+  },
+  {
+    // Step 8: Streak Status Button
+    targetSelector: 'button[onclick*="full-calendar-modal"]',
+    position: "under",
+    title: "Streak",
+    message: "Keep your streak alive by checking in every day. The longer your streak, the greater your achievement!"
+  },
+  {
+    // Step 9: Final Step (Centered)
+    targetSelector: null,
+    position: "center",
+    title: "You’re All Set!",
+    message: "You're ready to begin your study journey. Complete tasks, stay consistent, and have fun learning with Kitsu!"
+  }
+];
+
+let currentTutorialStep = 0;
+
+/**
+ * Checks if tutorial should run automatically on page load
+ */
+function checkAndStartTutorial() {
+  const isPending = localStorage.getItem("pendingTutorial") === "true";
+  if (isPending) {
+    startTutorial();
+  }
+}
+
+/**
+ * Initializes and presents the tutorial system
+ */
+function startTutorial() {
+  currentTutorialStep = 0;
+  const overlay = document.getElementById("tutorial-overlay");
+  if (overlay) overlay.classList.remove("hidden");
+  renderTutorialStep();
+}
+
+// Keep track of the elevated element across steps
+let activeElevatedElement = null;
+
+function renderTutorialStep() {
+  const step = tutorialSteps[currentTutorialStep];
+  if (!step) return;
+
+  // 1. RESET PREVIOUS STEP: Remove high z-index from the previous element
+  if (activeElevatedElement) {
+    activeElevatedElement.classList.remove("z-[999]", "relative");
+    activeElevatedElement = null;
+  }
+
+  const titleEl = document.getElementById("tutorial-title");
+  const msgEl = document.getElementById("tutorial-message");
+  const nextBtn = document.getElementById("tutorial-next-btn");
+  const skipBtn = document.getElementById("tutorial-skip-btn");
+  const container = document.getElementById("tutorial-bubble-container");
+  const spotlight = document.getElementById("tutorial-spotlight");
+
+  // Update text
+  if (titleEl) titleEl.textContent = step.title;
+  if (msgEl) msgEl.textContent = step.message;
+
+  // Update button labels
+  const isLast = currentTutorialStep === tutorialSteps.length - 1;
+  if (nextBtn) nextBtn.textContent = isLast ? "Done" : "NEXT";
+  if (skipBtn) {
+    if (isLast) skipBtn.classList.add("hidden");
+    else skipBtn.classList.remove("hidden");
+  }
+
+  // 2. FIND & ELEVATE CURRENT STEP TARGET ONLY
+  let targetElement = null;
+  if (step.targetSelector) {
+    targetElement = document.querySelector(step.targetSelector);
+    if (targetElement && step.targetSelector.includes("user-coin-balance")) {
+      targetElement = targetElement.closest('#tut-coins-container') || targetElement;
+    }
+  }
+
+  if (targetElement && step.position !== "center") {
+    // Elevate ONLY this active step's target above the backdrop overlay
+    targetElement.classList.add("z-[999]", "relative");
+    activeElevatedElement = targetElement;
+
+    const rect = targetElement.getBoundingClientRect();
+
+    // Position spotlight glow box over active element
+    if (spotlight) {
+      spotlight.style.top = `${rect.top - 6}px`;
+      spotlight.style.left = `${rect.left - 6}px`;
+      spotlight.style.width = `${rect.width + 12}px`;
+      spotlight.style.height = `${rect.height + 12}px`;
+      spotlight.classList.remove("hidden");
+    }
+
+    // Position speech bubble next to/under target element
+    container.style.position = "absolute";
+    if (step.position === "under") {
+      container.style.top = `${Math.min(window.innerHeight - 300, rect.bottom + 16)}px`;
+      container.style.left = `${Math.max(16, Math.min(window.innerWidth - container.offsetWidth - 16, rect.left + rect.width / 2 - container.offsetWidth / 2))}px`;
+    } else if (step.position === "side") {
+      if (window.innerWidth < 640) {
+        container.style.top = `${Math.min(window.innerHeight - 320, rect.bottom + 16)}px`;
+        container.style.left = "50%";
+        container.style.transform = "translateX(-50%)";
+      } else {
+        container.style.top = `${Math.max(16, rect.top)}px`;
+        const placeRight = rect.left < window.innerWidth / 2;
+        container.style.left = placeRight 
+          ? `${rect.right + 16}px` 
+          : `${rect.left - container.offsetWidth - 16}px`;
+        container.style.transform = "none";
+      }
+    }
+  } else {
+    // Centered step (e.g., Welcome or Finish screen)
+    if (spotlight) spotlight.classList.add("hidden");
+    container.style.position = "relative";
+    container.style.top = "auto";
+    container.style.left = "auto";
+    container.style.transform = "none";
+  }
+}
+
+/**
+ * Moves to next step or finishes tutorial
+ */
+function nextTutorialStep() {
+  if (currentTutorialStep < tutorialSteps.length - 1) {
+    currentTutorialStep++;
+    renderTutorialStep();
+  } else {
+    completeTutorial();
+  }
+}
+
+/**
+ * Skips and closes tutorial
+ */
+function confirmSkipTutorial() {
+  closeModal('skip-tutorial-modal');
+  completeTutorial();
+}
+
+/**
+ * Clears flags and closes tutorial UI
+ */
+function completeTutorial() {
+  if (activeElevatedElement) {
+    activeElevatedElement.classList.remove("z-[999]", "relative");
+    activeElevatedElement = null;
+  }
+  localStorage.setItem("pendingTutorial", "false");
+  localStorage.setItem("tutorialCompleted", "true");
+
+  const overlay = document.getElementById("tutorial-overlay");
+  if (overlay) overlay.classList.add("hidden");
+}
+
+// Automatically check on DOM Ready
+document.addEventListener("DOMContentLoaded", () => {
+  // Small delay ensures layout & target buttons are rendered before calculating positions
+  setTimeout(checkAndStartTutorial, 300);
+});
+

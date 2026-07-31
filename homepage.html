@@ -40,26 +40,32 @@
 <!-- CENTER STUDY ROOM IMAGE & AVATAR CONTAINER -->
 <div class="fixed inset-0 z-0 flex items-center justify-center pointer-events-none p-2 sm:p-4 pb-12 pt-12">
   
-  <!-- Relative wrapper (Increased max width from 780px to 1100px for a larger display) -->
+  <!-- Relative wrapper -->
   <div class="relative flex items-center justify-center max-w-[1100px] w-full max-h-full mx-auto">
     
-    <!-- 1. Background Study Room (Increased max height to allow a bigger image footprint) -->
-    <img src="ASSETS/ROOMS/ROOM1.png" alt="Study Room" class="w-full h-auto max-h-[80vh] object-contain drop-shadow-md">
-
-    <!-- 2. Overlay Avatar Container (Responsive S / M / L) -->
+    <!-- Custom Dynamic Room Component -->
+<custom-room class="w-full h-auto flex items-center justify-center scale-75 origin-center"></custom-room>
+    <!-- Overlay Avatar Container -->
     <div class="absolute 
-                w-[160px] h-[160px] scale-100 bottom-[18%]   <!-- S: Mobile (Default) -->
-                md:w-[200px] md:h-[200px] md:scale-125 md:bottom-[19%] <!-- M: Tablet -->
-                lg:w-[240px] lg:h-[240px] lg:scale-150 lg:bottom-[20%] <!-- L: Desktop -->
+                w-[160px] h-[160px] scale-100 bottom-[18%]
+                md:w-[200px] md:h-[200px] md:scale-125 md:bottom-[19%]
+                lg:w-[240px] lg:h-[240px] lg:scale-150 lg:bottom-[20%]
                 left-[50%] -translate-x-1/2 origin-bottom pointer-events-auto">
+
+      <!-- NAME TAG ABOVE AVATAR -->
+      <div class="absolute -top-10 md:-top-5 left-1/2 -translate-x-1/2 bg-[#000000]/20 px-3 whitespace-nowrap shadow-md pointer-events-none">
+        <span id="avatar-nametag" class="font-pressstart text-[8px] md:text-[8px] text-[#FFFFFF] tracking-wider drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+          name
+        </span>
+      </div>
       <custom-avatar state="idle"></custom-avatar>
     </div>
   </div>
 
-</div>Z
+</div>
 
   <!-- 4. MAIN CONTENT LAYER -->
-  <div class="relative z-10 min-h-screen flex flex-col">
+  <div class="relative min-h-screen flex flex-col">
 
     <!-- Top Navigation Container -->
     <main class="flex-1 w-full py-4 sm:py-6 px-3 sm:px-6">
@@ -115,7 +121,7 @@
         <div class="flex items-center sm:items-start gap-1 sm:gap-2 flex-nowrap shrink-0">
           
           <!-- 4. OUTER RIGHT: COINS STATUS (COMPACT FOR MOBILE) -->
-          <div class="relative flex items-center bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-full pl-2 sm:pl-4 pr-7 sm:pr-12 py-1 mr-1 sm:mr-1.5">
+          <div id="tut-coins-container" class="relative  flex items-center bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-full pl-2 sm:pl-4 pr-7 sm:pr-12 py-1 mr-1 sm:mr-1.5">
             <!-- Coin Icon -->
             <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 sm:w-7 sm:h-7 object-contain mr-1 sm:mr-2 shrink-0" 
                  onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
@@ -138,8 +144,8 @@
           </div>
 
           <!-- 3. BESIDE COINS: FRIENDS STATUS (ICON-ONLY ON MOBILE) -->
-          <button onclick="openModal('friends-modal')" title="Friends Status"
-                  class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-2 transition-all duration-150 retro-shadow cursor-pointer">
+          <button id="tut-friends-btn" onclick="openModal('friends-modal')" title="Friends Status"
+                  class="relative  bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-2 transition-all duration-150 retro-shadow cursor-pointer">
             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#788D55]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
             </svg>
@@ -147,8 +153,8 @@
           </button>
 
           <!-- 2. BESIDE FRIENDS: STREAK STATUS (ICON-ONLY ON MOBILE) -->
-          <button onclick="openModal('full-calendar-modal')" title="Streak Status"
-                  class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 transition-all duration-150 retro-shadow cursor-pointer">
+          <button id="tut-streak-btn" onclick="openModal('full-calendar-modal')" title="Streak Status"
+                  class="relative  bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 transition-all duration-150 retro-shadow cursor-pointer">
             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#ED8C00]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M13.5 1.5c.41 2.6-1.12 4.88-2.6 6.88-1.07 1.45-2.28 2.87-2.6 4.67-.32 1.83.24 3.65 1.43 4.95.83.91 1.93 1.5 3.07 1.7-1.31-.38-2.52-1.2-3.32-2.33-.99-1.38-1.12-3.14-.38-4.6.64-1.26 1.76-2.22 2.62-3.37 1.62-2.16 2.37-4.88 1.78-7.9zM12 22c4.42 0 8-3.58 8-8 0-3.38-2.07-6.28-5-7.5.38 2.38-.5 4.88-2.3 6.6-1.8 1.72-4.22 2.5-6.7 2.1 1.28 4.02 5.2 6.8 10 6.8z"/>
             </svg>
@@ -172,8 +178,8 @@
   
   <!-- ROW 1: CHECKLIST -->
   <div class="group inline-flex items-center gap-3 self-start cursor-pointer">
-    <button onclick="toggleModal('checklist-modal')" title="Checklist"
-            class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
+    <button id="tut-checklist-btn" onclick="toggleModal('checklist-modal')" title="Checklist"
+            class="relative  bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
       <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#788D55]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
         <path d="M9 11l3 3L22 4" />
         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
@@ -186,8 +192,8 @@
 
 <!-- ROW 2: TIMER -->
 <div class="group inline-flex items-center gap-3 self-start cursor-pointer">
-  <button onclick="toggleModal('timer-modal')" title="Timer"
-          class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
+  <button id="tut-timer-btn" onclick="toggleModal('timer-modal')" title="Timer"
+          class="relative  bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
     <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#A53914]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="9" />
       <polyline points="12 7 12 12 15 15" />
@@ -202,8 +208,8 @@
 
 <!-- ROW 3: CALENDAR ACTION BUTTON -->
 <div class="inline-flex items-center self-start">
-  <button onclick="toggleModal('calendar-modal')" title="Calendar"
-          class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
+  <button id="tut-calendar-btn" onclick="toggleModal('calendar-modal')" title="Calendar"
+          class="relative  bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
     <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#708EA4]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
@@ -215,8 +221,8 @@
 
   <!-- ROW 4: SPARKLE [AI] -->
   <div class="inline-flex items-center self-start">
-    <button onclick="toggleModal('sparkle-modal')" title="AI Sparkle"
-            class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
+    <button id="tut-sparkle-btn" onclick="toggleModal('sparkle-modal')" title="AI Sparkle"
+            class="relative  bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-[12px] p-1 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow cursor-pointer">
       <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#FD923E]" fill="currentColor" viewBox="0 0 24 24">
         <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2z" />
       </svg>
@@ -1135,13 +1141,81 @@
     </div>
   </div>
 
+  <!-- ========================================== -->
+<!-- 🎓 KITSU TUTORIAL OVERLAY & MODAL -->
+<!-- ========================================== -->
+
+<!-- Backdrop & Spotlight Overlay -->
+<div id="tutorial-overlay" class="fixed inset-0 z-50 hidden backdrop-blur-md bg-black/60 transition-all duration-300 flex items-center justify-center p-4">
+  
+  <!-- Spotlight Highlight Frame (dynamically repositioned) -->
+  <div id="tutorial-spotlight" class="absolute transition-all duration-300 pointer-events-none rounded-xl ring-4 ring-[#FD923E] shadow-[0_0_25px_rgba(253,146,62,0.8)] hidden"></div>
+
+<!-- Tutorial Dialog Bubble Container -->
+<div id="tutorial-bubble-container" class="relative z-50 transition-all duration-300 w-[90%] sm:w-[450px] md:w-[520px] lg:w-[600px] flex flex-col items-center justify-center">
+  
+  <!-- Bubble Background Box using tutorial_bubble.png -->
+  <div class="relative w-full aspect-[16/10] sm:aspect-[16/9] select-none bg-contain bg-center bg-no-repeat drop-shadow-2xl pl-10 pb-3"
+       style="background-image: url('media/tutorial_bubble.png');">
+    
+    <!-- Content Wrapper (Fills container, text pushed to bottom & left-aligned) -->
+    <div class="w-full h-full flex flex-col justify-end items-start text-left p-1 sm:p-1 md:p-10 pt-10">
+      <!-- Title (pressstart font: ~10px mobile, ~12px tablet, 14px desktop) -->
+      <h3 id="tutorial-title" class="font-pressstart text-[8px] sm:text-[12px] lg:text-[14px] text-[#3D2013] mb-2 sm:mb-3 leading-snug">
+        Hi there! I'm Kitsu!
+      </h3>
+      
+      <!-- Message (pixel font: ~14px mobile, ~16px tablet, 20px desktop) -->
+      <p id="tutorial-message" class="font-pixel text-[13px] sm:text-[16px] lg:text-[20px] text-[#482A1D] leading-tight max-w-[85%]">
+        Welcome to StudyCircle! Let me show you around so you can get started!
+      </p>
+    </div>
+
+    <!-- NEXT/DONE Button: Bottom-positioned with extra spacing + hover states -->
+    <button id="tutorial-next-btn" onclick="nextTutorialStep()" 
+            class="absolute bottom-6 right-6 sm:bottom-8 sm:right-10 font-pressstart text-[8px] sm:text-[12px] lg:text-[14px] text-[#3D2013] hover:text-[#A53914] hover:scale-105 px-3 sm:px-5 py-1.5 sm:py-2 active:translate-y-0.5 cursor-pointer transition-all z-10">
+      NEXT
+    </button>
+  </div>
+
+  <!-- Outer Skip Button on Lower Right -->
+  <div class="w-full flex justify-end mt-2 pr-2">
+    <button id="tutorial-skip-btn" onclick="openModal('skip-tutorial-modal')" 
+            class="font-pressstart text-[9px] sm:text-xs text-[#FEF4E0] bg-[#A53914]/90 hover:bg-[#A53914] border-[2px] border-[#3D2013] px-2.5 sm:px-3 py-1 shadow-[1px_1px_0px_#3D2013] cursor-pointer transition-colors">
+      SKIP
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- SKIP CONFIRMATION MODAL -->
+<div id="skip-tutorial-modal" class="fixed inset-0 z-[60] hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] p-5 sm:p-6 max-w-sm w-full text-center shadow-[4px_4px_0px_#3D2013]">
+    <h4 class="font-pressstart text-xs sm:text-sm text-[#3D2013] mb-3">SKIP TUTORIAL?</h4>
+    <p class="font-pixel text-base sm:text-lg text-[#482A1D] mb-5">
+      Are you sure you want to skip the tutorial? You can always explore the features yourself!
+    </p>
+    <div class="flex items-center justify-center gap-3">
+      <button onclick="closeModal('skip-tutorial-modal')" 
+              class="font-pressstart text-[9px] sm:text-xs bg-[#FAE9CE] text-[#3D2013] border-[2px] border-[#3D2013] px-3 py-1.5 hover:bg-[#EBD9C4] cursor-pointer">
+        CANCEL
+      </button>
+      <button onclick="confirmSkipTutorial()" 
+              class="font-pressstart text-[9px] sm:text-xs bg-[#A53914] text-[#FEF4E0] border-[2px] border-[#3D2013] px-3 py-1.5 hover:bg-[#832c0f] cursor-pointer">
+        SKIP
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="global-footer"></div>
 <script src="footer.js"></script>
 <script src="add-coins.js"></script>
+  <!-- Centralized Avatar Web Component Script -->
+<script src="avatar-system.js"></script>
+<script src="furniture-system.js"></script>
 
   <!-- JS SCRIPT -->
   <script src="homepage.js"></script>
-  <!-- Centralized Avatar Web Component Script -->
-<script src="avatar-system.js"></script>
 </body>
 </html>
