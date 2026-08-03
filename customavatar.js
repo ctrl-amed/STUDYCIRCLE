@@ -87,10 +87,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const isJustSignedUp = localStorage.getItem("justSignedUp") === "true";
   const savedConfig = window.getSavedAvatarConfig ? window.getSavedAvatarConfig() : null;
 
+  // Trigger fade-out animation if redirected from signup
+  if (isJustSignedUp) {
+    const overlay = document.getElementById("signup-fade-overlay");
+    if (overlay) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          overlay.classList.add("fade-out");
+          setTimeout(() => {
+            document.documentElement.classList.remove("show-signup-overlay");
+            overlay.classList.remove("fade-out");
+          }, 1500);
+        }, 50);
+      });
+    }
+  }
+
   if (isJustSignedUp) {
     // New Signup Flow: Mark tutorial as pending for next page load
     localStorage.removeItem("justSignedUp");
-    localStorage.setItem("pendingTutorial", "true"); // 👈 Set flag for tutorial
+    localStorage.setItem("pendingTutorial", "true");
 
     activeConfig = {
       body: "BODY1",
@@ -124,6 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
   switchCategory("face");
   updateAvatarPreview();
 });
+
 
 // Helper: Generates Coin Overlay Badge HTML
 function getCoinBadgeHTML(item) {

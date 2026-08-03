@@ -97,6 +97,14 @@ const mockRoomsData = [
 let activeRoomId = null;
 
 /**
+ * Retrieves all combined rooms (User created from localStorage + Mock Data)
+ */
+function getAllRooms() {
+  const userRooms = JSON.parse(localStorage.getItem("userCreatedRooms") || "[]");
+  return [...userRooms, ...mockRoomsData];
+}
+
+/**
  * Render Room Cards dynamically into the DOM container
  */
 function renderRoomCards(rooms) {
@@ -105,7 +113,7 @@ function renderRoomCards(rooms) {
 
   container.innerHTML = ""; // Clear existing contents
 
-  if (rooms.length === 0) {
+  if (!rooms || rooms.length === 0) {
     container.innerHTML = `
       <div class="col-span-full bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-none p-6 text-center shadow-md">
         <p class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013]">NO ROOMS FOUND MATCHING YOUR SEARCH.</p>
@@ -116,7 +124,7 @@ function renderRoomCards(rooms) {
 
   rooms.forEach((room) => {
     // Dynamically calculate progress percent based on checklist items if present
-    let calculatedPercent = room.progressPercent;
+    let calculatedPercent = room.progressPercent || 0;
     if (room.checklist && room.checklist.length > 0) {
       const completedCount = room.checklist.filter(c => c.status === "complete").length;
       calculatedPercent = Math.round((completedCount / room.checklist.length) * 100);
@@ -183,18 +191,20 @@ function renderRoomCards(rooms) {
  * Filter rooms based on query against name, topic, lobby code/ID, or host
  */
 function filterRooms(query) {
+  const allRooms = getAllRooms();
   const cleanQuery = query.toLowerCase().trim();
+
   if (!cleanQuery) {
-    renderRoomCards(mockRoomsData);
+    renderRoomCards(allRooms);
     return;
   }
 
-  const filtered = mockRoomsData.filter((room) => {
+  const filtered = allRooms.filter((room) => {
     return (
-      room.name.toLowerCase().includes(cleanQuery) ||
-      room.topic.toLowerCase().includes(cleanQuery) ||
-      room.id.toLowerCase().includes(cleanQuery) ||
-      room.host.toLowerCase().includes(cleanQuery)
+      (room.name && room.name.toLowerCase().includes(cleanQuery)) ||
+      (room.topic && room.topic.toLowerCase().includes(cleanQuery)) ||
+      (room.id && room.id.toLowerCase().includes(cleanQuery)) ||
+      (room.host && room.host.toLowerCase().includes(cleanQuery))
     );
   });
 
@@ -212,7 +222,8 @@ function enterRoom(roomId) {
  * Views Room Details Modal
  */
 function viewRoomDetails(roomId) {
-  const room = mockRoomsData.find(r => r.id === roomId);
+  const allRooms = getAllRooms();
+  const room = allRooms.find(r => r.id === roomId);
   if (!room) return;
 
   activeRoomId = roomId;
@@ -222,12 +233,8 @@ function viewRoomDetails(roomId) {
   document.getElementById("modal-room-topic").textContent = room.topic;
   document.getElementById("modal-room-date").textContent = room.dateCreated;
   
-  // FIXED: Display current active players instead of max capacity
   const playerText = room.players === 1 ? "1 player" : `${room.players} players`;
   document.getElementById("modal-room-players-allowed").textContent = playerText;
-  
-  // Note: If you want to show capacity instead (e.g. "4/6 players"), use this line:
-  // document.getElementById("modal-room-players-allowed").textContent = `${room.players}/${room.maxPlayers} players`;
 
   const privacyEl = document.getElementById("modal-room-privacy");
   if (privacyEl) privacyEl.textContent = room.visibility;
@@ -236,7 +243,7 @@ function viewRoomDetails(roomId) {
   if (techEl) techEl.textContent = room.technique || "Pomodoro";
 
   // Calculate dynamic progress percent based on checklist completion
-  let calculatedPercent = room.progressPercent;
+  let calculatedPercent = room.progressPercent || 0;
   if (room.checklist && room.checklist.length > 0) {
     const completedCount = room.checklist.filter(c => c.status === "complete").length;
     calculatedPercent = Math.round((completedCount / room.checklist.length) * 100);
@@ -270,6 +277,12 @@ function viewRoomDetails(roomId) {
     }
   }
 
+  // Optional Custom Room Preview Render
+  const modalPreviewContainer = document.getElementById("modal-room-preview");
+  if (modalPreviewContainer && room.roomConfig) {
+    modalPreviewContainer.innerHTML = `<custom-room config='${JSON.stringify(room.roomConfig)}'></custom-room>`;
+  }
+
   // Show Details Modal
   document.getElementById("room-details-modal")?.classList.remove("hidden");
 }
@@ -282,7 +295,8 @@ function closeDetailsModal() {
  * Share Sub-Modal Handlers
  */
 function openShareModal() {
-  const room = mockRoomsData.find(r => r.id === activeRoomId);
+  const allRooms = getAllRooms();
+  const room = allRooms.find(r => r.id === activeRoomId);
   if (!room) return;
 
   // Set current room data into share input and dropdowns
@@ -311,19 +325,29 @@ function copyShareLink() {
 }
 
 function saveRoomSettings() {
-  const room = mockRoomsData.find(r => r.id === activeRoomId);
-  if (!room) return;
+  const userRooms = JSON.parse(localStorage.getItem("userCreatedRooms") || "[]");
+  const userRoomIndex = userRooms.findIndex(r => r.id === activeRoomId);
 
-  // Save changes from share dropdowns back to room object
   const visSelect = document.getElementById("share-visibility-select");
   const memSelect = document.getElementById("share-members-select");
 
-  if (visSelect) room.visibility = visSelect.value;
-  if (memSelect) room.maxPlayers = parseInt(memSelect.value, 10);
+  if (userRoomIndex !== -1) {
+    // Save to user Created Rooms in localStorage
+    if (visSelect) userRooms[userRoomIndex].visibility = visSelect.value;
+    if (memSelect) userRooms[userRoomIndex].maxPlayers = parseInt(memSelect.value, 10);
+    localStorage.setItem("userCreatedRooms", JSON.stringify(userRooms));
+  } else {
+    // Save to Mock Room directly
+    const mockRoom = mockRoomsData.find(r => r.id === activeRoomId);
+    if (mockRoom) {
+      if (visSelect) mockRoom.visibility = visSelect.value;
+      if (memSelect) mockRoom.maxPlayers = parseInt(memSelect.value, 10);
+    }
+  }
 
   // Refresh active Details Modal UI and catalog view
   viewRoomDetails(activeRoomId);
-  renderRoomCards(mockRoomsData);
+  renderRoomCards(getAllRooms());
 
   closeShareModal();
 }
@@ -332,8 +356,8 @@ function saveRoomSettings() {
  * Initial Event Bindings on DOM Content Loaded
  */
 document.addEventListener("DOMContentLoaded", () => {
-  // Render initial catalog
-  renderRoomCards(mockRoomsData);
+  // Render initial catalog combining local stored user rooms and mock data
+  renderRoomCards(getAllRooms());
 
   // Setup search input filter listener
   const searchInput = document.getElementById("room-search-input");

@@ -187,6 +187,47 @@
             </div>
           </div>
 
+          <div class="flex flex-col gap-1.5">
+            <label for="room-sessions" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">
+              Number of Sessions
+            </label>
+            
+            <div class="relative w-full">
+              <select id="room-sessions" name="roomSessions" 
+                      onchange="handleSessionsChange(this)"
+                      onfocus="toggleSessionsDropdownArrow(true)"
+                      onblur="toggleSessionsDropdownArrow(false)"
+                      class="w-full bg-[#FAE9CE] text-[#3D2013]/40 border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none p-2.5 sm:p-3 font-pressstart text-[9px] sm:text-[10px] focus:outline-none focus:bg-[#FEF4E0] transition-colors appearance-none cursor-pointer pr-10">
+                <option value="" disabled selected class="text-[#3D2013]/40 bg-[#FAE9CE]">Select number of sessions...</option>
+                <option value="1" class="text-[#3D2013] bg-[#FAE9CE]">1 Session</option>
+                <option value="2" class="text-[#3D2013] bg-[#FAE9CE]">2 Sessions</option>
+                <option value="3" class="text-[#3D2013] bg-[#FAE9CE]">3 Sessions</option>
+                <option value="4" class="text-[#3D2013] bg-[#FAE9CE]">4 Sessions</option>
+                <option value="5" class="text-[#3D2013] bg-[#FAE9CE]">5 Sessions</option>
+                <option value="custom" class="text-[#3D2013] bg-[#FAE9CE]">Custom...</option>
+              </select>
+
+              <!-- Retro Custom Arrow Icon -->
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#3D2013]">
+                <svg id="arrow-icon-sessions" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" 
+                     class="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Custom Sessions Input (Only visible when Custom is selected) -->
+            <input type="text" id="custom-sessions-input" name="customSessions" placeholder="Enter number of sessions..." 
+                   oninput="clearError('room-sessions')"
+                   onkeydown="restrictToNumbersOnly(event)"
+                   class="hidden w-full bg-[#FAE9CE] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none p-2.5 sm:p-3 font-pixel text-[15px] sm:text-[20px] focus:outline-none focus:bg-[#FEF4E0] placeholder-[#3D2013]/40 transition-colors">
+
+            <!-- Validation Error Text -->
+            <span id="error-room-sessions" class="hidden font-pressstart text-[8px] text-[#D9383A]">
+              * Please select or enter number of sessions!
+            </span>
+          </div> 
+
         </div>
 
         <!-- STEP 2: PRIVACY & ACCESS -->

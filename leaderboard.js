@@ -6,6 +6,16 @@
       }
     }
 
+    function handleLeaderboardClose() {
+  // Check if loaded inside an iframe in index.html
+  if (window.parent && window.parent.closeLeaderboardModal) {
+    window.parent.closeLeaderboardModal();
+  } else {
+    // Fallback if accessed directly as a standalone page
+    window.location.href = "index.html"; 
+  }
+}
+
     function switchLeaderboardTab(tab) {
       const tabs = ['global', 'friends', 'room'];
       

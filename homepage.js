@@ -1557,3 +1557,129 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(checkAndStartTutorial, 300);
 });
 
+// ==========================================
+// LOFI AUDIO PLAYER LOGIC
+// ==========================================
+
+const lofiTracks = [
+  { name: "Cozy Coffee Shop", src: "ASSETS/BGM/LOFI1.mp3" },
+  { name: "Late Night Rain", src: "ASSETS/BGM/LOFI2.mp3" },
+  { name: "Midnight Study", src: "ASSETS/BGM/LOFI3.mp3" },
+  { name: "Pixel Dreams", src: "ASSETS/BGM/LOFI4.mp3" }
+];
+
+let currentTrackIndex = 0;
+
+function getAudioPlayer() {
+  return document.getElementById("lofi-audio-player");
+}
+
+function initLofiPlayer() {
+  const audio = getAudioPlayer();
+  if (!audio) return;
+
+  // Set initial source and volume
+  audio.src = lofiTracks[currentTrackIndex].src;
+  audio.volume = 0.5;
+
+  // Sync state when track ends
+  audio.addEventListener("ended", () => {
+    updateLofiUI(false);
+  });
+}
+
+function toggleLofiPlay() {
+  const audio = getAudioPlayer();
+  if (!audio) return;
+
+  if (audio.paused) {
+    audio.play().then(() => {
+      updateLofiUI(true);
+    }).catch(err => {
+      console.warn("Playback blocked or track not found:", err);
+    });
+  } else {
+    audio.pause();
+    updateLofiUI(false);
+  }
+}
+
+function changeLofiTrack(index) {
+  const audio = getAudioPlayer();
+  if (!audio) return;
+
+  currentTrackIndex = parseInt(index, 10);
+  const track = lofiTracks[currentTrackIndex];
+  
+  audio.src = track.src;
+  
+  const titleDisplay = document.getElementById("lofi-current-title");
+  if (titleDisplay) titleDisplay.textContent = track.name;
+
+  // Play automatically on change if audio was already active
+  if (!audio.paused || document.getElementById("lofi-vinyl-icon")?.classList.contains("animate-spin-slow")) {
+    audio.play().then(() => {
+      updateLofiUI(true);
+    }).catch(err => console.warn(err));
+  }
+}
+
+function setLofiVolume(val) {
+  const audio = getAudioPlayer();
+  if (audio) {
+    audio.volume = parseFloat(val);
+  }
+}
+
+function updateLofiUI(isPlaying) {
+  const vinylIcon = document.getElementById("lofi-vinyl-icon");
+  const playIcon = document.getElementById("lofi-play-icon");
+  const playText = document.getElementById("lofi-play-text");
+  const playBtn = document.getElementById("lofi-play-btn");
+  const titleDisplay = document.getElementById("lofi-current-title");
+
+  if (titleDisplay) {
+    titleDisplay.textContent = lofiTracks[currentTrackIndex].name;
+  }
+
+  if (isPlaying) {
+    if (vinylIcon) vinylIcon.classList.add("animate-spin-slow");
+    if (playIcon) playIcon.textContent = "❚❚";
+    if (playText) playText.textContent = "PAUSE";
+    if (playBtn) {
+      playBtn.classList.remove("bg-[#788D55]");
+      playBtn.classList.add("bg-[#A53914]");
+    }
+  } else {
+    if (vinylIcon) vinylIcon.classList.remove("animate-spin-slow");
+    if (playIcon) playIcon.textContent = "▶";
+    if (playText) playText.textContent = "PLAY";
+    if (playBtn) {
+      playBtn.classList.remove("bg-[#A53914]");
+      playBtn.classList.add("bg-[#788D55]");
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initLofiPlayer();
+});
+
+
+// ==========================================
+// LEADERBOARD OVERLAY MODAL LOGIC
+// ==========================================
+function openLeaderboardModal() {
+  const iframe = document.getElementById("leaderboard-frame");
+  
+  // Set iframe source only when opening to delay loading resource
+  if (iframe && iframe.src !== window.location.origin + "/leaderboard.html") {
+    iframe.src = "leaderboard.html";
+  }
+  
+  openModal("leaderboard-modal");
+}
+
+function closeLeaderboardModal() {
+  closeModal("leaderboard-modal");
+}

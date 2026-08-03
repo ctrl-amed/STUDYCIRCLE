@@ -151,3 +151,54 @@
   box-shadow: 0 0 0 2px #3D2013;
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin 3s linear infinite;
+}
+
+/* Visible Page Fade In */
+@keyframes fadeInPage {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Applied dynamically when user signs up */
+body.signup-fade-in {
+  opacity: 0; /* Ensures body starts completely hidden */
+  animation: fadeInPage 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Overlay hidden by default */
+#signup-fade-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #F8E9D2;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 1.5s ease-in-out;
+}
+
+/* Display overlay instantly before DOM paint */
+html.show-signup-overlay #signup-fade-overlay {
+  display: block;
+}
+
+/* Class added by JS to trigger the fade out */
+#signup-fade-overlay.fade-out {
+  opacity: 0;
+}

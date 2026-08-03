@@ -127,6 +127,8 @@ function validateStep(step) {
     const roomNameInput = document.getElementById('room-name');
     const roomTopicInput = document.getElementById('room-topic');
     const roomPlayersSelect = document.getElementById('room-players');
+    const roomSessionsSelect = document.getElementById('room-sessions');
+    const customSessionsInput = document.getElementById('custom-sessions-input');
 
     // Check Room Name
     if (!roomNameInput || roomNameInput.value.trim() === '') {
@@ -144,6 +146,17 @@ function validateStep(step) {
     if (!roomPlayersSelect || roomPlayersSelect.value === '' || Number(roomPlayersSelect.value) < 1 || Number(roomPlayersSelect.value) > 6) {
       showError('room-players');
       isValid = false;
+    }
+
+    // Check Room Sessions
+    if (!roomSessionsSelect || roomSessionsSelect.value === '') {
+      showError('room-sessions');
+      isValid = false;
+    } else if (roomSessionsSelect.value === 'custom') {
+      if (!customSessionsInput || customSessionsInput.value.trim() === '' || parseInt(customSessionsInput.value, 10) <= 0) {
+        showError('room-sessions');
+        isValid = false;
+      }
     }
 
     return isValid;
@@ -235,21 +248,58 @@ function previousStep() {
   }
 }
 
-/**
- * Action triggered on Create Room (Final Step)
- */
 function submitCreateRoom() {
-  // Use startSimulatedLoad to animate the loading bar and redirect upon completion
-  if (typeof startSimulatedLoad === 'function') {
-    startSimulatedLoad('Creating Room...', 2000, () => {
-      window.location.href = "myroom.html";
-    });
-  } else {
-    alert("Room successfully created!");
-    window.location.href = "myroom.html";
-  }
-}
+  // 1. Gather values from user inputs
+  const roomName = document.getElementById("room-name")?.value.trim() || "Untitled Room";
+  const roomTopic = document.getElementById("room-topic")?.value.trim() || "General Study";
+  
+  const playersSelect = document.getElementById("room-players");
+  const roomPlayers = playersSelect && playersSelect.value ? parseInt(playersSelect.value, 10) : 1;
 
+  const techniqueTitles = {
+    pomodoro: "Pomodoro",
+    "5217": "52-17",
+    "90min": "90-mins"
+  };
+  const technique = techniqueTitles[selectedTechniqueKey] || "Pomodoro";
+
+  const formattedDate = new Date().toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric"
+  });
+
+  const validTasks = draftTasks.filter(t => t.trim() !== "");
+  const checklist = validTasks.length > 0
+    ? validTasks.map(task => ({ title: task, status: "inprogress" }))
+    : [{ title: "Initial Study Focus", status: "inprogress" }];
+
+  const customConfig = JSON.parse(localStorage.getItem("user_furniture_config") || '{"room":"ROOM1"}');
+
+  // 2. Build room object using roomPlayers
+  const newRoom = {
+    id: `RM-${Math.floor(100 + Math.random() * 900)}`,
+    name: roomName,
+    topic: roomTopic,
+    host: "You",
+    players: roomPlayers,      // <-- Fixed: Now dynamically uses selected room players
+    maxPlayers: roomPlayers,   // <-- Updated to match selected capacity
+    dateCreated: formattedDate,
+    progressPercent: 0,
+    visibility: selectedPrivacy || "public",
+    technique: technique,
+    checklist: checklist,
+    roomConfig: customConfig
+  };
+
+  // 3. Save to localStorage
+  const existingRooms = JSON.parse(localStorage.getItem("userCreatedRooms") || "[]");
+  existingRooms.unshift(newRoom);
+  localStorage.setItem("userCreatedRooms", JSON.stringify(existingRooms));
+
+  // 4. Redirect
+  window.location.href = "myroom.html";
+}
 /**
  * Header Close (X) button navigation handler
  */
@@ -490,14 +540,24 @@ function renderReviewSummary() {
   const container = document.getElementById("review-summary-container");
   if (!container) return;
 
-  // Retrieve Form 1 values
   const roomName = document.getElementById("room-name")?.value.trim() || "—";
   const roomTopic = document.getElementById("room-topic")?.value.trim() || "—";
   
   const playersSelect = document.getElementById("room-players");
   const roomPlayers = playersSelect && playersSelect.value ? `${playersSelect.value} Player(s)` : "—";
 
-  // Map technique key to display title
+  const sessionsSelect = document.getElementById("room-sessions");
+  const customSessionsInput = document.getElementById("custom-sessions-input");
+  let sessionsText = "—";
+
+  if (sessionsSelect && sessionsSelect.value) {
+    if (sessionsSelect.value === 'custom') {
+      sessionsText = customSessionsInput && customSessionsInput.value ? `${customSessionsInput.value} Session(s)` : "—";
+    } else {
+      sessionsText = `${sessionsSelect.value} Session(s)`;
+    }
+  }
+
   const techniqueTitles = {
     pomodoro: "Pomodoro",
     "5217": "52-17",
@@ -505,42 +565,94 @@ function renderReviewSummary() {
   };
   const roomTechnique = techniqueTitles[selectedTechniqueKey] || "Pomodoro";
 
-  // Form 2 Privacy values
   const inviteCode = document.getElementById("invite-code-display")?.textContent.trim() || "K7P9-X2M4";
   const privacyText = selectedPrivacy === "public" ? "Public" : `Private (${inviteCode})`;
 
-  // Form 3 Task counts
   const validTasks = draftTasks.filter(t => t.trim() !== "");
   const tasksText = `${validTasks.length} Task(s)`;
 
-  // Form 4 Invited count
   const invitedCount = friendsList.filter(f => f.invited).length;
   const maxPlayers = playersSelect ? parseInt(playersSelect.value, 10) : 1;
   const invitedText = maxPlayers === 1 ? "N/A (Solo)" : `${invitedCount} Friend(s)`;
 
-  // Summary Rows Data configuration
   const summaryItems = [
     { label: "Name", value: roomName },
     { label: "Topic", value: roomTopic },
     { label: "Players", value: roomPlayers },
     { label: "Technique", value: roomTechnique },
+    { label: "Sessions", value: sessionsText },
     { label: "Privacy", value: privacyText },
     { label: "Tasks", value: tasksText },
     { label: "Invited", value: invitedText }
   ];
 
-  // Render items styled identical to the friends list card UI
   container.innerHTML = summaryItems.map(item => `
     <div class="flex items-center justify-between p-2.5 sm:p-3 bg-[#FEF4E0] border-[2px] sm:border-[3px] border-[#3D2013] select-none">
-      <!-- LEFT SIDE: Label -->
       <span class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]/70 uppercase shrink-0">
         ${item.label}
       </span>
-
-      <!-- RIGHT SIDE: Inputted Value -->
       <span class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] font-bold text-right truncate max-w-[180px] sm:max-w-[260px]">
         ${item.value}
       </span>
     </div>
   `).join('');
+}
+
+/**
+ * Restricts keypress inputs to only allow numeric key codes (0-9, Backspace, Arrow keys, Delete, Tab)
+ */
+function restrictToNumbersOnly(e) {
+  const allowedKeys = [
+    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'
+  ];
+  
+  // Allow navigation / control keys
+  if (allowedKeys.includes(e.key) || (e.ctrlKey || e.metaKey)) {
+    return;
+  }
+
+  // Prevent input if key is not a digit (0-9)
+  if (!/^[0-9]$/.test(e.key)) {
+    e.preventDefault();
+  }
+}
+
+/**
+ * Toggles arrow rotation (up/down) when sessions dropdown is focused/blurred
+ */
+function toggleSessionsDropdownArrow(isOpen) {
+  const arrowIcon = document.getElementById("arrow-icon-sessions");
+  if (!arrowIcon) return;
+
+  if (isOpen) {
+    arrowIcon.classList.add("rotate-180");
+  } else {
+    arrowIcon.classList.remove("rotate-180");
+  }
+}
+
+/**
+ * Handles session selection change & toggles custom input visibility
+ */
+function handleSessionsChange(selectEl) {
+  clearError('room-sessions');
+
+  const customInput = document.getElementById('custom-sessions-input');
+
+  if (selectEl.value !== "") {
+    selectEl.classList.remove("text-[#3D2013]/40");
+    selectEl.classList.add("text-[#3D2013]");
+  }
+
+  if (selectEl.value === 'custom') {
+    if (customInput) {
+      customInput.classList.remove('hidden');
+      customInput.focus();
+    }
+  } else {
+    if (customInput) {
+      customInput.classList.add('hidden');
+      customInput.value = '';
+    }
+  }
 }
