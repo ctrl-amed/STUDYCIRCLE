@@ -1,0 +1,19 @@
+/* Idle subtle pixel bounce animation */
+.avatar-container.state-idle .avatar-layer {
+  animation: avatarIdleBounce 1.8s infinite ease-in-out;
+}
+
+/* Hair sways slightly out-of-sync for extra depth */
+.avatar-container.state-idle .layer-hair,
+.avatar-container.state-idle .layer-accessories {
+  animation: avatarIdleBounce 1.8s infinite ease-in-out 0.12s;
+}
+
+@keyframes avatarIdleBounce {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px); /* Subtle retro pixel bounce */
+  }
+}

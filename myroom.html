@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - My Room</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen md:h-screen md:overflow-hidden relative text-[#3D2013] overflow-x-hidden flex flex-col">
+
+  <!-- 1. FIXED BACKGROUND TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- 3. TOP CENTERED HEADER -->
+  <header class="relative z-10 pt-4 sm:pt-6 flex justify-center w-full px-4 shrink-0">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] md:rounded-[12px] px-4 sm:px-6 md:px-12 py-2 sm:py-2.5 md:py-3 shadow-md flex items-center justify-center">
+      <h1 class="font-pressstart text-[14px] sm:text-[18px] md:text-[22px] text-[#482A1D] tracking-tight text-center leading-none">
+        MY ROOM
+      </h1>
+    </div>
+  </header>
+
+  <!-- 4. MAIN CONTENT AREA -->
+  <main class="relative z-10 flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-28 sm:pb-36 flex flex-col gap-5 overflow-y-auto">
+    
+    <!-- SEARCH & ACTION ROW -->
+    <div class="flex flex-row items-center justify-between gap-2 sm:gap-6 w-full shrink-0">
+      
+      <!-- LEFT: SEARCH BAR -->
+      <div class="relative flex-1 max-w-full sm:max-w-lg">
+        <input 
+          id="room-search-input"
+          type="text" 
+          placeholder="Search lobby code, host or name here..." 
+          class="w-full bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-none px-3 sm:px-4 py-2.5 pl-9 sm:pl-10 font-pixel text-[13px] sm:text-[18px] text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none focus:ring-2 focus:ring-[#788D55] shadow-sm"
+        />
+        <!-- Search Icon -->
+        <svg class="w-4 h-4 text-[#3D2013] absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+      </div>
+
+      <!-- RIGHT: RESPONSIVE CREATE ROOM BUTTON -->
+      <a 
+        href="createroom.html" 
+        class="flex items-center justify-center font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] p-2.5 sm:px-6 sm:py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer shrink-0 no-underline"
+        title="Create Room">
+        
+        <!-- Mobile: Plus Icon -->
+        <svg class="w-5 h-5 block sm:hidden text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+
+        <!-- Desktop: Text -->
+        <span class="hidden sm:inline">CREATE ROOM</span>
+      </a>
+
+    </div>
+
+    <!-- ROOM LIST CATALOG GRID -->
+<div id="room-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pb-12">
+  <!-- Dynamic Room Cards -->
+</div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- ROOM DETAILS & SHARE MODALS CONTAINER                                     -->
+  <!-- ========================================================================= -->
+  
+ <!-- MAIN ROOM DETAILS MODAL -->
+<div id="room-details-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 backdrop-blur-xs">
+  <div class="relative w-full max-w-lg bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[23px] p-4 sm:p-6 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+    
+    <!-- Upper Right X Close Button (No Background) -->
+    <button onclick="closeDetailsModal()" class="absolute top-3.5 right-4 w-7 h-7 sm:w-8 sm:h-8 text-[#3D2013] hover:text-[#E87339] transition-colors flex items-center justify-center cursor-pointer font-pressstart text-sm shrink-0">
+      ✕
+    </button>
+
+    <!-- 1. Room Name -->
+    <h2 id="modal-room-name" class="font-pressstart text-[14px] sm:text-[18px] text-[#482A1D] pr-8 leading-snug">
+      <!-- Dynamic Name -->
+    </h2>
+
+    <!-- 2. Room Topic (Font: Pixel, Color: #482A1D) -->
+    <p id="modal-room-topic" class="font-pixel text-[15px] sm:text-[20px] text-[#482A1D] -mt-2 leading-tight">
+      <!-- Dynamic Topic -->
+    </p>
+
+    <!-- 3. Meta Row: Evenly Spaced Items -->
+    <div class="flex items-center justify-between gap-2 py-2.5 font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] w-full">
+      
+<!-- Calendar Icon + Date -->
+<div class="flex items-center gap-1 shrink-0">
+  <svg class="w-3.5 h-3.5 text-[#3D2013]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+  </svg>
+  <span id="modal-room-date">Oct 12, 2026</span>
+</div>
+
+<!-- Profile Icon + Active Players Count -->
+<div class="flex items-center gap-1 shrink-0">
+  <svg class="w-3.5 h-3.5 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+  </svg>
+  <span id="modal-room-players-allowed">4 players</span>
+</div>
+
+      <!-- Lock Icon (Same Color as Text: #3D2013) + Private/Public (Orange Text: #FD923E) -->
+      <div class="flex items-center gap-1 shrink-0">
+        <svg id="modal-privacy-icon" class="w-3.5 h-3.5 text-[#3D2013]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+        </svg>
+        <span id="modal-room-privacy" class="uppercase text-[#FD923E]">Private</span>
+      </div>
+
+      <!-- Share Button (No Background) -->
+      <button onclick="openShareModal()" class="flex items-center gap-1 font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] hover:text-[#FD923E] transition-colors cursor-pointer shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+        </svg>
+        <span>Share</span>
+      </button>
+
+    </div>
+
+    <!-- 4 & 5. Progress Header + Connected Progress Bar -->
+    <div class="flex flex-col gap-1.5 w-full">
+      <div class="flex items-center justify-between font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">
+        <span>Progress</span>
+        <span id="modal-progress-percent">0%</span>
+      </div>
+      <div class="w-full bg-[#FAE9CE] border-[2px] border-[#3D2013] h-3.5 relative overflow-hidden">
+        <div id="modal-progress-bar" class="bg-[#788D55] h-full transition-all duration-300" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <!-- 6. Book Icon + Study Technique -->
+    <div class="flex items-center gap-2 font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">
+      <svg class="w-4 h-4 text-[#3D2013] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+      </svg>
+      <span>Technique: <strong id="modal-study-technique" class="text-[#482A1D]">Pomodoro</strong></span>
+    </div>
+
+    <!-- Rounded Container with Border (Same BG): Shared Checklist -->
+    <div class="bg-[#FEF4E0] border-[2.5px] border-[#3D2013] p-3 sm:p-4 flex flex-col gap-3 rounded-[14px]">
+      <div class="flex items-center gap-2 font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">
+        <svg class="w-4 h-4 text-[#3D2013] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Shared Checklist</span>
+      </div>
+
+      <!-- Checklist Rows -->
+      <div id="modal-checklist-container" class="flex flex-col gap-2 max-h-[160px] overflow-y-auto pr-1">
+        <!-- Dynamic Checklist Items -->
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SHARE SUB-MODAL -->
+<div id="share-room-modal" class="fixed inset-0 z-60 hidden flex items-center justify-center p-4 backdrop-blur-xs">
+  <div class="relative w-full max-w-md bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[23px] p-4 sm:p-6 flex flex-col gap-4 shadow-2xl">
+    
+    <!-- Upper Right X Close Button (No Background) -->
+    <button onclick="closeShareModal()" class="absolute top-3.5 right-4 w-7 h-7 sm:w-8 sm:h-8 text-[#3D2013] hover:text-[#E87339] transition-colors flex items-center justify-center cursor-pointer font-pressstart text-sm shrink-0">
+      ✕
+    </button>
+
+    <!-- Modal Title -->
+    <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#482A1D]">
+      Share Room
+    </h3>
+
+<!-- Share Link with Copy Link Button -->
+<div class="flex flex-col gap-1.5">
+  <label class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">Share link</label>
+  <div class="flex items-stretch gap-2 w-full">
+    <input id="share-link-input" type="text" readonly value="studycircle.app/join/RM-101" 
+           class="flex-1 bg-[#FAE9CE] border-[2px] border-[#3D2013] p-2 font-pixel text-[13px] sm:text-[15px] text-[#3D2013] focus:outline-none truncate">
+    <!-- Copy Button (Matches Input Height) -->
+    <button onclick="copyShareLink()" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] bg-[#F8E9D2] border-[2px] border-[#3D2013] px-2.5 flex items-center justify-center hover:bg-[#FD923E] transition-all cursor-pointer retro-shadow shrink-0">
+      Copy Link
+    </button>
+  </div>
+</div>
+
+<!-- Editable Room Visibility (Background: #FEF4E0) -->
+<div class="flex flex-col gap-1.5">
+  <label for="share-visibility-select" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">Room visibility</label>
+  <div class="relative w-full">
+    <!-- Inline Lock SVG Icon (Switches Open/Closed via JS) -->
+    <div class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-[#3D2013]">
+      <svg id="share-visibility-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <!-- Closed Lock Icon (Default) -->
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+      </svg>
+    </div>
+
+    <!-- Select Dropdown (pl-8 for icon padding) -->
+    <select id="share-visibility-select" onchange="updateVisibilityIcon(this.value)" class="w-full bg-[#FEF4E0] text-[#3D2013] border-[2px] border-[#3D2013] py-2 pr-8 pl-8 font-pressstart text-[8px] sm:text-[9px] focus:outline-none appearance-none cursor-pointer uppercase">
+      <option value="private">Private</option>
+      <option value="public">Public</option>
+    </select>
+
+    <!-- Chevron Down Icon -->
+    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#3D2013]">
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>
+    </div>
+  </div>
+</div>
+
+    <!-- Editable Members Dropdown (Background: #FEF4E0) -->
+    <div class="flex flex-col gap-1.5">
+      <label for="share-members-select" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">Members</label>
+      <div class="relative w-full">
+        <select id="share-members-select" class="w-full bg-[#FEF4E0] text-[#3D2013] border-[2px] border-[#3D2013] p-2 font-pressstart text-[8px] sm:text-[9px] focus:outline-none appearance-none cursor-pointer pr-8">
+          <option value="1">1 Member</option>
+          <option value="2">2 Members</option>
+          <option value="3">3 Members</option>
+          <option value="4">4 Members</option>
+          <option value="5">5 Members</option>
+          <option value="6">6 Members</option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#3D2013]">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered Orange Save Button (font-pressstart, text-[#FEF4E0]) -->
+    <div class="flex justify-center pt-2">
+      <button onclick="saveRoomSettings()" class="font-pressstart text-[8px] sm:text-[10px] md:text-[11px] text-[#FEF4E0] bg-[#FD923E] border-[2px] md:border-[3px] border-[#3D2013] px-6 py-2 block text-center transition-all duration-150 retro-shadow cursor-pointer hover:brightness-105 active:scale-95">
+        SAVE
+      </button>
+    </div>
+
+  </div>
+</div>
+
+  <!-- 5. GLOBAL FOOTER -->
+  <div id="global-footer"></div>
+  <script src="footer.js"></script>
+
+  <!-- Script logic for filtering, mock data, and card rendering -->
+  <script src="myroom.js"></script>
+
+</body>
+</html>

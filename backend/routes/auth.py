@@ -31,9 +31,16 @@ def register():
             "message": "All fields are required."
         }), 400
 
-    existing_user = User.query.filter_by(email=email).first()
+    # 1. Check if Username already exists (Cleaned up syntax)
+    existing_username = User.query.filter_by(username=username).first()
+    if existing_username:
+        return jsonify({
+            "message": "Username is already taken."
+        }), 409
 
-    if existing_user:
+    # 2. Check if Email already exists
+    existing_email = User.query.filter_by(email=email).first()
+    if existing_email:
         return jsonify({
             "message": "Email already exists."
         }), 409

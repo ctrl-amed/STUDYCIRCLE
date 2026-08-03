@@ -1,23 +1,27 @@
-from models import db
 from sqlalchemy.sql import func
+from models import db
 
 
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.BigInteger, primary_key=True)
-
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Username is unique and required
     username = db.Column(
         db.String(100),
+        unique=True, 
         nullable=False
     )
 
+    # Email is unique and required
     email = db.Column(
         db.String(255),
         unique=True,
         nullable=False
     )
 
+    # Storing hashed passwords securely
     password_hash = db.Column(
         db.Text,
         nullable=False
@@ -44,8 +48,6 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "email": self.email,
-            # If you don't have these columns in your database yet, 
-            # we can hardcode default fallback values for now:
             "level": getattr(self, 'level', 1),
             "currentXP": getattr(self, 'current_xp', 0),
             "maxXP": getattr(self, 'max_xp', 10000),

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+
+  <script>
+    if (localStorage.getItem("justSignedUp") === "true") {
+      document.documentElement.classList.add("show-signup-overlay");
+    }
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - Custom Avatar</title>
+  
+  <!-- Google Fonts Import -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen md:h-screen md:overflow-hidden relative text-[#3D2013] overflow-x-hidden flex flex-col font-pressstart">
+<div id="signup-fade-overlay"></div>
+
+
+  <!-- 1. FIXED BACKGROUND TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- GLOBAL RETRO NOTIFICATION TOAST CONTAINER -->
+  <div id="toast-container" class="fixed top-6 right-6 z-[70] pointer-events-none flex flex-col gap-3"></div>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="relative z-10 flex-1 min-h-0 w-full max-w-7xl mx-auto px-0 sm:px-6 pt-0 sm:pt-4 pb-24 sm:pb-32 flex flex-col md:flex-row gap-4 md:gap-6">
+    
+    <!-- LEFT SIDE: CUSTOMIZATION FORMS -->
+    <section class="w-full md:w-[60%] flex flex-col gap-3 px-3 sm:px-0">
+      
+      <!-- TOP HEADER: LEFT NAME, RIGHT COINS STATUS -->
+      <div class="flex items-center justify-between p-2.5 sm:p-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <span id="player-display-name" class="text-[10px] sm:text-[14px] text-[#3D2013]">HERO</span>
+        </div>
+
+        <!-- COINS STATUS -->
+        <div class="relative flex items-center bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-full pl-2 sm:pl-4 pr-7 sm:pr-12 py-1 mr-1 sm:mr-1.5">
+          <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 sm:w-6 sm:h-6 object-contain mr-1 sm:mr-2 shrink-0" 
+               onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#FFBA1F] hidden mr-1 sm:mr-2 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="#3D2013" stroke-width="2"/>
+            <circle cx="12" cy="12" r="6" fill="#ED8C00"/>
+          </svg>
+
+          <!-- Unique class targeting for coin display -->
+          <span class="user-coin-balance font-pressstart text-[10px] sm:text-[16px] text-[#482A1D] tracking-tight">0</span>
+
+          <button onclick="openModal('add-coins-modal')" title="Add Coins" type="button"
+                  class="absolute -right-1.5 sm:-right-3 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-[#FFBA1F] border-[2px] sm:border-[3px] border-[#ED8C00] flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform shadow-[1px_1px_0px_#3D2013] sm:shadow-[2px_2px_0px_#3D2013] cursor-pointer">
+            <svg class="w-3.5 h-3.5 sm:w-6 sm:h-6 text-white stroke-[3] sm:stroke-[4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- CUSTOMIZATION CARD CONTAINER -->
+      <div class="flex-1 min-h-0 bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] flex flex-col overflow-hidden shadow-md">
+        
+        <!-- NAV HEADER CONTAINER -->
+        <div class="bg-[#FEF4E0] shrink-0 border-b-2 border-[#3D2013] mx-4 sm:mx-6">
+          <div class="flex items-center justify-center max-w-sm mx-auto h-12">
+            
+            <!-- 1. FACE & BODY -->
+            <button onclick="switchCategory('face')" id="nav-face" type="button" title="Face & Body"
+                    class="nav-tab active relative flex-1 h-full flex items-center justify-center bg-[#F3CBA8] text-black transition-colors cursor-pointer after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-[#D75C2D]">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-3.5-9c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm7 0c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+              </svg>
+            </button>
+
+            <!-- 2. HAIR -->
+            <button onclick="switchCategory('hair')" id="nav-hair" type="button" title="Hair"
+                    class="nav-tab relative flex-1 h-full flex items-center justify-center text-[#A59385] hover:text-[#3D2013] transition-colors cursor-pointer">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm10-7.8l2.5-2.5L22 7V6h-3l-3 3-2.2 1.2z"/>
+              </svg>
+            </button>
+
+            <!-- 3. TOPS -->
+            <button onclick="switchCategory('clothe')" id="nav-clothe" type="button" title="Tops"
+                    class="nav-tab relative flex-1 h-full flex items-center justify-center text-[#A59385] hover:text-[#3D2013] transition-colors cursor-pointer">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M21.6 4.2l-3.2-2.1c-.4-.3-.9-.2-1.2.2L15 5.2c-.3.4-.3 1 0 1.4l1.3 1.4H7.7L9 6.6c.3-.4.3-1 0-1.4L6.8 2.3c-.3-.4-.8-.5-1.2-.2L2.4 4.2C2.1 4.4 2 4.8 2.1 5.2l1.9 6.8c.1.4.5.7.9.7h1.6v8c0 .6.4 1 1 1h13c.6 0 1-.4 1-1v-8h1.6c.4 0 .8-.3.9-.7l1.9-6.8c.1-.4 0-.8-.3-1z"/>
+              </svg>
+            </button>
+
+            <!-- 4. BOTTOMS -->
+            <button onclick="switchCategory('short')" id="nav-short" type="button" title="Bottoms"
+                    class="nav-tab relative flex-1 h-full flex items-center justify-center text-[#A59385] hover:text-[#3D2013] transition-colors cursor-pointer">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 2h12v4H6V2zm0 6h12l-1 14h-4l-1-7-1 7H7L6 8z"/>
+              </svg>
+            </button>
+
+            <!-- 5. ACCESSORIES -->
+            <button onclick="switchCategory('accessory')" id="nav-accessory" type="button" title="Accessories"
+                    class="nav-tab relative flex-1 h-full flex items-center justify-center text-[#A59385] hover:text-[#3D2013] transition-colors cursor-pointer">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L9.5 9.5L2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5L12 2zm-6 2l-1.25 3.75L1 9l3.75 1.25L6 14l1.25-3.75L11 9 7.25 7.75 6 4z"/>
+              </svg>
+            </button>
+
+            <!-- 6. SHOES -->
+            <button onclick="switchCategory('shoe')" id="nav-shoe" type="button" title="Shoes"
+                    class="nav-tab relative flex-1 h-full flex items-center justify-center text-[#A59385] hover:text-[#3D2013] transition-colors cursor-pointer">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 18c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2v-3c0-2.21 1.79-4 4-4h2.5L12 5h5c1.1 0 2 .9 2 2v2l2 2v4c0 1.66-1.34 3-3 3zM3 16h14v-1c0-.55-.45-1-1-1H7.83l-3.33 3.33L3.83 16H3z"/>
+              </svg>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- GRID BODY FOR ASSETS -->
+        <div class="flex-1 p-3 sm:p-4 overflow-y-auto min-h-[300px] md:min-h-0">
+          
+          <!-- BODY COLOR SECTION -->
+          <div id="body-section" class="mb-4">
+            <h3 class="text-[9px] text-[#3D2013] mb-2 uppercase font-pressstart">Skin Tone</h3>
+            <div id="body-asset-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5"></div>
+          </div>
+
+          <!-- ASSET ITEMS GRID -->
+          <div id="active-section">
+            <h3 id="active-category-title" class="text-[9px] text-[#3D2013] mb-2 uppercase font-pressstart">Facial Features</h3>
+            <div id="asset-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5"></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+<!-- RIGHT SIDE: AVATAR PREVIEW -->
+<!-- Changed 'justify-between' to 'justify-center' to keep items grouped together -->
+<section class="w-full md:w-[40%] flex flex-col items-center justify-center gap-4 sm:gap-6 px-3 sm:px-0 relative my-2 md:my-0">
+  
+  <!-- AVATAR CONTAINER + ACTION BUTTONS -->
+  <!-- Removed 'my-auto' so it doesn't push away from the button -->
+  <div class="relative w-full aspect-square max-w-[300px] sm:max-w-[340px] md:max-w-none flex items-center justify-center">
+    
+    <!-- PRICE ADDUP DISPLAY (Scaled for mobile & desktop) -->
+    <div class="absolute -top-2 sm:top-1 left-1/2 -translate-x-1/2 w-24 sm:w-28 md:w-32 bg-[#FAE9CE] border-[2px] border-[#3D2013] rounded-full px-2 sm:px-2.5 py-0.5 sm:py-1 flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm z-20">
+      <img src="media/coin_logo.png" alt="Coin" class="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 object-contain" onerror="this.style.display='none'">
+      <span id="additional-cost-display" class="text-[10px] sm:text-[12px] md:text-[13px] text-[#3D2013] font-pressstart">0</span>
+    </div>
+
+    <!-- AVATAR & PLATFORM STACK WRAPPER -->
+    <div class="relative w-full h-full max-w-[260px] sm:max-w-[300px] max-h-[260px] sm:max-h-[300px] flex flex-col items-center justify-end mt-4 sm:mt-0">
+      <img src="media/platform.png" alt="Platform" class="absolute -bottom-16 sm:-bottom-20 w-[90%] object-contain pointer-events-none z-0" />
+
+      <div class="relative w-full h-full z-10 flex items-center justify-center scale-105 sm:scale-110 pb-1">
+        <custom-avatar id="main-avatar-preview" class="w-full h-full"></custom-avatar>
+      </div>
+    </div>
+
+    <!-- STACKED CONTROLS -->
+    <div class="absolute right-1 sm:right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 sm:gap-2.5 z-20">
+      <button onclick="randomizeAvatar()" title="Randomize" type="button"
+              class="w-8 h-8 sm:w-10 sm:h-10 bg-[#FAE9CE] border-[2px] sm:border-[2.5px] border-[#3D2013] rounded-[8px] flex items-center justify-center text-[#3D2013] hover:bg-[#FEF4E0] active:scale-95 transition-all shadow-[2px_2px_0px_#3D2013] cursor-pointer">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7 7c.83 0 1.5.67 1.5 1.5S7.83 10 7 10s-1.5-.67-1.5-1.5S6.17 7 7 7zm0 10c-.83 0-1.5-.67-1.5-1.5S6.17 14 7 14s1.5.67 1.5 1.5S7.83 17 7 17zm5-5c-.83 0-1.5-.67-1.5-1.5S11.17 9 12 9s1.5.67 1.5 1.5S12.83 12 12 12zm5 5c-.83 0-1.5-.67-1.5-1.5S16.17 14 17 14s1.5.67 1.5 1.5S16.83 17 17 17zm0-8c-.83 0-1.5-.67-1.5-1.5S16.17 7 17 7s1.5.67 1.5 1.5S16.83 9 17 9z"/>
+        </svg>
+      </button>
+
+      <button onclick="undoLastAction()" title="Undo" type="button"
+              class="w-8 h-8 sm:w-10 sm:h-10 bg-[#FAE9CE] border-[2px] sm:border-[2.5px] border-[#3D2013] rounded-[8px] flex items-center justify-center text-[#3D2013] hover:bg-[#FEF4E0] active:scale-95 transition-all shadow-[2px_2px_0px_#3D2013] cursor-pointer">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/>
+        </svg>
+      </button>
+
+      <button onclick="captureSnapshot()" title="Take Photo" type="button"
+              class="w-8 h-8 sm:w-10 sm:h-10 bg-[#FAE9CE] border-[2px] sm:border-[2.5px] border-[#3D2013] rounded-[8px] flex items-center justify-center text-[#3D2013] hover:bg-[#FEF4E0] active:scale-95 transition-all shadow-[2px_2px_0px_#3D2013] cursor-pointer">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+          <circle cx="12" cy="13" r="3"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- SEPARATE BUTTON CONTAINER -->
+  <!-- Adjusted mt-6 sm:mt-8 to give room for the platform graphic while keeping the button tightly grouped -->
+<!-- MAIN ACTION BUTTON CONTAINER -->
+<div class="w-full max-w-[220px] sm:max-w-[260px] md:max-w-[300px] mt-9 sm:mt-1 z-20">
+  <button id="main-action-btn" onclick="handleSaveOrBuy()" type="button"
+          class="w-full font-pressstart text-[9px] sm:text-[10px] text-[#FFFFF6] bg-[#E87339] border-[2.5px] sm:border-[3px] border-[#3D2013] px-3 sm:px-4 py-2.5 sm:py-3 block text-center transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#d4652d] active:scale-95">
+    SAVE
+  </button>
+</div>
+
+</section>
+
+  </main>
+
+  <!-- ADD COINS MODAL -->
+  <div id="add-coins-modal" class="modal hidden fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-8 max-w-lg w-full min-h-[360px] flex flex-col items-center justify-center text-center relative">
+      
+      <!-- VIEW 1: SELECTION STATE -->
+      <div id="coin-modal-selection" class="w-full flex flex-col items-center justify-center">
+        <h3 class="font-pressstart text-lg sm:text-xl text-[#3D2013] mb-3">Buy Coins</h3>
+        <p class="font-pixel text-2xl text-[#3D2013] mb-6 leading-tight">
+          Get more coins to decorate and unlock new items!
+        </p>
+
+        <!-- COIN PACKAGES GRID -->
+        <div class="grid grid-cols-3 gap-3.5 w-full mb-7">
+          <button type="button" onclick="selectCoinPackage(this)" data-package="500"
+                  class="coin-card bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0">
+            <div class="check-badge hidden absolute -top-2 -right-2 bg-[#788D55] border-[2px] border-[#3D2013] text-[#FEF4E0] text-[8px] font-pressstart rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10">✓</div>
+            <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+              <img src="media/coin_logo.png" alt="Coin Logo" class="w-6 h-6 object-contain shrink-0" />
+              <span class="font-pressstart text-xs text-[#3D2013]">500</span>
+            </div>
+            <div class="w-full bg-[#F6DBBC] rounded-md py-1.5 text-center">
+              <span class="font-pressstart text-[10px] text-[#3D2013]">₱200</span>
+            </div>
+          </button>
+
+          <button type="button" onclick="selectCoinPackage(this)" data-package="1250"
+                  class="coin-card selected-card bg-[#E4E2CA] border-[3px] border-[#788D55] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0">
+            <div class="check-badge absolute -top-2 -right-2 bg-[#788D55] border-[2px] border-[#3D2013] text-[#FEF4E0] text-[8px] font-pressstart rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10">✓</div>
+            <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+              <img src="media/coin_logo.png" alt="Coin Logo" class="w-6 h-6 object-contain shrink-0" />
+              <span class="font-pressstart text-xs text-[#3D2013]">1250</span>
+            </div>
+            <div class="w-full bg-[#DFDABD] rounded-md py-1 text-center flex flex-col items-center justify-center gap-0.5">
+              <span class="bg-[#788D55] text-[#FEF4E0] font-pressstart text-[7px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Popular</span>
+              <span class="font-pressstart text-[10px] text-[#3D2013]">₱500</span>
+            </div>
+          </button>
+
+          <button type="button" onclick="selectCoinPackage(this)" data-package="3000"
+                  class="coin-card bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0">
+            <div class="check-badge hidden absolute -top-2 -right-2 bg-[#788D55] border-[2px] border-[#3D2013] text-[#FEF4E0] text-[8px] font-pressstart rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10">✓</div>
+            <div class="flex items-center justify-center gap-1.5 w-full pt-1">
+              <img src="media/coin_logo.png" alt="Coin Logo" class="w-6 h-6 object-contain shrink-0" />
+              <span class="font-pressstart text-xs text-[#3D2013]">3000</span>
+            </div>
+            <div class="w-full bg-[#F6DBBC] rounded-md py-1.5 text-center">
+              <span class="font-pressstart text-[10px] text-[#3D2013]">₱1000</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4 w-full">
+          <button onclick="closeModal('add-coins-modal')" 
+                  class="flex-1 font-pressstart text-xs bg-[#F6DBBC] border-[2.5px] border-[#3D2013] text-[#3D2013] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+            CANCEL
+          </button>
+          <button onclick="processPurchase()" 
+                  class="flex-1 font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+            PURCHASE
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW 2: LOADING STATE -->
+      <div id="coin-modal-loading" class="hidden w-full flex flex-col items-center justify-center py-6 gap-4">
+        <div class="w-12 h-12 border-4 border-[#3D2013] border-t-[#788D55] rounded-full animate-spin"></div>
+        <h3 class="font-pressstart text-sm text-[#3D2013] animate-pulse">PROCESSING...</h3>
+        <p class="font-pixel text-xl text-[#3D2013]/80">Please wait while we prepare your coins.</p>
+      </div>
+
+      <!-- VIEW 3: SUCCESS STATE -->
+      <div id="coin-modal-success" class="hidden w-full flex flex-col items-center justify-center py-2 relative">
+        <div class="w-16 h-16 bg-[#788D55] border-[3px] border-[#3D2013] rounded-full flex items-center justify-center mb-4 retro-shadow">
+          <svg class="w-8 h-8 text-[#FEF4E0]" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="square" stroke-linejoin="square"/>
+          </svg>
+        </div>
+        <h3 class="font-pressstart text-lg text-[#3D2013] mb-2">Purchase Successful!</h3>
+        <p class="font-pixel text-2xl text-[#3D2013] mb-6">
+          <span id="purchased-coin-amount" class="font-bold text-[#788D55]">1,250</span> Coins have been added to your balance.
+        </p>
+        <button onclick="resetCoinModal(); closeModal('add-coins-modal');" 
+                class="font-pressstart text-xs bg-[#788D55] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 px-8 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+          DONE
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 2: BUY ITEMS -->
+  <div id="buy-modal" class="fixed inset-0 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#FEF4E0] border-[4px] border-[#3D2013] p-5 max-w-md w-full flex flex-col gap-4 shadow-2xl relative rounded-3xl overflow-visible mt-6">
+      
+<!-- COIN STATUS (Inside Buy Modal) -->
+<div class="absolute -top-12 left-0 flex items-center bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-full pl-1.5 sm:pl-2.5 pr-7 sm:pr-12 py-1 shadow-md z-10 overflow-visible">
+  <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 sm:w-6 sm:h-6 object-contain mr-1 sm:mr-2 shrink-0" 
+       onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
+  <svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#FFBA1F] hidden mr-1 sm:mr-2 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" stroke="#3D2013" stroke-width="2"/>
+    <circle cx="12" cy="12" r="6" fill="#ED8C00"/>
+  </svg>
+
+  <span class="user-coin-balance font-pressstart text-[10px] sm:text-[16px] text-[#482A1D] tracking-tight">0</span>
+
+  <button onclick="openModal('add-coins-modal')" title="Add Coins" type="button"
+          class="absolute -right-1.5 sm:-right-3 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-[#FFBA1F] border-[2px] sm:border-[3px] border-[#ED8C00] flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform shadow-[1px_1px_0px_#3D2013] sm:shadow-[2px_2px_0px_#3D2013] cursor-pointer">
+    <svg class="w-3.5 h-3.5 sm:w-6 sm:h-6 text-white stroke-[3] sm:stroke-[4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    </svg>
+  </button>
+</div>
+
+      <div class="flex items-center justify-center pb-3 pt-1">
+        <h2 class="text-[10px] text-[#3D2013] uppercase font-pressstart">BUY ITEM?</h2>
+      </div>
+
+      <div id="modal-item-list" class="grid grid-cols-3 gap-2.5 max-h-[350px] overflow-y-auto p-1"></div>
+
+      <div class="flex flex-col items-center justify-center gap-1.5 py-1">
+        <span class="text-[9px] text-[#3D2013] uppercase font-pressstart text-center">SPEND THIS MUCH?</span>
+        <div class="flex items-center gap-2 rounded-full px-3 py-1">
+          <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 object-contain">
+          <span id="modal-total-cost" class="text-[11px] text-[#E87339] font-pressstart">0</span>
+        </div>
+      </div>
+
+      <div id="no-items-selected-msg" class="hidden text-center text-[8px] text-[#E40000] leading-tight font-pressstart">
+        You haven't selected any new items to buy!
+      </div>
+
+      <div id="insufficient-coins-msg" class="hidden text-center text-[8px] text-[#E40000] leading-tight font-pressstart">
+        Not enough coins! Earn more by studying or completing tasks.
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <button onclick="closeModal('buy-modal')" type="button"
+                class="flex-1 bg-[#FAE9CE] text-[#3D2013] border-[2.5px] border-[#3D2013] rounded-xl py-2.5 text-[8px] cursor-pointer hover:bg-[#FEF4E0] transition-colors font-pressstart">
+          CANCEL
+        </button>
+        <button onclick="confirmPurchaseAndSave()" type="button"
+                class="flex-1 bg-[#788D55] text-white border-[2.5px] border-[#3D2013] rounded-xl py-2.5 text-[8px] cursor-pointer hover:opacity-90 transition-opacity font-pressstart">
+          CONFIRM
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STANDALONE COIN STATUS BADGE -->
+  <div class="absolute -top-12 left-4 bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-full pl-3.5 pr-5 py-1.5 flex items-center gap-1.5 shadow-md z-10 overflow-visible">
+    <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 object-contain">
+    <span class="user-coin-balance font-pressstart text-[10px] sm:text-[16px] text-[#482A1D] tracking-tight">0</span>
+
+    <button onclick="openModal('add-coins-modal')" title="Add Coins" type="button"
+            class="absolute -right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#FFBA1F] border-[2px] border-[#ED8C00] flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform shadow-[1px_1px_0px_#3D2013] cursor-pointer">
+      <svg class="w-3.5 h-3.5 text-white stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- MODAL 3: CAMERA SNAPSHOT -->
+  <div id="snapshot-modal" class="fixed inset-0 bg-[#3D2013]/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#FEF4E0] border-[4px] border-[#3D2013] p-5 max-w-sm w-full flex flex-col items-center gap-4 shadow-2xl relative text-center">
+      <h2 class="text-[10px] text-[#3D2013] uppercase">SNAP SNAP!</h2>
+      <div id="snapshot-preview-container" class="w-48 h-48 border-[3px] border-[#3D2013] bg-[#FAE9CE] flex items-center justify-center overflow-hidden"></div>
+      <p class="font-pressstart text-[9px] text-[#3D2013] leading-relaxed">Your avatar photo is ready! Would you like to download it?</p>
+      
+      <div class="flex items-center gap-3 w-full">
+        <button onclick="closeModal('snapshot-modal')" type="button"
+                class="flex-1 bg-[#FAE9CE] text-[#3D2013] border-[2px] border-[#3D2013] py-2 text-[8px] cursor-pointer">
+          CANCEL
+        </button>
+        <button id="download-photo-btn" type="button"
+                class="flex-1 bg-[#E87339] text-white border-[2px] border-[#3D2013] py-2 text-[8px] cursor-pointer">
+          DOWNLOAD
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="global-footer"></div>
+  <script src="add-coins.js"></script>
+  <script src="footer.js"></script>
+  <script src="avatar-system.js"></script>
+  <script src="customavatar.js"></script>
+</body>
+</html>

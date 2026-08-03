@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - Join Room</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen md:h-screen md:overflow-hidden relative text-[#3D2013] overflow-x-hidden flex flex-col">
+
+  <!-- 1. FIXED BACKGROUND TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- 3. TOP CENTERED HEADER -->
+  <header class="relative z-10 pt-4 sm:pt-6 flex justify-center w-full px-4 shrink-0">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] md:rounded-[12px] px-4 sm:px-6 md:px-12 py-2 sm:py-2.5 md:py-3 shadow-md flex items-center justify-center">
+      <h1 class="font-pressstart text-[14px] sm:text-[18px] md:text-[22px] text-[#482A1D] tracking-tight text-center leading-none">
+        PUBLIC ROOMS
+      </h1>
+    </div>
+  </header>
+
+  <!-- 4. MAIN CONTENT AREA -->
+  <main class="relative z-10 flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-28 sm:pb-36 flex flex-col gap-5 overflow-y-auto">
+    
+    <!-- SEARCH & ACTION ROW -->
+    <div class="flex flex-row items-center justify-between gap-2 sm:gap-6 w-full shrink-0">
+      
+      <!-- LEFT: SEARCH BAR -->
+      <div class="relative flex-1 max-w-full sm:max-w-lg">
+        <input 
+          id="room-search-input"
+          type="text" 
+          placeholder="Search lobby code, host or name here..." 
+          class="w-full bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-none px-3 sm:px-4 py-2.5 pl-9 sm:pl-10 font-pixel text-[13px] sm:text-[18px] text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none focus:ring-2 focus:ring-[#788D55] shadow-sm"
+        />
+        <!-- Search Icon -->
+        <svg class="w-4 h-4 text-[#3D2013] absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+      </div>
+
+<!-- RIGHT: RESPONSIVE JOIN PRIVATE BUTTON -->
+<button 
+  type="button"
+  onclick="openJoinPrivateModal()" 
+  class="flex items-center justify-center font-pressstart text-xs bg-[#E87339] border-[2.5px] border-[#3D2013] text-[#FEF4E0] p-2.5 sm:px-6 sm:py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer shrink-0"
+  title="Join Private Room">
+  
+  <!-- Mobile: Plus Icon -->
+  <svg class="w-5 h-5 block sm:hidden text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+  </svg>
+
+  <!-- Desktop: Text -->
+  <span class="hidden sm:inline">JOIN PRIVATE</span>
+</button>
+
+    </div>
+
+    <!-- ROOM LIST CATALOG GRID -->
+<div id="room-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pb-12">
+  <!-- Dynamic Room Cards -->
+</div>
+
+  </main>
+
+<!-- JOIN PRIVATE ROOM MODAL -->
+<div id="join-private-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 backdrop-blur-xs">
+  <div class="relative w-full max-w-md bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[23px] p-5 sm:p-6 flex flex-col gap-4 shadow-2xl">
+    
+    <!-- Upper Right X Close Button -->
+    <button onclick="closeJoinPrivateModal()" class="absolute top-3.5 right-4 w-7 h-7 sm:w-8 sm:h-8 text-[#3D2013] hover:text-[#E87339] transition-colors flex items-center justify-center cursor-pointer font-pressstart text-sm shrink-0">
+      ✕
+    </button>
+
+    <!-- Modal Title -->
+    <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#482A1D]">
+      Join Room
+    </h3>
+
+    <!-- Description -->
+    <p class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]/70 leading-relaxed">
+      Enter the room code to join.
+    </p>
+
+    <!-- Input Field -->
+    <div class="flex flex-col gap-1.5">
+      <label for="private-room-code-input" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">Room Code</label>
+      <input id="private-room-code-input" type="text" placeholder="e.g. RM-101" 
+             class="w-full bg-[#FAE9CE] border-[2px] border-[#3D2013] p-2.5 font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] placeholder-[#3D2013]/40 focus:outline-none uppercase">
+      
+      <!-- INVALID CODE ERROR TEXT -->
+      <p id="private-room-error" class="font-pressstart text-[8px] text-[#D93838] hidden mt-1">
+        ◆ INVALID ROOM CODE ◆
+      </p>
+    </div>
+
+    <!-- Centered Join Button -->
+    <div class="flex justify-center pt-2">
+      <button onclick="submitPrivateRoomCode()" class="font-pressstart text-[8px] sm:text-[10px] md:text-[11px] text-[#FEF4E0] bg-[#FD923E] border-[2px] md:border-[3px] border-[#3D2013] px-6 py-2.5 block text-center transition-all duration-150 retro-shadow cursor-pointer hover:brightness-105 active:scale-95">
+        Join Room
+      </button>
+    </div>
+
+  </div>
+</div>
+
+  <!-- 5. GLOBAL FOOTER -->
+  <div id="global-footer"></div>
+  <script src="footer.js"></script>
+<script src="loading-overlay.js"></script>
+  <!-- Script logic for filtering, mock data, and card rendering -->
+  <script src="join.js"></script>
+
+</body>
+</html>
