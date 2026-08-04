@@ -38,19 +38,24 @@
   </div>
 
 <!-- CENTER STUDY ROOM IMAGE & AVATAR CONTAINER -->
-<div class="fixed inset-0 z-0 flex items-center justify-center pointer-events-none p-2 sm:p-4 pb-12 pt-12">
+<!-- Use z-10 so it sits above general page elements, but below modals (z-50) -->
+<div class="fixed inset-0 z-10 flex items-center justify-center pointer-events-none p-2 sm:p-4 pb-12 pt-12">
   
   <!-- Relative wrapper -->
-  <div class="relative flex items-center justify-center max-w-[1100px] w-full max-h-full mx-auto">
+  <div class="relative flex items-center justify-center max-w-[1100px] w-full max-h-full mx-auto pointer-events-none">
     
     <!-- Custom Dynamic Room Component -->
-<custom-room class="w-full h-auto flex items-center justify-center scale-75 origin-center"></custom-room>
-    <!-- Overlay Avatar Container -->
+    <custom-room class="w-full h-auto flex items-center justify-center scale-75 origin-center pointer-events-none"></custom-room>
+    
+    <!-- CONTAINER FOR EXTRA MOCK PLAYERS -->
+    <div id="mock-avatars-container" class="absolute inset-0 z-1 pointer-events-none"></div>
+
+    <!-- Main Player Overlay Avatar Container (Your Avatar) -->
     <div class="absolute 
                 w-[160px] h-[160px] scale-100 bottom-[18%]
                 md:w-[200px] md:h-[200px] md:scale-125 md:bottom-[19%]
                 lg:w-[240px] lg:h-[240px] lg:scale-150 lg:bottom-[20%]
-                left-[50%] -translate-x-1/2 origin-bottom pointer-events-auto">
+                left-[50%] -translate-x-1/2 origin-bottom pointer-events-auto z-2">
 
       <!-- NAME TAG ABOVE AVATAR -->
       <div class="absolute top-6 sm:top-2 left-1/2 -translate-x-1/2 bg-[#000000]/20 px-1.5 sm:px-3 py-0.5 sm:py-1 whitespace-nowrap shadow-md pointer-events-none flex items-center justify-center">
@@ -70,107 +75,120 @@
     <!-- Top Navigation Container -->
     <main class="flex-1 w-full py-4 sm:py-6 px-3 sm:px-6">
       
-      <!-- TOP NAVIGATION BAR GRID -->
-      <div class="flex items-start justify-between gap-2 sm:gap-4 flex-nowrap">
-        
-        <!-- LEFT GROUP: PLAYER PROFILE & LEADERBOARD BUTTON -->
-        <div class="flex items-start sm:items-start gap-2 sm:gap-3 shrink-0">
-          
-          <!-- PLAYER PROFILE WIDGET (BORDERLESS/COMPACT ON MOBILE, FULL CARD ON SM+) -->
-          <div onclick="if(window.innerWidth < 640) openModal('profile-modal')" 
-               class="cursor-pointer sm:cursor-default bg-transparent sm:bg-[#FEF4E0] border-0 sm:border-[3px] border-[#3D2013] sm:rounded-[10px] p-0 sm:p-4 flex items-start gap-3 sm:gap-4 w-auto sm:min-w-[320px]">
-            
-            <!-- AVATAR & LEVEL BADGE -->
-            <div class="relative flex-shrink-0">
-              <div class="w-11 h-11 sm:w-16 sm:h-16 rounded-full border-[3px] border-[#3D2013] bg-[#FAE9CE] overflow-hidden flex items-center justify-center">
-                <img id="player-avatar" src="" alt="Player Avatar" class="w-full h-full object-cover hidden">
-                <svg id="avatar-placeholder" class="w-7 h-7 sm:w-10 sm:h-10 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 9l2 11h16l2-11L12 2zm0 4a3 3 0 110 6 3 3 0 010-6zm-6 12v-1.5c0-1.65 2.7-3 6-3s6 1.35 6 3V18H6z"/>
-                </svg>
-              </div>
-              <div class="absolute -bottom-1 -right-1 bg-[#FD923E] border-[2px] sm:border-[3px] border-[#3D2013] px-1 sm:px-1.5 py-0.5 text-center flex items-center justify-center min-w-[20px] sm:min-w-[24px] rounded-[4px]">
-                <span id="player-level" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] font-bold">1</span>
-              </div>
-            </div>
-
-            <!-- PLAYER DETAILS (HIDDEN ON MOBILE, VISIBLE ON SM+) -->
-            <div class="hidden sm:flex flex-1 flex-col gap-1.5">
-              <h2 id="player-name" class="font-pressstart text-[14px] sm:text-[16px] text-[#3D2013] tracking-tight truncate leading-none">ACORN_HERO</h2>
-              <div class="w-full bg-[#FEF4E0] border-[3px] border-[#3D2013] h-4 sm:h-5 relative overflow-hidden rounded-[4px]">
-                <div id="xp-bar-fill" class="bg-[#FD923E] h-full transition-all duration-300" style="width: 0%;"></div>
-              </div>
-              <div id="xp-text" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] mt-0.5 leading-none">
-                0/10,000 XP
-              </div>
-            </div>
-          </div>
-
-<button onclick="openLeaderboardModal()" title="Leaderboard" 
-  class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1 sm:p-1.5 flex items-start justify-center transition-all duration-150 retro-shadow shrink-0 cursor-pointer">
-  <svg class="w-6 h-6 sm:w-8 sm:h-8 text-[#788D55]" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-    <rect x="9.5" y="5" width="5" height="14" rx="1" />
-    <rect x="4" y="10" width="5" height="9" rx="1" />
-    <rect x="15" y="12" width="5" height="7" rx="1" />
-  </svg>
-</button>
-
-        </div>
-
-        <!-- RIGHT GROUP: STATUS COMPONENTS (FITS ON ONE ROW) -->
-        <div class="flex items-center sm:items-start gap-1 sm:gap-2 flex-nowrap shrink-0">
-          
-          <!-- 4. OUTER RIGHT: COINS STATUS (COMPACT FOR MOBILE) -->
-          <div id="tut-coins-container" class="relative  flex items-center bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-full pl-2 sm:pl-4 pr-7 sm:pr-12 py-1 mr-1 sm:mr-1.5">
-            <!-- Coin Icon -->
-            <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 sm:w-7 sm:h-7 object-contain mr-1 sm:mr-2 shrink-0" 
-                 onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
-            <!-- Fallback SVG Coin Icon -->
-            <svg class="w-4 h-4 sm:w-6 sm:h-6 text-[#FFBA1F] hidden mr-1 sm:mr-2 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke="#3D2013" stroke-width="2"/>
-              <circle cx="12" cy="12" r="6" fill="#ED8C00"/>
-            </svg>
-
-            <!-- Dynamic Coins Number -->
-              <span id="coins-count" class="user-coin-balance font-pressstart text-[10px] sm:text-[16px] text-[#482A1D] tracking-tight">0</span>
-
-            <!-- Plus Add Button -->
-            <button onclick="openModal('add-coins-modal')" title="Add Coins"
-                    class="absolute -right-1.5 sm:-right-3 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-[#FFBA1F] border-[2px] sm:border-[3px] border-[#ED8C00] flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform shadow-[1px_1px_0px_#3D2013] sm:shadow-[2px_2px_0px_#3D2013] cursor-pointer">
-              <svg class="w-3.5 h-3.5 sm:w-6 sm:h-6 text-white stroke-[3] sm:stroke-[4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-              </svg>
-            </button>
-          </div>
-
-          <!-- 3. BESIDE COINS: FRIENDS STATUS (ICON-ONLY ON MOBILE) -->
-          <button id="tut-friends-btn" onclick="openModal('friends-modal')" title="Friends Status"
-                  class="relative  bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-2 transition-all duration-150 retro-shadow cursor-pointer">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#788D55]" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-            </svg>
-            <span id="friends-count" class="hidden sm:inline font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">5</span>
-          </button>
-
-          <!-- 2. BESIDE FRIENDS: STREAK STATUS (ICON-ONLY ON MOBILE) -->
-          <button id="tut-streak-btn" onclick="openModal('full-calendar-modal')" title="Streak Status"
-                  class="relative  bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 transition-all duration-150 retro-shadow cursor-pointer">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#ED8C00]" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M13.5 1.5c.41 2.6-1.12 4.88-2.6 6.88-1.07 1.45-2.28 2.87-2.6 4.67-.32 1.83.24 3.65 1.43 4.95.83.91 1.93 1.5 3.07 1.7-1.31-.38-2.52-1.2-3.32-2.33-.99-1.38-1.12-3.14-.38-4.6.64-1.26 1.76-2.22 2.62-3.37 1.62-2.16 2.37-4.88 1.78-7.9zM12 22c4.42 0 8-3.58 8-8 0-3.38-2.07-6.28-5-7.5.38 2.38-.5 4.88-2.3 6.6-1.8 1.72-4.22 2.5-6.7 2.1 1.28 4.02 5.2 6.8 10 6.8z"/>
-            </svg>
-            <span id="streak-count" class="hidden sm:inline font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">2d</span>
-          </button>
-
-        <!-- 1. INNER RIGHT: LOGOUT BUTTON -->
-        <button onclick="openModal('logout-modal')" title="Logout"
-                class="bg-[#A53914] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow shrink-0 cursor-pointer">
-          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+<!-- TOP NAVIGATION BAR GRID -->
+<div class="flex items-start justify-between gap-2 sm:gap-4 flex-nowrap relative">
+  
+  <!-- LEFT GROUP: PLAYER PROFILE & LEADERBOARD BUTTON -->
+  <div class="flex items-start sm:items-start gap-2 sm:gap-3 shrink-0">
+    
+    <!-- PLAYER PROFILE WIDGET (BORDERLESS/COMPACT ON MOBILE, FULL CARD ON SM+) -->
+    <div onclick="if(window.innerWidth < 640) openModal('profile-modal')" 
+         class="cursor-pointer sm:cursor-default bg-transparent sm:bg-[#FEF4E0] border-0 sm:border-[3px] border-[#3D2013] sm:rounded-[10px] p-0 sm:p-4 flex items-start gap-3 sm:gap-4 w-auto sm:min-w-[320px]">
+      
+      <!-- AVATAR & LEVEL BADGE -->
+      <div class="relative flex-shrink-0">
+        <div class="w-11 h-11 sm:w-16 sm:h-16 rounded-full border-[3px] border-[#3D2013] bg-[#FAE9CE] overflow-hidden flex items-center justify-center">
+          <img id="player-avatar" src="" alt="Player Avatar" class="w-full h-full object-cover hidden">
+          <svg id="avatar-placeholder" class="w-7 h-7 sm:w-10 sm:h-10 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L2 9l2 11h16l2-11L12 2zm0 4a3 3 0 110 6 3 3 0 010-6zm-6 12v-1.5c0-1.65 2.7-3 6-3s6 1.35 6 3V18H6z"/>
           </svg>
-        </button>
-
         </div>
-
+        <div class="absolute -bottom-1 -right-1 bg-[#FD923E] border-[2px] sm:border-[3px] border-[#3D2013] px-1 sm:px-1.5 py-0.5 text-center flex items-center justify-center min-w-[20px] sm:min-w-[24px] rounded-[4px]">
+          <span id="player-level" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] font-bold">1</span>
+        </div>
       </div>
+
+      <!-- PLAYER DETAILS (HIDDEN ON MOBILE, VISIBLE ON SM+) -->
+      <div class="hidden sm:flex flex-1 flex-col gap-1.5">
+        <h2 id="player-name" class="font-pressstart text-[14px] sm:text-[16px] text-[#3D2013] tracking-tight truncate leading-none">ACORN_HERO</h2>
+        <div class="w-full bg-[#FEF4E0] border-[3px] border-[#3D2013] h-4 sm:h-5 relative overflow-hidden rounded-[4px]">
+          <div id="xp-bar-fill" class="bg-[#FD923E] h-full transition-all duration-300" style="width: 0%;"></div>
+        </div>
+        <div id="xp-text" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] mt-0.5 leading-none">
+          0/10,000 XP
+        </div>
+      </div>
+    </div>
+
+    <button onclick="openLeaderboardModal()" title="Leaderboard" 
+      class="bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1 sm:p-1.5 flex items-start justify-center transition-all duration-150 retro-shadow shrink-0 cursor-pointer">
+      <svg class="w-6 h-6 sm:w-8 sm:h-8 text-[#788D55]" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <rect x="9.5" y="5" width="5" height="14" rx="1" />
+        <rect x="4" y="10" width="5" height="9" rx="1" />
+        <rect x="15" y="12" width="5" height="7" rx="1" />
+      </svg>
+    </button>
+
+  </div>
+
+  <!-- CENTER GROUP: ROOM NAME & ROOM CODE (DESKTOP: CENTER / MOBILE: OVERLAY BELOW HEADER) -->
+  <div class="flex flex-col items-center justify-center absolute left-1/2 -translate-x-1/2 top-14 lg:top-0 bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] px-3 sm:px-4 py-1 sm:py-1.5 rounded-[10px] retro-shadow text-center pointer-events-none select-none z-20 shrink-0">
+    <h1 id="nav-room-name" class="font-pressstart text-[9px] sm:text-[13px] text-[#3D2013] tracking-tight uppercase truncate max-w-[140px] sm:max-w-[200px]">
+      LOADING...
+    </h1>
+    <div class="flex items-center gap-1 mt-0.5">
+      <span class="font-pressstart text-[7px] sm:text-[8px] text-[#795F4A]">CODE:</span>
+      <span id="nav-room-code" class="font-pressstart text-[8px] sm:text-[9px] text-[#FD923E] font-bold tracking-wider">
+        ------
+      </span>
+    </div>
+  </div>
+
+  <!-- RIGHT GROUP: STATUS COMPONENTS (FITS ON ONE ROW) -->
+  <div class="flex items-center sm:items-start gap-1 sm:gap-2 flex-nowrap shrink-0">
+    
+    <!-- 4. OUTER RIGHT: COINS STATUS (COMPACT FOR MOBILE) -->
+    <div id="tut-coins-container" class="relative flex items-center bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] rounded-full pl-2 sm:pl-4 pr-7 sm:pr-12 py-1 mr-1 sm:mr-1.5">
+      <!-- Coin Icon -->
+      <img src="media/coin_logo.png" alt="Coin" class="w-4 h-4 sm:w-7 sm:h-7 object-contain mr-1 sm:mr-2 shrink-0" 
+           onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
+      <!-- Fallback SVG Coin Icon -->
+      <svg class="w-4 h-4 sm:w-6 sm:h-6 text-[#FFBA1F] hidden mr-1 sm:mr-2 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" stroke="#3D2013" stroke-width="2"/>
+        <circle cx="12" cy="12" r="6" fill="#ED8C00"/>
+      </svg>
+
+      <!-- Dynamic Coins Number -->
+      <span id="coins-count" class="user-coin-balance font-pressstart text-[10px] sm:text-[16px] text-[#482A1D] tracking-tight">0</span>
+
+      <!-- Plus Add Button -->
+      <button onclick="openModal('add-coins-modal')" title="Add Coins"
+              class="absolute -right-1.5 sm:-right-3 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-[#FFBA1F] border-[2px] sm:border-[3px] border-[#ED8C00] flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform shadow-[1px_1px_0px_#3D2013] sm:shadow-[2px_2px_0px_#3D2013] cursor-pointer">
+        <svg class="w-3.5 h-3.5 sm:w-6 sm:h-6 text-white stroke-[3] sm:stroke-[4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 3. BESIDE COINS: FRIENDS STATUS (ICON-ONLY ON MOBILE) -->
+    <button id="tut-friends-btn" onclick="openModal('friends-modal')" title="Friends Status"
+            class="relative bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-2 transition-all duration-150 retro-shadow cursor-pointer">
+      <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#788D55]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+      </svg>
+      <span id="friends-count" class="hidden sm:inline font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">5</span>
+    </button>
+
+    <!-- 2. BESIDE FRIENDS: STREAK STATUS (ICON-ONLY ON MOBILE) -->
+    <button id="tut-streak-btn" onclick="openModal('full-calendar-modal')" title="Streak Status"
+            class="relative bg-[#FEF4E0] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:px-3.5 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 transition-all duration-150 retro-shadow cursor-pointer">
+      <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#ED8C00]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M13.5 1.5c.41 2.6-1.12 4.88-2.6 6.88-1.07 1.45-2.28 2.87-2.6 4.67-.32 1.83.24 3.65 1.43 4.95.83.91 1.93 1.5 3.07 1.7-1.31-.38-2.52-1.2-3.32-2.33-.99-1.38-1.12-3.14-.38-4.6.64-1.26 1.76-2.22 2.62-3.37 1.62-2.16 2.37-4.88 1.78-7.9zM12 22c4.42 0 8-3.58 8-8 0-3.38-2.07-6.28-5-7.5.38 2.38-.5 4.88-2.3 6.6-1.8 1.72-4.22 2.5-6.7 2.1 1.28 4.02 5.2 6.8 10 6.8z"/>
+      </svg>
+      <span id="streak-count" class="hidden sm:inline font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">2d</span>
+    </button>
+
+    <!-- 1. INNER RIGHT: LOGOUT BUTTON -->
+    <button onclick="openModal('logout-modal')" title="Logout"
+            class="bg-[#A53914] border-[2.5px] sm:border-[3px] border-[#3D2013] p-1.5 sm:p-1.5 flex items-center justify-center transition-all duration-150 retro-shadow shrink-0 cursor-pointer">
+      <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+      </svg>
+    </button>
+
+  </div>
+
+</div>
 
 <!-- SEPARATE INDEPENDENT CONTAINER: 4 ACTION ROWS (UNDER PROFILE CARD) -->
 <div class="mt-3 flex flex-col gap-2 w-full sm:max-w-[320px]">
@@ -575,36 +593,29 @@
 
 <!-- LOGOUT MODAL -->
 <div id="logout-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-  
   <!-- Expanded Container: max-w-md, p-8, larger text -->
 <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-8 max-w-md w-full flex flex-col items-center justify-center text-center">    
     <!-- HEADER -->
-    <h3 class="font-pressstart text-base sm:text-lg text-[#3D2013] mb-4">LOGOUT</h3>
-
+    <h3 class="font-pressstart text-base sm:text-lg text-[#3D2013] mb-4">LEAVE ROOM</h3>
     <!-- MESSAGE -->
     <p class="font-pixel text-2xl text-[#3D2013] mb-6">
-      Are you sure you want to log out?
+      Are you sure you want to leave the room?
     </p>
-
     <!-- ACTION BUTTONS -->
     <div class="flex items-center gap-4 w-full">
-      
       <!-- CANCEL BUTTON -->
       <button 
         onclick="closeModal('logout-modal')" 
         class="flex-1 font-pressstart text-xs bg-[#F6DBBC] border-[2.5px] border-[#3D2013] text-[#3D2013] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
         CANCEL
       </button>
-
       <!-- CONFIRM BUTTON -->
       <a 
-        href="index.html" 
+        href="homepage.html" 
         class="flex-1 text-center font-pressstart text-xs bg-[#A53914] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer block">
         CONFIRM
       </a>
-
     </div>
-
   </div>
 </div>
 
@@ -1308,14 +1319,104 @@
   <iframe id="kitsuai-frame" src="" class="w-full h-full border-none flex-grow"></iframe>
 </div>
 
+<!-- AVATAR OVERLAY MODAL (FULL SCREEN) -->
+<div id="avatar-modal" class="modal hidden fixed inset-0 z-50 flex flex-col bg-[#FEF4E0]">
+  <!-- Floating Close Button Overlay -->
+  <button onclick="closeAvatarModal()" title="Close and Go Back" 
+          style="border-radius: 50% !important;"
+          class="absolute top-4 right-4 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-[#FEF4E0] border-[2px] md:border-[3px] border-[#3D2013] text-[#3D2013] hover:bg-[#E87339] hover:text-[#FFFFF6] transition-all duration-150 retro-shadow cursor-pointer flex items-center justify-center shrink-0">
+    <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  </button>
+
+  <!-- Embedded Avatar Webpage -->
+  <iframe id="avatar-frame" src="" class="w-full h-full border-none flex-grow"></iframe>
+</div>
+
+<!-- FURNITURE OVERLAY MODAL (FULL SCREEN) -->
+<div id="furniture-modal" class="modal hidden fixed inset-0 z-50 flex flex-col bg-[#FEF4E0]">
+  <!-- Floating Close Button Overlay -->
+  <button onclick="closeFurnitureModal()" title="Close and Go Back" 
+          style="border-radius: 50% !important;"
+          class="absolute top-4 right-4 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-[#FEF4E0] border-[2px] md:border-[3px] border-[#3D2013] text-[#3D2013] hover:bg-[#E87339] hover:text-[#FFFFF6] transition-all duration-150 retro-shadow cursor-pointer flex items-center justify-center shrink-0">
+    <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  </button>
+
+  <!-- Embedded Furniture Webpage -->
+  <iframe id="furniture-frame" src="" class="w-full h-full border-none flex-grow"></iframe>
+</div>
+
+<!-- MOCK PLAYER PROFILE & KICK MODAL -->
+<div id="mock-player-modal" class="modal hidden fixed inset-0 z-50 flex items-start justify-center p-4 pt-6 sm:pt-20 pointer-events-none">
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] p-4 sm:p-5 max-w-md w-full relative flex items-center justify-between gap-3 sm:gap-4 shadow-xl pointer-events-auto">
+    
+    <!-- CLOSE BUTTON -->
+    <button onclick="closeModal('mock-player-modal')" 
+            class="absolute -top-2.5 -right-2.5 bg-[#A53914] text-[#FEF4E0] border-[2px] border-[#3D2013] font-pressstart text-[10px] w-6 h-6 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+      ✕
+    </button>
+
+    <!-- LEFT SIDE: PLAYER PROFILE WIDGET -->
+    <div class="bg-[#FEF4E0] flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+      
+      <!-- AVATAR & LEVEL BADGE -->
+      <div class="relative flex-shrink-0">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-[3px] border-[#3D2013] bg-[#FAE9CE] overflow-hidden flex items-center justify-center">
+          <svg class="w-8 h-8 sm:w-10 sm:h-10 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L2 9l2 11h16l2-11L12 2zm0 4a3 3 0 110 6 3 3 0 010-6zm-6 12v-1.5c0-1.65 2.7-3 6-3s6 1.35 6 3V18H6z"/>
+          </svg>
+        </div>
+        <div class="absolute -bottom-1 -right-1 bg-[#FD923E] border-[2px] sm:border-[3px] border-[#3D2013] px-1 sm:px-1.5 py-0.5 text-center flex items-center justify-center min-w-[20px] sm:min-w-[24px] rounded-[4px]">
+          <span id="mock-modal-player-level" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] font-bold">1</span>
+        </div>
+      </div>
+
+      <!-- PLAYER DETAILS -->
+      <div class="flex flex-1 flex-col gap-1.5 min-w-0">
+        <h2 id="mock-modal-player-name" class="font-pressstart text-[12px] sm:text-[15px] text-[#3D2013] tracking-tight truncate leading-none">
+          MOCK_PLAYER
+        </h2>
+        <div class="w-full bg-[#FAE9CE] border-[2.5px] sm:border-[3px] border-[#3D2013] h-3.5 sm:h-4 relative overflow-hidden rounded-[4px]">
+          <div id="mock-modal-xp-bar-fill" class="bg-[#FD923E] h-full transition-all duration-300" style="width: 0%;"></div>
+        </div>
+        <div id="mock-modal-xp-text" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] mt-0.5 leading-none">
+          0 / 10,000 XP
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDE: KICK BUTTON -->
+    <div class="shrink-0 pl-1 border-l-[2px] border-[#3D2013]/20">
+      <button onclick="kickMockPlayer()" 
+              title="Kick Player"
+              class="bg-[#A53914] border-[2.5px] sm:border-[3px] border-[#3D2013] px-3 py-2 sm:px-4 sm:py-2.5 rounded-[8px] flex items-center justify-center gap-1.5 text-[#FEF4E0] font-pressstart text-[9px] sm:text-[10px] retro-shadow hover:brightness-110 active:translate-x-[1px] active:translate-y-[1px] cursor-pointer transition-all">
+        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current shrink-0" viewBox="0 0 24 24">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+        <span>KICK</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+
 <div id="global-footer"></div>
 <script src="footer.js"></script>
+
 <script src="add-coins.js"></script>
-  <!-- Centralized Avatar Web Component Script -->
 <script src="avatar-system.js"></script>
 <script src="furniture-system.js"></script>
 
   <!-- JS SCRIPT -->
+   <script src="generated-homepage.js"></script>
   <script src="homepage.js"></script>
 </body>
 </html>

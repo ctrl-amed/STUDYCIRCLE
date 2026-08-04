@@ -459,6 +459,25 @@ function saveTimerSettings() {
  */
 
 const timerChannel = new BroadcastChannel('study_timer_channel');
+const STUDY_TIMER_STORAGE_KEY = "homepage_study_timer_state";
+
+function publishStudyTimerState(formattedTime) {
+  const payload = {
+    source: "homepage-study-timer",
+    selectedTechnique: timerState.selectedTechnique,
+    totalSessions: timerState.totalSessions,
+    currentSession: timerState.currentSession,
+    isBreak: timerState.isBreak,
+    secondsLeft: timerState.secondsLeft,
+    totalSeconds: timerState.totalSeconds,
+    isRunning: timerState.isRunning,
+    formattedTime,
+    updatedAt: Date.now()
+  };
+
+  localStorage.setItem(STUDY_TIMER_STORAGE_KEY, JSON.stringify(payload));
+  timerChannel.postMessage(payload);
+}
 
 function renderTimerUI() {
   const unselectedView = document.getElementById("timer-unselected-view");
@@ -471,11 +490,8 @@ function renderTimerUI() {
     if (unselectedView) unselectedView.classList.remove("hidden");
     if (activeView) activeView.classList.add("hidden");
     
-    // Optional reset state when no technique is active
-    if (miniDisplay) {
-      miniDisplay.textContent = "00:00";
-      miniDisplay.style.color = "#A53914"; // Default terracotta
-    }
+    publishStudyTimerState("00:00");
+    if (miniDisplay) miniDisplay.textContent = "00:00";
     return;
   }
 
@@ -487,28 +503,12 @@ function renderTimerUI() {
   const secs = timerState.secondsLeft % 60;
   const formattedTime = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-  // --- BROADCAST TIME TO OTHER PAGES ---
-  timerChannel.postMessage({
-    formattedTime: formattedTime,
-    isBreak: timerState.isBreak,
-    isRunning: timerState.isRunning
-  });
+  // --- BROADCAST STUDY TIMER TIME TO OTHER PAGES ---
+  publishStudyTimerState(formattedTime);
   
   const display = document.getElementById("timer-display");
   if (display) display.textContent = formattedTime;
-
-  // --- NEW: Sync MM:SS and dynamic colors to the Mini Timer Display ---
-  if (miniDisplay) {
-    miniDisplay.textContent = formattedTime;
-
-    if (timerState.isBreak) {
-      // Break Phase: Green (#788D55)
-      miniDisplay.style.color = "#788D55";
-    } else {
-      // Study Phase: Orange / Terracotta (#A53914)
-      miniDisplay.style.color = "#A53914";
-    }
-  }
+  if (miniDisplay) miniDisplay.textContent = formattedTime;
 
   // Phase Label (FOCUS vs BREAK)
   const phaseLabel = document.getElementById("timer-phase-label");
@@ -973,6 +973,7 @@ let friendChatHistory = {}; // Stores messages key-value: { friendId: [ {sender,
 // Active open context cloud menu ID
 let openMenuFriendId = null;
 
+
 /**
  * Render all friends into Online and Offline sections
  */
@@ -992,8 +993,15 @@ function renderFriendsList() {
   if (offlineBadge) offlineBadge.textContent = offlineFriends.length;
 
   // Sync state header/badge
-  playerData.friendsCount = onlineFriends.length;
-  updateDashboardState();
+  if (typeof playerData !== 'undefined') {
+    playerData.friendsCount = onlineFriends.length;
+  }
+  if (typeof updateDashboardState === 'function') {
+    updateDashboardState();
+  }
+
+  // Check if current page is generated-homepage
+  const isGeneratedHomepage = window.location.pathname.includes("generated-homepage");
 
   // Render function helper
   const generateFriendCardHTML = (friend) => `
@@ -1017,43 +1025,58 @@ function renderFriendsList() {
         </div>
       </div>
 
-      <!-- RIGHT: THREE DOT BUTTON -->
-      <div class="relative shrink-0">
-        <button onclick="toggleFriendContextMenu(event, ${friend.id})" 
-                title="Options" 
-                class="w-7 h-7 flex items-center justify-center text-[#3D2013] hover:bg-[#3D2013]/10 rounded transition-colors cursor-pointer">
-          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <circle cx="12" cy="5" r="2"/>
-            <circle cx="12" cy="12" r="2"/>
-            <circle cx="12" cy="19" r="2"/>
+      <!-- RIGHT: INVITE & THREE DOT BUTTONS -->
+      <div class="flex items-center gap-1 shrink-0">
+        ${isGeneratedHomepage ? `
+        <!-- INVITE BUTTON (ONLY ON GENERATED HOMEPAGE) -->
+        <button onclick="inviteFriendToRoom(event, ${friend.id})" 
+                title="Invite to Room" 
+                class="px-2 py-1 bg-[#FD923E] hover:bg-[#e87f2b] text-[#3D2013] border-[1.5px] border-[#3D2013] font-pressstart text-[8px] rounded transition-colors cursor-pointer flex items-center gap-1">
+          <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
           </svg>
+          Invite
         </button>
+        ` : ''}
 
-        <!-- CHAT CLOUD CONTEXT MENU (RECTANGULAR WITH ARROW) -->
-        <div id="friend-menu-${friend.id}" 
-             class="hidden absolute right-0 top-8 z-30 w-44 bg-[#FEF4E0] border-[2px] border-[#3D2013] p-1.5 flex flex-col gap-1 rounded-lg">
-          
-          <!-- ARROW POINTING UP TO THREE DOTS -->
-          <div class="absolute -top-[7px] right-2.5 w-3 h-3 bg-[#FEF4E0] border-t-[2px] border-l-[2px] border-[#3D2013] rotate-45"></div>
-
-          <!-- OPTION 1: SEND MESSAGE -->
-          <button onclick="openFriendChatModal(event, ${friend.id})" 
-                  class="w-full flex items-center gap-2 p-1.5 hover:bg-[#788D55] hover:text-[#FEF4E0] text-[#3D2013] transition-colors rounded-none group/btn text-left cursor-pointer">
-            <svg class="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
-              <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+        <!-- THREE DOT BUTTON -->
+        <div class="relative">
+          <button onclick="toggleFriendContextMenu(event, ${friend.id})" 
+                  title="Options" 
+                  class="w-7 h-7 flex items-center justify-center text-[#3D2013] hover:bg-[#3D2013]/10 rounded transition-colors cursor-pointer">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <circle cx="12" cy="5" r="2"/>
+              <circle cx="12" cy="12" r="2"/>
+              <circle cx="12" cy="19" r="2"/>
             </svg>
-            <span class="font-pressstart text-[8px]">Send Message</span>
           </button>
 
-          <!-- OPTION 2: UNFRIEND (RED) -->
-          <button onclick="removeFriend(event, ${friend.id})" 
-                  class="w-full flex items-center gap-2 p-1.5 hover:bg-[#A53914] hover:text-[#FEF4E0] text-[#A53914] transition-colors rounded-none group/btn text-left cursor-pointer">
-            <svg class="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
-            </svg>
-            <span class="font-pressstart text-[8px]">Unfriend</span>
-          </button>
+          <!-- CHAT CLOUD CONTEXT MENU (RECTANGULAR WITH ARROW) -->
+          <div id="friend-menu-${friend.id}" 
+               class="hidden absolute right-0 top-8 z-30 w-44 bg-[#FEF4E0] border-[2px] border-[#3D2013] p-1.5 flex flex-col gap-1 rounded-lg">
+            
+            <!-- ARROW POINTING UP TO THREE DOTS -->
+            <div class="absolute -top-[7px] right-2.5 w-3 h-3 bg-[#FEF4E0] border-t-[2px] border-l-[2px] border-[#3D2013] rotate-45"></div>
 
+            <!-- OPTION 1: SEND MESSAGE -->
+            <button onclick="openFriendChatModal(event, ${friend.id})" 
+                    class="w-full flex items-center gap-2 p-1.5 hover:bg-[#788D55] hover:text-[#FEF4E0] text-[#3D2013] transition-colors rounded-none group/btn text-left cursor-pointer">
+              <svg class="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
+                <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+              </svg>
+              <span class="font-pressstart text-[8px]">Send Message</span>
+            </button>
+
+            <!-- OPTION 2: UNFRIEND (RED) -->
+            <button onclick="removeFriend(event, ${friend.id})" 
+                    class="w-full flex items-center gap-2 p-1.5 hover:bg-[#A53914] hover:text-[#FEF4E0] text-[#A53914] transition-colors rounded-none group/btn text-left cursor-pointer">
+              <svg class="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
+              </svg>
+              <span class="font-pressstart text-[8px]">Unfriend</span>
+            </button>
+
+          </div>
         </div>
       </div>
 
@@ -1067,6 +1090,68 @@ function renderFriendsList() {
   offlineContainer.innerHTML = offlineFriends.length > 0 
     ? offlineFriends.map(generateFriendCardHTML).join('') 
     : `<p class="font-pixel text-base text-[#3D2013]/50 italic px-1">No offline friends</p>`;
+}
+
+/**
+ * Invites a friend to the room and displays a retro notification toast
+ * @param {Event} event - Click event
+ * @param {number|string} friendId - ID of the friend being invited
+ */
+function inviteFriendToRoom(event, friendId) {
+  // Prevent triggering handleFriendCardClick
+  if (event) {
+    event.stopPropagation();
+  }
+
+  // Find friend details to customize the toast message
+  const friend = typeof friendsList !== 'undefined' 
+    ? friendsList.find(f => f.id === friendId) 
+    : null;
+  
+  const friendName = friend ? friend.name : "Friend";
+
+  // Get or create container if it doesn't exist (Positioned further left to avoid covering friend modal)
+  let toastContainer = document.getElementById("toast-container");
+  if (!toastContainer) {
+    toastContainer = document.createElement("div");
+    toastContainer.id = "toast-container";
+    toastContainer.className = "fixed top-10 right-[500px] z-50 pointer-events-none flex flex-col gap-3";
+    document.body.appendChild(toastContainer);
+  }
+
+  // Create toast element (pointer-events-none makes it unhoverable/unclickable)
+  const toast = document.createElement("div");
+  toast.className = "bg-[#FBF2E3] border-4 border-[#3D2013] p-4 flex flex-col gap-2 relative shadow-md transition-all duration-300 w-72 retro-shadow pointer-events-none opacity-0 translate-y-[-20px] !rounded-none overflow-hidden";
+  toast.style.boxShadow = "4px 4px 0px #3D2013";
+
+  toast.innerHTML = `
+    <div class="flex items-start gap-3 min-w-0">
+      <svg class="w-6 h-6 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17L4 12" stroke="#788D55" stroke-width="4" stroke-linecap="square" stroke-linejoin="square"/>
+      </svg>
+      <span class="font-pressstart text-[10px] text-[#482A1D] leading-relaxed break-words min-w-0">
+        Invite sent to ${escapeHtml(friendName)}!
+      </span>
+    </div>
+    <div class="w-full bg-transparent h-1.5 flex justify-center mt-auto overflow-hidden">
+      <div class="w-full h-full bg-[#788D55] animate-progress-center"></div>
+    </div>
+  `;
+
+  toastContainer.appendChild(toast);
+
+  // Trigger entering animation
+  requestAnimationFrame(() => {
+    toast.classList.remove("opacity-0", "translate-y-[-20px]");
+    toast.classList.add("opacity-100", "translate-y-0");
+  });
+
+  // Automatically remove toast after 4 seconds
+  setTimeout(() => {
+    toast.classList.remove("opacity-100", "translate-y-0");
+    toast.classList.add("opacity-0", "translate-y-[-20px]");
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
 }
 
 /**
@@ -1682,4 +1767,25 @@ function openLeaderboardModal() {
 
 function closeLeaderboardModal() {
   closeModal("leaderboard-modal");
+}
+
+
+// ==========================================
+// KITSU AI OVERLAY MODAL LOGIC
+// ==========================================
+function openKitsuAiModal(event) {
+  if (event) event.preventDefault();
+
+  const iframe = document.getElementById("kitsuai-frame");
+  
+  // Lazy-load iframe source on first open
+  if (iframe && iframe.src !== window.location.origin + "/kitsuai.html") {
+    iframe.src = "kitsuai.html";
+  }
+  
+  openModal("kitsuai-modal");
+}
+
+function closeKitsuAiModal() {
+  closeModal("kitsuai-modal");
 }

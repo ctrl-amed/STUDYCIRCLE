@@ -100,9 +100,9 @@ class CustomAvatar extends HTMLElement {
       .join("");
 
     this.innerHTML = `
-      <div class="avatar-container relative w-full h-full flex items-center justify-center state-${animState}">
-        ${layerImagesHTML}
-      </div>
+<div class="avatar-container relative w-full h-full transform scale-60 lg:scale-80 flex items-center justify-center state-${animState}">
+  ${layerImagesHTML}
+</div>
     `;
   }
 }

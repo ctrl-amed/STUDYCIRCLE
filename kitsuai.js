@@ -94,17 +94,74 @@ function toggleColumn(columnName) {
   }
 }
 
-// Simple room timer incrementer logic
-let totalSeconds = 0;
-const timerElement = document.getElementById('room-timer');
-setInterval(() => {
-  totalSeconds++;
-  const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-  const secs = String(totalSeconds % 60).padStart(2, '0');
-  if (timerElement) {
-    timerElement.textContent = `${mins}:${secs}`;
+// Shared study timer display from homepage.html
+const STUDY_TIMER_STORAGE_KEY = "homepage_study_timer_state";
+const roomTimerChannel = new BroadcastChannel("study_timer_channel");
+let studyTimerState = getSavedStudyTimerState();
+let studyTimerInterval = null;
+
+function formatStudyTimer(seconds) {
+  const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const secs = String(seconds % 60).padStart(2, "0");
+  return `${mins}:${secs}`;
+}
+
+function getSavedStudyTimerState() {
+  try {
+    return JSON.parse(localStorage.getItem(STUDY_TIMER_STORAGE_KEY)) || null;
+  } catch (error) {
+    return null;
   }
-}, 1000);
+}
+
+function getLiveStudyTimerSeconds(data) {
+  if (!data || !Number.isFinite(data.secondsLeft)) return 0;
+
+  if (!data.isRunning || !Number.isFinite(data.updatedAt)) {
+    return Math.max(0, data.secondsLeft);
+  }
+
+  const elapsedSeconds = Math.floor((Date.now() - data.updatedAt) / 1000);
+  return Math.max(0, data.secondsLeft - elapsedSeconds);
+}
+
+function renderStudyTimerFromHomepage(data = studyTimerState) {
+  const timerElement = document.getElementById("room-timer");
+  const secondsLeft = getLiveStudyTimerSeconds(data);
+  const formattedTime = data?.formattedTime && !data.isRunning
+    ? data.formattedTime
+    : formatStudyTimer(secondsLeft);
+
+  if (timerElement) {
+    timerElement.textContent = formattedTime;
+    timerElement.style.color = data?.isBreak ? "#788D55" : "#3D2013";
+  }
+}
+
+function syncStudyTimerFromHomepage(data) {
+  if (!data || data.source !== "homepage-study-timer") return;
+
+  studyTimerState = data;
+  renderStudyTimerFromHomepage(studyTimerState);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  syncStudyTimerFromHomepage(getSavedStudyTimerState() || {
+    source: "homepage-study-timer",
+    secondsLeft: 0,
+    formattedTime: "00:00",
+    isRunning: false
+  });
+
+  if (studyTimerInterval) clearInterval(studyTimerInterval);
+  studyTimerInterval = setInterval(() => {
+    renderStudyTimerFromHomepage(studyTimerState);
+  }, 1000);
+});
+
+
+
+
 
 function togglePlayersDropdown() {
   const dropdown = document.getElementById('players-dropdown');
@@ -1703,20 +1760,100 @@ function toggleFlashcard(cardElement) {
   }
 }
 
-const timerChannel = new BroadcastChannel('study_timer_channel');
-
-timerChannel.onmessage = (event) => {
-  const data = event.data;
-  const roomTimerElement = document.getElementById("room-timer");
-
-  if (roomTimerElement && data.formattedTime) {
-    roomTimerElement.textContent = data.formattedTime;
-    
-    // Optional: Dynamic styling based on break state
-    if (data.isBreak) {
-      roomTimerElement.style.color = "#788D55"; // Green during breaks
-    } else {
-      roomTimerElement.style.color = "#3D2013"; // Default color
-    }
-  }
+roomTimerChannel.onmessage = (event) => {
+  syncStudyTimerFromHomepage(event.data);
 };
+
+window.addEventListener("storage", (event) => {
+  if (event.key !== STUDY_TIMER_STORAGE_KEY) return;
+
+  try {
+    syncStudyTimerFromHomepage(JSON.parse(event.newValue));
+  } catch (error) {
+    renderStudyTimerFromHomepage({
+      source: "homepage-study-timer",
+      secondsLeft: 0,
+      formattedTime: "00:00",
+      isRunning: false
+    });
+  }
+});
+
+
+// --- MOCK DATA ---
+const roomInfo = {
+  name: 'Study Rooooom'
+};
+
+const mockPlayers = [
+  { id: '1', name: 'Player 1', avatarLabel: 'P1' },
+  { id: '2', name: 'Player 2', avatarLabel: 'P2' },
+  { id: '3', name: 'Player 3', avatarLabel: 'P3' },
+];
+
+// --- INITIAL SETUP ---
+document.addEventListener('DOMContentLoaded', () => {
+  renderRoomInfo();
+  renderPlayers();
+  renderUploadedFiles();
+});
+
+// --- RENDER FUNCTIONS ---
+
+// 1. Render Room Information
+function renderRoomInfo() {
+  const roomHeading = document.getElementById('room-name-heading');
+  if (roomHeading) {
+    roomHeading.textContent = roomInfo.name;
+  }
+}
+
+// 2. Render Desktop & Mobile Players List Dynamically
+function renderPlayers() {
+  const desktopContainer = document.getElementById('desktop-players-list');
+  const mobileDropdownContainer = document.getElementById('players-dropdown');
+  const mobileCountBadge = document.getElementById('mobile-players-count');
+
+  // Update mobile button counter badge (e.g. "3P")
+  if (mobileCountBadge) {
+    mobileCountBadge.textContent = `${mockPlayers.length}P`;
+  }
+
+  // Render Desktop Avatars
+  if (desktopContainer) {
+    desktopContainer.innerHTML = mockPlayers.map(player => `
+      <div title="${player.name}" class="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full border-[3px] sm:border-[4px] border-[#788D55] bg-[#FEF4E0] shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+        <span class="font-pixel text-xs font-bold">${player.avatarLabel}</span>
+      </div>
+    `).join('');
+  }
+
+  // Render Mobile Dropdown List
+  if (mobileDropdownContainer) {
+    mobileDropdownContainer.innerHTML = mockPlayers.map((player, index) => {
+      const isLast = index === mockPlayers.length - 1;
+      const borderClass = isLast ? '' : 'pb-1 border-b border-[#3D2013]/20';
+      return `
+        <div class="flex items-center gap-2 ${borderClass}">
+          <div class="w-7 h-7 rounded-full border-[2px] border-[#788D55] bg-[#FEF4E0] flex items-center justify-center text-xs font-pixel shrink-0">
+            ${player.avatarLabel}
+          </div>
+          <span class="font-pixel text-xs font-bold text-[#3D2013] truncate">${player.name}</span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function closeKitsuModal() {
+  // If embedded in an iframe inside homepage.html modal
+  if (window.parent && window.parent.closeKitsuAiModal) {
+    window.parent.closeKitsuAiModal();
+  } else if (document.referrer && document.referrer.includes(window.location.host)) {
+    // If opened as a standalone page, use history navigation
+    window.history.back();
+  } else {
+    // Fallback navigation
+    window.location.href = 'homepage.html';
+  }
+}

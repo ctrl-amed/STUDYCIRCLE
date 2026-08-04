@@ -298,7 +298,7 @@ function submitCreateRoom() {
   localStorage.setItem("userCreatedRooms", JSON.stringify(existingRooms));
 
   // 4. Redirect
-  window.location.href = "myroom.html";
+  window.location.href = "generated-homepage.html";
 }
 /**
  * Header Close (X) button navigation handler
