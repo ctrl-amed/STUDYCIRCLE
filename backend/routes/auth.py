@@ -9,7 +9,7 @@ from utils.mail import mail
 from flask_jwt_extended import create_access_token
 
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 auth = Blueprint("auth", __name__)
 
@@ -106,7 +106,6 @@ def login():
 def forgot_password():
 
     data = request.get_json()
-
     email = data.get("email")
 
     if not email:
@@ -124,16 +123,15 @@ def forgot_password():
     # Generate secure token
     token = secrets.token_urlsafe(32)
 
-    # Expires in 15 minutes
-    expiry = datetime.utcnow() + timedelta(minutes=15)
+    # Use timezone-aware UTC datetime so it matches Supabase
+    expiry = datetime.now(timezone.utc) + timedelta(minutes=15)
 
     user.reset_token = token
     user.reset_token_expiry = expiry
 
     db.session.commit()
 
-    # Change this when deployed
-    reset_link = f"http://127.0.0.1:5500/changepassword.html?token={token}"
+    reset_link = f"http://127.0.0.1:5501/changepassword.html?token={token}"
 
     msg = Message(
         subject="Reset your StudyCircle Password",
@@ -186,9 +184,10 @@ def reset_password():
             "message": "Invalid or expired reset token."
         }), 400
 
+    # Compare timezone-aware datetimes safely
     if (
         user.reset_token_expiry is None or
-        user.reset_token_expiry < datetime.utcnow()
+        user.reset_token_expiry < datetime.now(timezone.utc)
     ):
         return jsonify({
             "message": "Reset token has expired."
