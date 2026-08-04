@@ -42,6 +42,13 @@ class User(db.Model):
     friends_count = db.Column(db.Integer, default=0)
     avatar_url = db.Column(db.Text, nullable=True, default="")
     badges = db.Column(db.Text, nullable=True, default="")
+# Detailed Game Stats
+    total_study_hours = db.Column(db.Float, default=0.0)
+    rooms_created = db.Column(db.Integer, default=0)
+    avg_quiz_score = db.Column(db.Integer, default=0)
+    best_streak = db.Column(db.Integer, default=0)
+    lifetime_coins = db.Column(db.Integer, default=0)
+    
 
     created_at = db.Column(
         db.DateTime(timezone=True),
@@ -64,7 +71,7 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "email": self.email,
-            "name": self.name if self.name else "",  # 👈 Keeps it strictly empty if blank
+            "name": self.name if self.name else "", 
             "level": self.level,
             "currentXP": self.current_xp,
             "maxXP": self.max_xp,
@@ -72,5 +79,12 @@ class User(db.Model):
             "streakDays": self.streak_days,
             "friendsCount": self.friends_count,
             "avatarUrl": self.avatar_url or "",
-            "badges": self.badges.split(",") if self.badges else []
+            "badges": self.badges.split(",") if self.badges else [],
+            
+            # 👇 Add these new lines right here!
+            "totalStudyHours": self.total_study_hours,
+            "roomsCreated": self.rooms_created,
+            "avgQuizScore": self.avg_quiz_score,
+            "bestStreak": self.best_streak,
+            "lifetimeCoins": self.lifetime_coins
         }

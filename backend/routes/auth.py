@@ -31,7 +31,7 @@ def register():
             "message": "All fields are required."
         }), 400
 
-    # 1. Check if Username already exists (Cleaned up syntax)
+    # 1. Check if Username already exists
     existing_username = User.query.filter_by(username=username).first()
     if existing_username:
         return jsonify({
@@ -47,10 +47,12 @@ def register():
 
     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
+    # 3. Create the user and give them the first badge instantly!
     new_user = User(
         username=username,
         email=email,
-        password_hash=hashed_password
+        password_hash=hashed_password,
+        badges="media/badge1.png"  
     )
 
     db.session.add(new_user)

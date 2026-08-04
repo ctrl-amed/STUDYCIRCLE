@@ -8,6 +8,7 @@ from models.user import User
 from routes.auth import auth
 from utils.security import bcrypt
 from utils.mail import mail
+from utils.badges import award_badge
 
 # 1. Initialize App
 app = Flask(__name__)
@@ -38,6 +39,12 @@ jwt = JWTManager(app)
 
 # 5. Register Blueprints (Routes from other files)
 app.register_blueprint(auth)
+
+
+# ========================================== #
+# UTILITY FUNCTIONS                          #
+# ========================================== #
+
 
 
 # ========================================== #
@@ -111,11 +118,28 @@ def update_profile():
         db.session.rollback() # Undo if there's an error
         return jsonify({"message": "Database error", "error": str(e)}), 500
 
+    
+@app.route("/finish-session", methods=["POST"])
+@jwt_required()
+def finish_session():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(int(current_user_id))
 
+    # 1. Update their stats (e.g., increase streak)
+    user.streak_days += 1
+    db.session.commit()
 
+    # 2. Check for milestones and award badges!
+    if user.streak_days == 7:
+        award_badge(user.id, "media/badge2.png") # The 7-Day Streak Badge
+        
+    if user.friends_count == 1:
+        award_badge(user.id, "media/badge3.png") # The Social Butterfly Badge
+
+    return jsonify({"message": "Session complete!"}), 200
 
 # ========================================== #
-# SERVER EXECUTION                         #
+# SERVER EXECUTION                           #
 # ========================================== #
 
 if __name__ == "__main__":
