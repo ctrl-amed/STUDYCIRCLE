@@ -27,6 +27,22 @@ class User(db.Model):
         nullable=False
     )
 
+    # Full Name (Starts blank/nullable since sign-up only asks for username/email)
+    name = db.Column(
+        db.String(150),
+        nullable=True
+    )
+
+    # Dashboard & Profile Game Stats
+    level = db.Column(db.Integer, default=1)
+    current_xp = db.Column(db.Integer, default=0)
+    max_xp = db.Column(db.Integer, default=10000)
+    coins = db.Column(db.Integer, default=0)
+    streak_days = db.Column(db.Integer, default=0)
+    friends_count = db.Column(db.Integer, default=0)
+    avatar_url = db.Column(db.Text, nullable=True, default="")
+    badges = db.Column(db.Text, nullable=True, default="")
+
     created_at = db.Column(
         db.DateTime(timezone=True),
         server_default=func.now()
@@ -48,11 +64,13 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "email": self.email,
-            "level": getattr(self, 'level', 1),
-            "currentXP": getattr(self, 'current_xp', 0),
-            "maxXP": getattr(self, 'max_xp', 10000),
-            "coins": getattr(self, 'coins', 0),
-            "streakDays": getattr(self, 'streak_days', 0),
-            "friendsCount": getattr(self, 'friends_count', 0),
-            "avatarUrl": getattr(self, 'avatar_url', "")
+            "name": self.name if self.name else "",  # 👈 Keeps it strictly empty if blank
+            "level": self.level,
+            "currentXP": self.current_xp,
+            "maxXP": self.max_xp,
+            "coins": self.coins,
+            "streakDays": self.streak_days,
+            "friendsCount": self.friends_count,
+            "avatarUrl": self.avatar_url or "",
+            "badges": self.badges.split(",") if self.badges else []
         }

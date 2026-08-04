@@ -1,5 +1,5 @@
 from datetime import timedelta
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 from config import Config
@@ -67,6 +67,49 @@ def get_profile():
         
     # 4. Use the custom method to send the real data
     return jsonify(user.to_dict()), 200
+
+@app.route("/update-profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+    # 1. Get the identity from the secure JWT token
+    current_user_id = get_jwt_identity()
+    user = User.query.get(int(current_user_id))
+
+    if not user:
+        return jsonify({"message": "User not found."}), 404
+
+    # 2. Get the updated data from the frontend
+    data = request.get_json()
+
+    # 3. Update Name, Username, and Email
+    if 'name' in data:
+        # If the user clears their name, it saves as an empty string
+        user.name = data['name'].strip() if data['name'].strip() else ""
+        
+    if 'username' in data and data['username'].strip():
+        user.username = data['username'].strip()
+
+    if 'email' in data and data['email'].strip():
+        user.email = data['email'].strip()
+
+    # 4. Handle Password Change (if the user typed one in)
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    
+    if old_password and new_password:
+        # Check if the old password matches the one in the database
+        if bcrypt.check_password_hash(user.password_hash, old_password):
+            user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        else:
+            return jsonify({"message": "Incorrect old password."}), 400
+
+    # 5. Save all changes to Supabase!
+    try:
+        db.session.commit()
+        return jsonify({"message": "Profile updated successfully!"}), 200
+    except Exception as e:
+        db.session.rollback() # Undo if there's an error
+        return jsonify({"message": "Database error", "error": str(e)}), 500
 
 
 
