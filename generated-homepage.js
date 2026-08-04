@@ -215,10 +215,28 @@ function updateMockPlayerAsset(playerId, newConfig) {
   }
 }
 
-// Initialize default mock player count (e.g., 5 extra players visible)
+// Initialize room details and dynamic player count on DOM load
 document.addEventListener("DOMContentLoaded", () => {
   loadRoomInfo();
-  setMockPlayerCount(5);
+
+  // 1. Retrieve created rooms list or active room configuration
+  const userRooms = JSON.parse(localStorage.getItem("userCreatedRooms") || "[]");
+
+  // 2. Determine player count from latest created room or fall back to default
+  let extraPlayersCount = 4; // Default fallback count
+
+  if (userRooms.length > 0) {
+    const activeRoom = userRooms[0]; // Gets the most recently created room
+    
+    // Total players selected (e.g., 5) minus 1 (for the host/local user)
+    // Ensures count stays within valid limits for setMockPlayerCount (0 to 5)
+    if (activeRoom.players !== undefined) {
+      extraPlayersCount = Math.max(0, activeRoom.players - 1);
+    }
+  }
+
+  // 3. Render exact amount of mock avatars
+  setMockPlayerCount(extraPlayersCount);
 });
 
 // Currently active mock player in the modal
