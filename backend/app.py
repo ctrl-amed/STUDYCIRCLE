@@ -9,6 +9,7 @@ from routes.auth import auth
 from utils.security import bcrypt
 from utils.mail import mail
 from utils.badges import award_badge
+import json
 
 # 1. Initialize App
 app = Flask(__name__)
@@ -138,6 +139,34 @@ def finish_session():
 
     return jsonify({"message": "Session complete!"}), 200
 
+
+@app.route('/api/update-avatar', methods=['POST'])
+@jwt_required()
+def update_avatar():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(int(current_user_id))
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    data = request.get_json()
+    avatar_config = data.get('config')
+    
+    if not avatar_config:
+        return jsonify({"error": "No avatar configuration provided"}), 400
+        
+    try:
+        user.avatar_url = json.dumps(avatar_config) if isinstance(avatar_config, dict) else avatar_config
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Avatar configuration saved successfully!",
+            "avatar_url": user.avatar_url
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
 # ========================================== #
 # SERVER EXECUTION                           #
 # ========================================== #
@@ -153,3 +182,4 @@ if __name__ == "__main__":
             print(e)
 
     app.run(debug=True)
+
