@@ -167,6 +167,34 @@ def update_avatar():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/update-room', methods=['POST'])
+@jwt_required()
+def update_room():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(int(current_user_id))
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    data = request.get_json()
+    room_config = data.get('config')
+    
+    if not room_config:
+        return jsonify({"error": "No room configuration provided"}), 400
+        
+    try:
+        # Assuming you store this in a column like room_url or room_config in your User model
+        user.room_url = json.dumps(room_config) if isinstance(room_config, dict) else room_config
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Room configuration saved successfully!",
+            "room_url": user.room_url
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500        
+
 # ========================================== #
 # SERVER EXECUTION                           #
 # ========================================== #

@@ -41,6 +41,7 @@ class User(db.Model):
     streak_days = db.Column(db.Integer, default=0)
     friends_count = db.Column(db.Integer, default=0)
     avatar_url = db.Column(db.Text, nullable=True, default="")
+    room_url = db.Column(db.Text, nullable=True, default="")
     badges = db.Column(db.Text, nullable=True, default="")
 # Detailed Game Stats
     total_study_hours = db.Column(db.Float, default=0.0)
@@ -79,6 +80,7 @@ class User(db.Model):
             "streakDays": self.streak_days,
             "friendsCount": self.friends_count,
             "avatarUrl": self.avatar_url or "",
+            "roomUrl": self.room_url or "",
             "badges": self.badges.split(",") if self.badges else [],
             
             # 👇 Add these new lines right here!
