@@ -35,32 +35,44 @@ const profileMockData = {
  */
 function switchTab(tabName) {
   const btnBadges = document.getElementById('tab-badges');
+  const btnAnalytics = document.getElementById('tab-analytics');
   const btnSettings = document.getElementById('tab-settings');
+
   const formBadges = document.getElementById('form-badges');
+  const formAnalytics = document.getElementById('form-analytics');
   const formSettings = document.getElementById('form-settings');
 
-  const chosenStyle = 'flex-1 text-center bg-[#E87339] text-[#FFFFF6] border-[3px] border-[#3D2013] !rounded-none py-3 px-2 font-pressstart text-[10px] sm:text-[12px] tracking-tight cursor-default transition-all duration-150';
-  const unchosenStyle = 'flex-1 text-center bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none py-3 px-2 font-pressstart text-[10px] sm:text-[12px] tracking-tight cursor-pointer flat-retro-shadow-hover transition-all duration-150';
+  const chosenStyle = 'flex-1 min-h-[42px] flex items-center justify-center text-center bg-[#E87339] text-[#FFFFF6] border-[3px] border-[#3D2013] !rounded-none px-1.5 sm:px-2 py-1.5 font-pressstart text-[8px] min-[380px]:text-[9px] sm:text-[11px] leading-tight tracking-tight cursor-default transition-all duration-150';
+  const unchosenStyle = 'flex-1 min-h-[42px] flex items-center justify-center text-center bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none px-1.5 sm:px-2 py-1.5 font-pressstart text-[8px] min-[380px]:text-[9px] sm:text-[11px] leading-tight tracking-tight cursor-pointer flat-retro-shadow-hover transition-all duration-150';
 
-  if (tabName === 'badges') {
+  // Hide all forms
+  [formBadges, formAnalytics, formSettings].forEach(form => {
+    if (form) {
+      form.classList.add('hidden');
+      form.classList.remove('flex');
+    }
+  });
+
+  // Reset all buttons to unchosen style
+  if (btnBadges) btnBadges.className = unchosenStyle;
+  if (btnAnalytics) btnAnalytics.className = unchosenStyle;
+  if (btnSettings) btnSettings.className = unchosenStyle;
+
+  // Set selected tab to active style
+  if (tabName === 'badges' && formBadges && btnBadges) {
     formBadges.classList.remove('hidden');
     formBadges.classList.add('flex');
-    formSettings.classList.add('hidden');
-    formSettings.classList.remove('flex');
-
     btnBadges.className = chosenStyle;
-    btnSettings.className = unchosenStyle;
-  } else if (tabName === 'settings') {
+  } else if (tabName === 'analytics' && formAnalytics && btnAnalytics) {
+    formAnalytics.classList.remove('hidden');
+    formAnalytics.classList.add('flex');
+    btnAnalytics.className = chosenStyle;
+  } else if (tabName === 'settings' && formSettings && btnSettings) {
     formSettings.classList.remove('hidden');
     formSettings.classList.add('flex');
-    formBadges.classList.add('hidden');
-    formBadges.classList.remove('flex');
-
     btnSettings.className = chosenStyle;
-    btnBadges.className = unchosenStyle;
   }
 }
-
 /**
  * Render Badges Dynamically
  * To change badge order, modify the profileMockData.badges array.

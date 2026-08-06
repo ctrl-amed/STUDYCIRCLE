@@ -39,8 +39,20 @@ const btnToggleSignupConfirmPassword = document.getElementById('btn-toggle-signu
 const signupConfirmEyeIcon = document.getElementById('signup-confirm-eye-icon');
 
 // Mock database arrays for validation checks
-const mockDatabase = ['user@studycircle.app', 'acorn@studycircle.app'];
-const mockUsernames = ['acorn_hero', 'study_master'];
+const mockDatabase = ['user@studycircle.app', 'acorn@studycircle.app', 'admin@studycircle.app'];
+const mockUsernames = ['acorn_hero', 'study_master', 'admin_boss'];
+// Mock Account Credentials
+const userAccount = {
+  email: "user@studycircle.app",
+  password: "password123",
+  redirectUrl: "homepage.html"
+};
+
+const adminAccount = {
+  email: "admin@studycircle.app",
+  password: "adminpassword123",
+  redirectUrl: "admin-dashboard.html"
+};
 
 // Password Rules & Standard Guidance Text
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_+\-\[\]\\\/]).{8,}$/;
@@ -119,11 +131,11 @@ function handleUrlHash() {
 }
 
 // Helper to trigger loading screen and redirect
-function triggerLoadingAndRedirect(statusText, targetUrl = "homepage.html") {
+// Helper to trigger loading screen and redirect
+function triggerLoadingAndRedirect(statusText, targetUrl = "homepage.html", isAdmin = false) {
   if (typeof startSimulatedLoad === 'function') {
-    startSimulatedLoad(statusText, 2000, () => {
-      window.location.href = targetUrl;
-    });
+    // Pass targetUrl directly so startSimulatedLoad can detect 'admin-dashboard.html'
+    startSimulatedLoad(statusText, 2000, targetUrl, isAdmin);
   } else {
     window.location.href = targetUrl;
   }
@@ -316,7 +328,7 @@ function showSuccessToast() {
 if (formLogin) {
   formLogin.addEventListener('submit', (e) => {
     e.preventDefault();
-    const emailVal = loginEmailInput.value.trim();
+    const emailVal = loginEmailInput.value.trim().toLowerCase();
     const passwordVal = loginPasswordInput.value;
     
     loginEmailInput.style.borderColor = "#3D2013";
@@ -324,12 +336,17 @@ if (formLogin) {
     loginErrorText.classList.add('hidden');
     loginErrorText.textContent = '';
 
-    const validEmail = "user@studycircle.app";
-    const validPassword = "password123";
-
-    if (emailVal.toLowerCase() === validEmail && passwordVal === validPassword) {
-      triggerLoadingAndRedirect(' LOGGING IN ');
-    } else {
+    // Check Admin Login
+// Check Admin Login
+if (emailVal === adminAccount.email && passwordVal === adminAccount.password) {
+  triggerLoadingAndRedirect(' LOGGING IN AS ADMIN ', adminAccount.redirectUrl, true);
+} 
+// Check Regular User Login
+else if (emailVal === userAccount.email && passwordVal === userAccount.password) {
+  triggerLoadingAndRedirect(' LOGGING IN ', userAccount.redirectUrl, false);
+}
+    // Invalid Credentials Handling
+    else {
       loginEmailInput.style.borderColor = "#A94A4A";
       loginPasswordInput.style.borderColor = "#A94A4A";
       loginErrorText.textContent = "✘ Invalid email or password.";

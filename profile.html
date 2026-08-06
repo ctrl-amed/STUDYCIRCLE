@@ -117,22 +117,27 @@
     <!-- COLUMN 2: STATS & SETTINGS CARD CONTAINER -->
     <section class="flex-1 w-full h-full min-h-0 flex flex-col gap-3 sm:gap-4">
       
-      <!-- 1. TAB NAV HEADER -->
-      <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-2.5 sm:p-3 shadow-md shrink-0">
-        <div class="flex items-stretch gap-3 w-full">
-          
-          <button id="tab-badges" onclick="switchTab('badges')"
-                  class="flex-1 min-h-[42px] flex items-center justify-center text-center bg-[#E87339] text-[#FFFFF6] border-[3px] border-[#3D2013] !rounded-none px-2 py-1.5 font-pressstart text-[9px] min-[380px]:text-[10px] sm:text-[12px] leading-tight tracking-tight cursor-default transition-all duration-150">
-            BADGES AND STATS
-          </button>
+<!-- TAB NAV HEADER -->
+<div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-2.5 sm:p-3 shadow-md shrink-0">
+  <div class="flex items-stretch gap-2 sm:gap-3 w-full">
+    
+    <button id="tab-badges" onclick="switchTab('badges')"
+            class="flex-1 min-h-[42px] flex items-center justify-center text-center bg-[#E87339] text-[#FFFFF6] border-[3px] border-[#3D2013] !rounded-none px-1.5 sm:px-2 py-1.5 font-pressstart text-[8px] min-[380px]:text-[9px] sm:text-[11px] leading-tight tracking-tight cursor-default transition-all duration-150">
+      BADGES
+    </button>
 
-          <button id="tab-settings" onclick="switchTab('settings')"
-                  class="flex-1 min-h-[42px] flex items-center justify-center text-center bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none px-2 py-1.5 font-pressstart text-[9px] min-[380px]:text-[10px] sm:text-[12px] leading-tight tracking-tight cursor-pointer flat-retro-shadow-hover transition-all duration-150">
-            SETTINGS
-          </button>
+    <button id="tab-analytics" onclick="switchTab('analytics')"
+            class="flex-1 min-h-[42px] flex items-center justify-center text-center bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none px-1.5 sm:px-2 py-1.5 font-pressstart text-[8px] min-[380px]:text-[9px] sm:text-[11px] leading-tight tracking-tight cursor-pointer flat-retro-shadow-hover transition-all duration-150">
+      ANALYTICS
+    </button>
 
-        </div>
-      </div>
+    <button id="tab-settings" onclick="switchTab('settings')"
+            class="flex-1 min-h-[42px] flex items-center justify-center text-center bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none px-1.5 sm:px-2 py-1.5 font-pressstart text-[8px] min-[380px]:text-[9px] sm:text-[11px] leading-tight tracking-tight cursor-pointer flat-retro-shadow-hover transition-all duration-150">
+      SETTINGS
+    </button>
+
+  </div>
+</div>
 
       <!-- 2. FORM 1: BADGES AND STATS -->
 <form id="form-badges" class="flex-1 min-h-0 flex flex-col gap-3 sm:gap-4 overflow-y-auto scrollbar-hide">
@@ -283,6 +288,78 @@
       </button>
     </div>
 
+  </div>
+
+</form>
+
+<!-- TAB CONTENT: ANALYTICS (WSA MODEL) -->
+<form id="form-analytics" class="hidden flex-1 min-h-0 flex-col gap-3 sm:gap-4 overflow-y-auto scrollbar-hide">
+  
+  <!-- ROW 1: OVERALL WSA SCORE & WEIGHT DISTRIBUTION -->
+  <div class="flex-1 min-h-[180px] flex flex-col bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md">
+    <div class="border-b-[2.5px] border-[#3D2013] pb-1.5 mb-3 shrink-0 -mx-4 sm:-mx-6 px-4 sm:px-6 flex items-center justify-between">
+      <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">WSA SCORE BREAKDOWN</h3>
+      <span class="font-pressstart text-[9px] sm:text-[10px] text-[#E87339]">TOTAL: <span id="wsa-total-score">84.5</span>/100</span>
+    </div>
+
+    <!-- Criteria Breakdown Bars -->
+    <div class="flex flex-col gap-3 my-auto">
+      <!-- Criterion 1 -->
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">
+          <span>QUIZ PERFORMANCE (WEIGHT: 40%)</span>
+          <span id="wsa-c1-score">36.8 / 40 pts</span>
+        </div>
+        <div class="w-full bg-[#FAE9CE] border-[2px] border-[#3D2013] h-4 relative">
+          <div id="wsa-c1-bar" class="bg-[#FD923E] h-full" style="width: 92%;"></div>
+        </div>
+      </div>
+
+      <!-- Criterion 2 -->
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">
+          <span>STUDY TIME & CONSISTENCY (WEIGHT: 35%)</span>
+          <span id="wsa-c2-score">28.0 / 35 pts</span>
+        </div>
+        <div class="w-full bg-[#FAE9CE] border-[2px] border-[#3D2013] h-4 relative">
+          <div id="wsa-c2-bar" class="bg-[#788D55] h-full" style="width: 80%;"></div>
+        </div>
+      </div>
+
+      <!-- Criterion 3 -->
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">
+          <span>COMMUNITY PARTICIPATION (WEIGHT: 25%)</span>
+          <span id="wsa-c3-score">19.7 / 25 pts</span>
+        </div>
+        <div class="w-full bg-[#FAE9CE] border-[2px] border-[#3D2013] h-4 relative">
+          <div id="wsa-c3-bar" class="bg-[#2B5370] h-full" style="width: 79%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: RECOMMENDATIONS & IMPACT CARDS -->
+  <div class="min-h-[120px] flex flex-col bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md">
+    <div class="border-b-[2.5px] border-[#3D2013] pb-1.5 mb-3 shrink-0 -mx-4 sm:-mx-6 px-4 sm:px-6">
+      <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">ALGORITHM INSIGHTS</h3>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 h-full">
+      <div class="bg-[#FAE9CE] border-[2px] border-[#3D2013] p-3 rounded-[6px] flex flex-col justify-center gap-1">
+        <span class="font-pressstart text-[8px] text-[#E87339]">HIGHEST IMPACT AREA</span>
+        <p class="font-pressstart text-[9px] text-[#3D2013] leading-relaxed">
+          Quiz Scores carry 40% weight. Raising Quiz average by 5% adds +2.0 overall WSA pts.
+        </p>
+      </div>
+
+      <div class="bg-[#FAE9CE] border-[2px] border-[#3D2013] p-3 rounded-[6px] flex flex-col justify-center gap-1">
+        <span class="font-pressstart text-[8px] text-[#788D55]">EFFICIENCY TIP</span>
+        <p class="font-pressstart text-[9px] text-[#3D2013] leading-relaxed">
+          Maintaining a 5-day study streak boosts consistency weight multiplier to maximum.
+        </p>
+      </div>
+    </div>
   </div>
 
 </form>
