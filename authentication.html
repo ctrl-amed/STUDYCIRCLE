@@ -170,7 +170,6 @@
   <div class="flex flex-col gap-1">
     <label class="font-pixel text-[10px] text-[#3D2013]">USERNAME</label>
     <input type="text" id="signup-username" placeholder="acorn_hero" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-vt text-lg outline-none w-full transition-colors duration-150">
-    <!-- Dynamic Error Element -->
     <p id="signup-username-error" class="font-vt text-sm text-[#A94A4A] hidden mt-0.5"></p>
   </div>
 
@@ -178,38 +177,53 @@
   <div class="flex flex-col gap-1">
     <label class="font-pixel text-[10px] text-[#3D2013]">EMAIL</label>
     <input type="email" id="signup-email" placeholder="you@studycircle.app" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 font-vt text-lg outline-none w-full transition-colors duration-150">
-    <!-- Dynamic Error Element -->
     <p id="signup-email-error" class="font-vt text-sm text-[#A94A4A] hidden mt-0.5"></p>
   </div>
 
   <!-- Password Field -->
   <div class="flex flex-col gap-1">
     <label class="font-pixel text-[10px] text-[#3D2013]">PASSWORD</label>
-    <!-- Relative wrapper keeps the eye icon button inside the field boundaries safely -->
     <div class="relative w-full">
       <input type="password" id="signup-password" placeholder="........" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 pr-10 font-vt text-lg outline-none w-full transition-colors duration-150">
       
-      <!-- Retro-styled Toggle Eye Button -->
       <button type="button" id="btn-toggle-signup-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-[#563B2D] hover:text-[#E87339] bg-transparent border-none p-0 cursor-pointer flex items-center justify-center focus:outline-none">
-        <!-- SVG Pixel/Retro style Eye Icon -->
         <svg id="signup-eye-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="square" stroke-linejoin="square" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           <path stroke-linecap="square" stroke-linejoin="square" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
         </svg>
       </button>
     </div>
-    <!-- Password Requirement / Error Text Note -->
+    <!-- Password Requirement Note Under Confirm Password -->
     <p id="signup-password-note" class="font-vt text-[#3D2013] text-[20px] leading-tight mt-1 transition-colors duration-150">
       Create a strong password using 8 or more characters, including uppercase and lowercase letters, a number, and a special character.
     </p>
   </div>
-  
+
+  <!-- Confirm Password Field -->
+  <div class="flex flex-col gap-1">
+    <label class="font-pixel text-[10px] text-[#3D2013]">CONFIRM PASSWORD</label>
+    <div class="relative w-full">
+      <input type="password" id="signup-confirm-password" placeholder="........" class="border-2 border-[#3D2013] bg-[#F8E9D2] p-2 pr-10 font-vt text-lg outline-none w-full transition-colors duration-150">
+      
+      <button type="button" id="btn-toggle-signup-confirm-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-[#563B2D] hover:text-[#E87339] bg-transparent border-none p-0 cursor-pointer flex items-center justify-center focus:outline-none">
+        <svg id="signup-confirm-eye-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="square" stroke-linejoin="square" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="square" stroke-linejoin="square" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+      </button>
+    </div>
+    <!-- Dynamic Error Element for Confirm Password -->
+    <p id="signup-confirm-password-error" class="font-pixel text-sm text-[#A94A4A] hidden mt-0.5">
+      Create a strong password using 8 or more characters, including uppercase and lowercase letters, a number, and a special character.
+    </p>
+  </div>
   <button type="submit" class="font-pixel text-white bg-[#E87339] border-4 border-[#3D2013] py-3 mt-4 transition-all duration-150 retro-shadow">
     SIGN UP
   </button>
+  </div>
 </form>
 
-        <!-- ========================================== -->
+<!-- ========================================== -->
 <!-- 3. RESET PASSWORD FORM CONTEXT             -->
 <!-- ========================================== -->
 <form id="form-reset" class="flex flex-col gap-4 hidden">

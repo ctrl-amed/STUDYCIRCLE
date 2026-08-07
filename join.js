@@ -1,53 +1,45 @@
 /**
- * Mock Data Store for Study Rooms
+ * Dynamic Rooms Loader from Backend API with Local Storage Merging
  */
-const mockRoomsData = [
-  {
-    id: "RM-101",
-    name: "Late Night Math Grind",
-    topic: "Calculus III & Differential Equations",
-    host: "AlexR_Study",
-    players: 4,
-    maxPlayers: 6,
-    technique: "pomodoro"
-  },
-  {
-    id: "RM-102",
-    name: "Web Dev & Tailwind Showcase",
-    topic: "Frontend Engineering",
-    host: "Sarah_Code",
-    players: 2,
-    maxPlayers: 6,
-    technique: "52-17"
-  },
-  {
-    id: "RM-103",
-    name: "Biology Midterm Prep",
-    topic: "Cellular Structures & DNA",
-    host: "BioMaster99",
-    players: 6,
-    maxPlayers: 6,
-    technique: "19-deep"
-  },
-  {
-    id: "RM-104",
-    name: "Quiet Focus Pomodoro",
-    topic: "General Study & Homework",
-    host: "ZenStudent",
-    players: 1,
-    maxPlayers: 6,
-    technique: "pomodoro"
-  },
-  {
-    id: "RM-105",
-    name: "Data Structures Sprints",
-    topic: "Binary Trees & Graph Algorithms",
-    host: "AlgoGuru",
-    players: 5,
-    maxPlayers: 6,
-    technique: "52-17"
+let allRooms = [];
+
+/**
+ * Fetches rooms from the backend API and merges them with local sessionStorage rooms
+ */
+async function fetchRooms() {
+  let backendRooms = [];
+  try {
+    const token = sessionStorage.getItem("token");
+    const response = await fetch("http://127.0.0.1:5000/api/rooms", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      backendRooms = data.rooms || [];
+    }
+  } catch (err) {
+    console.warn("Backend fetch failed, relying on sessionStorage.", err);
   }
-];
+
+  // Always load user-created rooms from sessionStorage as well
+  const localUserRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
+
+  // Combine both sources and remove duplicates based on room id
+  const combinedMap = new Map();
+  [...localUserRooms, ...backendRooms].forEach(room => {
+    if (room && room.id) {
+      combinedMap.set(room.id.toUpperCase(), room);
+    }
+  });
+
+  allRooms = Array.from(combinedMap.values());
+  renderRoomCards(allRooms);
+}
 
 /**
  * Render Room Cards dynamically into the DOM container
@@ -61,7 +53,7 @@ function renderRoomCards(rooms) {
   if (rooms.length === 0) {
     container.innerHTML = `
       <div class="col-span-full bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-none p-6 text-center shadow-md">
-        <p class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013]">NO ROOMS FOUND MATCHING YOUR SEARCH.</p>
+        <p class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013]">NO ROOMS FOUND.</p>
       </div>
     `;
     return;
@@ -94,7 +86,7 @@ function renderRoomCards(rooms) {
         <div class="flex items-center gap-1.5 text-[#FD923E] font-pressstart text-[8px] sm:text-[8.5px]">
           <!-- Player Ratio -->
           <div class="flex items-center gap-1 shrink-0">
-            <span>${room.players}/${room.maxPlayers}</span>
+            <span>${room.players || 1}/${room.maxPlayers || 6}</span>
             <svg class="w-3 h-3 text-[#583889]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
@@ -109,7 +101,7 @@ function renderRoomCards(rooms) {
             <svg class="w-3 h-3 text-[#EEBB4A] shrink-0" fill="currentColor" viewBox="0 0 24 24">
               <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
             </svg>
-            <span class="truncate" title="${room.host}">${room.host}</span>
+            <span class="truncate" title="${room.host}">${room.host || 'You'}</span>
           </div>
         </div>
 
@@ -133,29 +125,26 @@ function renderRoomCards(rooms) {
 function filterRooms(query) {
   const cleanQuery = query.toLowerCase().trim();
   if (!cleanQuery) {
-    renderRoomCards(mockRoomsData);
+    renderRoomCards(allRooms);
     return;
   }
 
-  const filtered = mockRoomsData.filter((room) => {
+  const filtered = allRooms.filter((room) => {
     return (
-      room.name.toLowerCase().includes(cleanQuery) ||
-      room.topic.toLowerCase().includes(cleanQuery) ||
-      room.id.toLowerCase().includes(cleanQuery) ||
-      room.host.toLowerCase().includes(cleanQuery)
+      (room.name && room.name.toLowerCase().includes(cleanQuery)) ||
+      (room.topic && room.topic.toLowerCase().includes(cleanQuery)) ||
+      (room.id && room.id.toLowerCase().includes(cleanQuery)) ||
+      (room.host && room.host.toLowerCase().includes(cleanQuery))
     );
   });
 
   renderRoomCards(filtered);
 }
 
-/**
- * Action Handlers
- */
 function enterRoom(roomId) {
-  // Trigger retro loading overlay then navigate to room
+  sessionStorage.setItem("activeRoomId", roomId);
   startSimulatedLoad("Joining Room...", 2000, () => {
-    window.location.href = `myroom.html?id=${roomId}`;
+    window.location.href = `generated-homepage.html?room=${roomId}`;
   });
 }
 
@@ -163,10 +152,8 @@ function enterRoom(roomId) {
  * Initial Event Bindings on DOM Content Loaded
  */
 document.addEventListener("DOMContentLoaded", () => {
-  // Render initial catalog
-  renderRoomCards(mockRoomsData);
+  fetchRooms();
 
-  // Setup search input filter listener
   const searchInput = document.getElementById("room-search-input");
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
@@ -183,8 +170,8 @@ function openJoinPrivateModal() {
   const input = document.getElementById("private-room-code-input");
   const errorText = document.getElementById("private-room-error");
   
-  if (input) input.value = ""; // Clear previous input
-  if (errorText) errorText.classList.add("hidden"); // Clear previous errors
+  if (input) input.value = ""; 
+  if (errorText) errorText.classList.add("hidden"); 
   modal?.classList.remove("hidden");
 }
 
@@ -192,12 +179,11 @@ function closeJoinPrivateModal() {
   document.getElementById("join-private-modal")?.classList.add("hidden");
 }
 
-function submitPrivateRoomCode() {
+async function submitPrivateRoomCode() {
   const input = document.getElementById("private-room-code-input");
   const errorText = document.getElementById("private-room-error");
   const roomCode = input?.value.trim().toUpperCase();
 
-  // Reset error state
   if (errorText) errorText.classList.add("hidden");
 
   if (!roomCode) {
@@ -208,11 +194,43 @@ function submitPrivateRoomCode() {
     return;
   }
 
-  // Validate room code against mock store
-  const roomExists = mockRoomsData.some(r => r.id.toUpperCase() === roomCode);
+  // Refresh latest rooms pool right before checking
+  const localUserRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
+  const combinedMap = new Map();
+  [...localUserRooms, ...allRooms].forEach(room => {
+    if (room && room.id) {
+      combinedMap.set(room.id.toUpperCase(), room);
+    }
+  });
 
-  if (!roomExists) {
-    // Show invalid code error message below input
+  let matchedRoom = combinedMap.get(roomCode);
+
+  // If still not found locally, check backend API endpoint
+  if (!matchedRoom) {
+    try {
+      const token = sessionStorage.getItem("token");
+      const currentUser = JSON.parse(sessionStorage.getItem("user_profile") || '{"id": "u1", "username": "You"}');
+      
+      const response = await fetch(`http://127.0.0.1:5000/api/join-room`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ inviteCode: roomCode, user: currentUser })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        matchedRoom = data.room;
+      }
+    } catch (err) {
+      console.error("Error validating room code with backend:", err);
+    }
+  }
+
+  if (!matchedRoom) {
+    console.warn("Room code not found anywhere:", roomCode);
     if (errorText) {
       errorText.textContent = "◆ INVALID ROOM CODE ◆";
       errorText.classList.remove("hidden");
@@ -220,7 +238,6 @@ function submitPrivateRoomCode() {
     return;
   }
 
-  // Hide Modal & Trigger Loading Overlay
   closeJoinPrivateModal();
-  enterRoom(roomCode);
+  enterRoom(matchedRoom.id || roomCode);
 }

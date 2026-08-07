@@ -274,7 +274,7 @@ function submitCreateRoom() {
     ? validTasks.map(task => ({ title: task, status: "inprogress" }))
     : [{ title: "Initial Study Focus", status: "inprogress" }];
 
-  const customConfig = JSON.parse(localStorage.getItem("user_furniture_config") || '{"room":"ROOM1"}');
+  const customConfig = JSON.parse(sessionStorage.getItem("user_furniture_config") || '{"room":"ROOM1"}');
 
   // 2. Build room object using roomPlayers
   const newRoom = {
@@ -292,13 +292,13 @@ function submitCreateRoom() {
     roomConfig: customConfig
   };
 
-  // 3. Save to localStorage
-  const existingRooms = JSON.parse(localStorage.getItem("userCreatedRooms") || "[]");
+ // 3. Save to sessionStorage
+  const existingRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
   existingRooms.unshift(newRoom);
-  localStorage.setItem("userCreatedRooms", JSON.stringify(existingRooms));
+  sessionStorage.setItem("userCreatedRooms", JSON.stringify(existingRooms));
 
   // 4. Redirect
-  window.location.href = "myroom.html";
+  window.location.href = "generated-homepage.html";
 }
 /**
  * Header Close (X) button navigation handler
@@ -655,4 +655,79 @@ function handleSessionsChange(selectEl) {
       customInput.value = '';
     }
   }
+}
+
+async function submitCreateRoom() {
+  // 1. Gather values from user inputs
+  const roomName = document.getElementById("room-name")?.value.trim() || "Untitled Room";
+  const roomTopic = document.getElementById("room-topic")?.value.trim() || "General Study";
+  
+  const playersSelect = document.getElementById("room-players");
+  const roomPlayers = playersSelect && playersSelect.value ? parseInt(playersSelect.value, 10) : 1;
+
+  const techniqueTitles = {
+    pomodoro: "Pomodoro",
+    "5217": "52-17",
+    "90min": "90-mins"
+  };
+  const technique = techniqueTitles[selectedTechniqueKey] || "Pomodoro";
+
+  const formattedDate = new Date().toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric"
+  });
+
+  const validTasks = draftTasks.filter(t => t.trim() !== "");
+  const checklist = validTasks.length > 0
+    ? validTasks.map(task => ({ title: task, status: "inprogress" }))
+    : [{ title: "Initial Study Focus", status: "inprogress" }];
+
+  const customConfig = JSON.parse(sessionStorage.getItem("user_furniture_config") || '{"room":"ROOM1"}');
+  
+  // FIX: Safely initialize currentUser so it doesn't crash
+  const currentUser = JSON.parse(sessionStorage.getItem("user_profile") || '{"id": "u1", "username": "You", "avatar": ""}');
+
+  const newRoom = {
+    id: `RM-${Math.floor(100 + Math.random() * 900)}`,
+    name: roomName,
+    topic: roomTopic,
+    host: currentUser.username || "You",
+    players: 1, 
+    maxPlayers: roomPlayers, 
+    members: [{ id: currentUser.id || 'u1', username: currentUser.username || "You", avatar: currentUser.avatar || "" }],
+    dateCreated: formattedDate,
+    progressPercent: 0,
+    visibility: selectedPrivacy || "public",
+    technique: technique,
+    checklist: checklist,
+    roomConfig: customConfig
+  };
+
+  // 3. Save to backend database & sessionStorage fallback
+  try {
+    const token = sessionStorage.getItem("token");
+    const response = await fetch("http://127.0.0.1:5000/api/create-room", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(newRoom)
+    });
+
+    if (!response.ok) {
+      console.warn("Failed to sync room to database, saving locally.");
+    }
+  } catch (err) {
+    console.error("Network error while creating room:", err);
+  }
+
+  // Also store in sessionStorage for instant UI reflection
+  const existingRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
+  existingRooms.unshift(newRoom);
+  sessionStorage.setItem("userCreatedRooms", JSON.stringify(existingRooms));
+
+  alert("Study Room created successfully!");
+  window.location.href = "generated-homepage.html";
 }

@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
 
         <!-- 2. ROOM -->
-        <a href="/room" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] hover:bg-[#E16F37]/20 overflow-hidden no-underline">
+        <a href="myroom.html" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] hover:bg-[#E16F37]/20 overflow-hidden no-underline">
           <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#3D2013] transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
             <path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 6H6v-6h6v6z"/>
           </svg>
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
 
         <!-- 3. JOIN -->
-        <a href="/join" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] hover:bg-[#E16F37]/20 overflow-hidden no-underline">
+        <a href="join.html" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] hover:bg-[#E16F37]/20 overflow-hidden no-underline">
           <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#3D2013] transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
             <path d="M19 3H5c-1.1 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12l1.41 1.41L16.83 13H7v-2h9.83l-4.42-4.41L11 5l6 6-6 6z"/>
           </svg>
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- 4. KITSU AI -->
         <div class="relative flex-1 h-full flex items-center justify-center pointer-events-none">
-          <a href="/kitsu-ai" class="pointer-events-auto absolute -top-5 sm:-top-7 flex flex-col items-center group cursor-pointer no-underline">
+          <a href="kitsuai.html" class="pointer-events-auto absolute -top-5 sm:-top-7 flex flex-col items-center group cursor-pointer no-underline">
             <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#FEF4E0] border-[3px] border-[#3D2013] flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
               <img src="media/kitsu_logo.png" alt="Kitsu AI" class="w-12 h-12 sm:w-15 sm:h-15 object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
               <svg class="w-10 h-10 text-[#E16F37] hidden" fill="currentColor" viewBox="0 0 24 24">
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <!-- 5. AVATAR -->
-        <a href="/avatar" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] hover:bg-[#E16F37]/20 overflow-hidden no-underline">
+        <a href="customavatar.html" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] hover:bg-[#E16F37]/20 overflow-hidden no-underline">
           <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#3D2013] transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
             <path d="M21.6 4.2l-3.2-2.1c-.4-.3-.9-.2-1.2.2L15 5.2c-.3.4-.3 1 0 1.4l1.3 1.4H7.7L9 6.6c.3-.4.3-1 0-1.4L6.8 2.3c-.3-.4-.8-.5-1.2-.2L2.4 4.2C2.1 4.4 2 4.8 2.1 5.2l1.9 6.8c.1.4.5.7.9.7h1.6v8c0 .6.4 1 1 1h13c.6 0 1-.4 1-1v-8h1.6c.4 0 .8-.3.9-.7l1.9-6.8c.1-.4 0-.8-.3-1z"/>
           </svg>
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
 
         <!-- 6. FURNITURE -->
-        <a href="/furniture" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] hover:bg-[#E16F37]/20 overflow-hidden no-underline">
+        <a href="customroom.html" class="group relative flex-1 h-full flex flex-col items-center justify-center transition-colors cursor-pointer rounded-[14px] hover:bg-[#E16F37]/20 overflow-hidden no-underline">
           <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#3D2013] transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
             <path d="M20 10V7c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v3c-1.1 0-2 .9-2 2v5h1.33L4 19h1.67l.67-2h11.33l.67 2H20l.67-2H22v-5c0-1.1-.9-2-2-2zm-9 0H6V7h5v3zm7 0h-5V7h5v3z"/>
           </svg>

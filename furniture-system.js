@@ -7,9 +7,9 @@ const DEFAULT_FURNITURE_CONFIG = {
   room: "ROOM1"
 };
 
-// 1. Helper to fetch saved configuration from LocalStorage
+// 1. Helper to fetch saved configuration from sessionStorage
 window.getSavedFurnitureConfig = function () {
-  const saved = localStorage.getItem("user_furniture_config");
+  const saved = sessionStorage.getItem("user_furniture_config");
   if (!saved) return { ...DEFAULT_FURNITURE_CONFIG };
   try {
     return { ...DEFAULT_FURNITURE_CONFIG, ...JSON.parse(saved) };
@@ -18,9 +18,9 @@ window.getSavedFurnitureConfig = function () {
   }
 };
 
-// 2. Helper to save configuration to LocalStorage and notify all components
+// 2. Helper to save configuration to sessionStorage and notify all components
 window.saveFurnitureConfig = function (newConfig) {
-  localStorage.setItem("user_furniture_config", JSON.stringify(newConfig));
+  sessionStorage.setItem("user_furniture_config", JSON.stringify(newConfig));
   // Fire event so all <custom-room> elements update instantly without page refresh
   window.dispatchEvent(new CustomEvent("furniture-updated", { detail: newConfig }));
 };
@@ -54,7 +54,7 @@ class CustomRoom extends HTMLElement {
   }
 
   render(overrideConfig = null) {
-    // Priority: Explicit inline attribute > Event detail > LocalStorage saved
+    // Priority: Explicit inline attribute > Event detail > sessionStorage saved
     const rawAttrConfig = this.getAttribute("config");
     let config = overrideConfig;
 

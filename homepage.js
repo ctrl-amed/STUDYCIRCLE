@@ -9,18 +9,66 @@
 // =========================================================================
 
 // ==========================================
-// PLAYER DATA STATE
+// PLAYER DATA STATE (DYNAMIC BACKEND SYNC)
 // ==========================================
-const playerData = {
+let playerData = {
   name: "ACORN_HERO",
-  level: 99,
-  currentXP: 1000,
+  level: 1,
+  currentXP: 0,
   maxXP: 10000,
-  avatarUrl: "",       // BACKEND: User avatar URL
-  coins: 12234,        // BACKEND: Total coins earned
-  friendsCount: 5,     // BACKEND: Active/Online friends count
-  streakDays: "2d"     // BACKEND: Current streak value (e.g., "2d" or 2)
+  avatarUrl: "",       // User avatar URL
+  coins: 0,            // Total coins earned
+  friendsCount: 0,     // Active/Online friends count
+  streakDays: "0d"     // Current streak value
 };
+
+/**
+ * Fetch user data from backend API (/me) and update dashboard state
+ */
+async function loadUserData() {
+  // CHANGED: Now looks in sessionStorage to match authscript.js
+  const token = sessionStorage.getItem("token");
+
+  if (!token) {
+    // If no token is found, redirect to login page
+    window.location.href = "authentication.html#login";
+    return;
+  }
+
+  try {
+    const response = await fetch("http://127.0.0.1:5000/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      // If token is invalid or expired, clear from sessionStorage and redirect to login
+      sessionStorage.removeItem("token");
+      window.location.href = "authentication.html#login";
+      return;
+    }
+
+    const userData = await response.json();
+
+    // Overwrite playerData state with database values
+    playerData.name = userData.username || "ACORN_HERO";
+    playerData.level = userData.level || 1;
+    playerData.currentXP = userData.currentXP || 0;
+    playerData.maxXP = userData.maxXP || 10000;
+    playerData.coins = userData.coins || 0;
+    playerData.streakDays = `${userData.streakDays || 0}d`;
+    playerData.avatarUrl = userData.avatarUrl || "";
+
+    // Sync UI with the newly fetched data
+    updateDashboardState();
+
+  } catch (err) {
+    console.error("Failed to connect to backend:", err);
+  }
+}
 
 // ==========================================
 // CORE UI FUNCTIONS
@@ -36,6 +84,7 @@ function updateDashboardState() {
 
   const nameElement = document.getElementById("player-name");
   const modalNameElement = document.getElementById("modal-player-name");
+  const avatarNametagElement = document.getElementById("avatar-nametag"); // Name Tag Reference
 
   const xpBarFill = document.getElementById("xp-bar-fill");
   const modalXpBarFill = document.getElementById("modal-xp-bar-fill");
@@ -64,6 +113,7 @@ function updateDashboardState() {
   // Apply Name
   if (nameElement) nameElement.textContent = playerData.name;
   if (modalNameElement) modalNameElement.textContent = playerData.name;
+  if (avatarNametagElement) avatarNametagElement.textContent = playerData.name;
 
   // Apply Avatars
   if (playerData.avatarUrl) {
@@ -106,6 +156,11 @@ function updateDashboardState() {
   if (modalStreakVal) modalStreakVal.textContent = `${playerData.streakDays} study`;
   if (modalFriendsVal) modalFriendsVal.textContent = playerData.friendsCount;
 }
+
+// Initialize on page load by calling loadUserData instead of static updateDashboardState
+document.addEventListener("DOMContentLoaded", () => {
+  loadUserData();
+});
 
 // ==========================================
 // MODAL CONTROLLERS
@@ -455,6 +510,9 @@ function saveTimerSettings() {
 /**
  * Updates all visual aspects of the main timer modal AND the mini-display
  */
+
+const timerChannel = new BroadcastChannel('study_timer_channel');
+
 function renderTimerUI() {
   const unselectedView = document.getElementById("timer-unselected-view");
   const activeView = document.getElementById("timer-active-view");
@@ -481,6 +539,13 @@ function renderTimerUI() {
   const mins = Math.floor(timerState.secondsLeft / 60);
   const secs = timerState.secondsLeft % 60;
   const formattedTime = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  // --- BROADCAST TIME TO OTHER PAGES ---
+  timerChannel.postMessage({
+    formattedTime: formattedTime,
+    isBreak: timerState.isBreak,
+    isRunning: timerState.isRunning
+  });
   
   const display = document.getElementById("timer-display");
   if (display) display.textContent = formattedTime;
@@ -931,142 +996,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Variable to track currently selected coin amount (defaults to 1250)
-let selectedCoinAmount = "1250";
 
-// ==========================================
-// 1. PACKAGE SELECTION LOGIC
-// ==========================================
-function selectCoinPackage(selectedBtn) {
-  const allCards = document.querySelectorAll('#add-coins-modal .coin-card');
-  
-  // Store selected package value
-  selectedCoinAmount = selectedBtn.getAttribute('data-package');
-
-  allCards.forEach(card => {
-    // Reset all cards
-    if (card.getAttribute('data-package') === '1250') {
-      card.className = 'coin-card bg-[#E4E2CA] border-[2.5px] border-[#6C7250] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0';
-    } else {
-      card.className = 'coin-card bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-xl p-3 h-36 flex flex-col items-center justify-between transition-colors duration-150 cursor-pointer relative shrink-0';
-    }
-
-    const badge = card.querySelector('.check-badge');
-    if (badge) badge.classList.add('hidden');
-  });
-
-  // Apply selected styles
-  selectedBtn.classList.remove('border-[#3D2013]', 'border-[#6C7250]', 'border-[2.5px]');
-  selectedBtn.classList.add('selected-card', 'border-[3px]', 'border-[#788D55]');
-
-  const activeBadge = selectedBtn.querySelector('.check-badge');
-  if (activeBadge) activeBadge.classList.remove('hidden');
-}
-
-// ==========================================
-// 2. PURCHASE & LOADING PROCESS LOGIC
-// ==========================================
-function processPurchase() {
-  const selectionView = document.getElementById('coin-modal-selection');
-  const loadingView = document.getElementById('coin-modal-loading');
-  const successView = document.getElementById('coin-modal-success');
-
-  // Switch to loading view
-  selectionView.classList.add('hidden');
-  loadingView.classList.remove('hidden');
-
-  // Simulate 2-second processing time
-  setTimeout(() => {
-    // Hide loading & show success view
-    loadingView.classList.add('hidden');
-    successView.classList.remove('hidden');
-
-    // Display formatted amount in success screen
-    const purchasedLabel = document.getElementById('purchased-coin-amount');
-    if (purchasedLabel) {
-      purchasedLabel.textContent = parseInt(selectedCoinAmount).toLocaleString();
-    }
-
-    // Trigger Success Toast Notification
-    showSuccessToast();
-
-  }, 2000);
-}
-
-// ==========================================
-// 3. TOAST GENERATOR FUNCTION
-// ==========================================
-function showSuccessToast() {
-  let toastContainer = document.getElementById('toast-container');
-  
-  if (!toastContainer) {
-    toastContainer = document.createElement('div');
-    toastContainer.id = 'toast-container';
-    toastContainer.className = 'fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none';
-    document.body.appendChild(toastContainer);
-  }
-
-  const toast = document.createElement('div');
-  // NOTE: rounded-none and overflow-hidden ensure sharp corners and flush bottom progress bar
-  toast.className = "bg-[#FBF2E3] border-4 border-[#3D2013] pt-4 px-4 pb-0 flex flex-col gap-3 relative shadow-md transition-all duration-300 max-w-xs retro-shadow pointer-events-auto opacity-0 translate-y-[-20px] !rounded-none overflow-hidden";
-  toast.style.boxShadow = "4px 4px 0px #3D2013";
-
-  toast.innerHTML = `
-    <!-- TEXT & ICON ROW -->
-    <div class="flex items-center gap-3 pr-2">
-      <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 6L9 17L4 12" stroke="#788D55" stroke-width="4" stroke-linecap="square" stroke-linejoin="square"/>
-      </svg>
-      <span class="font-pressstart text-[12px] text-[#482A1D] whitespace-nowrap tracking-wide">Purchase successful!</span>
-    </div>
-
-    <!-- PROGRESS BAR (TOUCHING BOTTOM BORDER DIRECTLY) -->
-    <div class="w-full bg-transparent h-1.5 flex justify-center mt-auto overflow-hidden">
-      <div class="w-full h-full bg-[#788D55] animate-progress-center"></div>
-    </div>
-  `;
-
-  toastContainer.appendChild(toast);
-
-  requestAnimationFrame(() => {
-    toast.classList.remove('opacity-0', 'translate-y-[-20px]');
-    toast.classList.add('opacity-100', 'translate-y-0');
-  });
-
-  setTimeout(() => {
-    toast.classList.remove('opacity-100', 'translate-y-0');
-    toast.classList.add('opacity-0', 'translate-y-[-20px]');
-    setTimeout(() => toast.remove(), 300);
-  }, 4000);
-}
-
-// ==========================================
-// 4. RESET MODAL WHEN CLOSED
-// ==========================================
-function resetCoinModal() {
-  const selectionView = document.getElementById('coin-modal-selection');
-  const loadingView = document.getElementById('coin-modal-loading');
-  const successView = document.getElementById('coin-modal-success');
-
-  if (selectionView && loadingView && successView) {
-    selectionView.classList.remove('hidden');
-    loadingView.classList.add('hidden');
-    successView.classList.add('hidden');
-  }
-}
-
-// Hook into your existing closeModal function
-const originalCloseModal = window.closeModal;
-window.closeModal = function(modalId) {
-  if (modalId === 'add-coins-modal') {
-    resetCoinModal();
-  }
-  if (typeof originalCloseModal === 'function') {
-    originalCloseModal(modalId);
-  } else {
-    document.getElementById(modalId)?.classList.add('hidden');
-  }
-};
 
 
 // ==========================================
@@ -1460,3 +1390,352 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// ==========================================
+// 🎓 KITSU INTERACTIVE TUTORIAL SYSTEM
+// ==========================================
+
+const tutorialSteps = [
+  {
+    // Step 1: Welcome (Centered)
+    targetSelector: null,
+    position: "center",
+    title: "Hi there! I'm Kitsu!",
+    message: "Welcome to StudyCircle! Let me show you around so you can get started!"
+  },
+  {
+    // Step 2: Tasks Checklist
+    targetSelector: 'button[onclick*="checklist-modal"]',
+    position: "side",
+    title: "Tasks Checklist",
+    message: "Add your tasks here and complete them to earn Coins and Level Up."
+  },
+  {
+    // Step 3: Study Timer
+    targetSelector: 'button[onclick*="timer-modal"]',
+    position: "side",
+    title: "Study Timer",
+    message: "Choose your preferred study technique and keep track of your study sessions with the built-in timer."
+  },
+  {
+    // Step 4: Calendar and Streak
+    targetSelector: 'button[onclick*="calendar-modal"]',
+    position: "side",
+    title: "Calendar and Streak",
+    message: "Check in daily to build your streak! Keep your streak alive by checking in to get rewards."
+  },
+  {
+    // Step 5: AI Sparkle Assistance
+    targetSelector: 'button[onclick*="sparkle-modal"]',
+    position: "side",
+    title: "AI Assistance",
+    message: "Click here to chat with Kitsu! Ask questions, get study tips, and receive help whenever you need it."
+  },
+  {
+    // Step 6: Study Coins
+    targetSelector: '.user-coin-balance', // Target parent container or coin badge
+    position: "under",
+    title: "Study Coins",
+    message: "This is where you can view your Study Coins. Earn coins by completing tasks and use them to customize your character and room."
+  },
+  {
+    // Step 7: Add Friends
+    targetSelector: 'button[onclick*="friends-modal"]',
+    position: "under",
+    title: "Add Friends",
+    message: "Connect with friends by sending or accepting friend requests. Study together and stay motivated!"
+  },
+  {
+    // Step 8: Streak Status Button
+    targetSelector: 'button[onclick*="full-calendar-modal"]',
+    position: "under",
+    title: "Streak",
+    message: "Keep your streak alive by checking in every day. The longer your streak, the greater your achievement!"
+  },
+  {
+    // Step 9: Final Step (Centered)
+    targetSelector: null,
+    position: "center",
+    title: "You’re All Set!",
+    message: "You're ready to begin your study journey. Complete tasks, stay consistent, and have fun learning with Kitsu!"
+  }
+];
+
+let currentTutorialStep = 0;
+
+/**
+ * Checks if tutorial should run automatically on page load
+ */
+function checkAndStartTutorial() {
+  // CHANGED: Now looks in sessionStorage
+  const isPending = sessionStorage.getItem("pendingTutorial") === "true";
+  if (isPending) {
+    startTutorial();
+  }
+}
+
+/**
+ * Initializes and presents the tutorial system
+ */
+function startTutorial() {
+  currentTutorialStep = 0;
+  const overlay = document.getElementById("tutorial-overlay");
+  if (overlay) overlay.classList.remove("hidden");
+  renderTutorialStep();
+}
+
+// Keep track of the elevated element across steps
+let activeElevatedElement = null;
+
+function renderTutorialStep() {
+  const step = tutorialSteps[currentTutorialStep];
+  if (!step) return;
+
+  // 1. RESET PREVIOUS STEP: Remove high z-index from the previous element
+  if (activeElevatedElement) {
+    activeElevatedElement.classList.remove("z-[999]", "relative");
+    activeElevatedElement = null;
+  }
+
+  const titleEl = document.getElementById("tutorial-title");
+  const msgEl = document.getElementById("tutorial-message");
+  const nextBtn = document.getElementById("tutorial-next-btn");
+  const skipBtn = document.getElementById("tutorial-skip-btn");
+  const container = document.getElementById("tutorial-bubble-container");
+  const spotlight = document.getElementById("tutorial-spotlight");
+
+  // Update text
+  if (titleEl) titleEl.textContent = step.title;
+  if (msgEl) msgEl.textContent = step.message;
+
+  // Update button labels
+  const isLast = currentTutorialStep === tutorialSteps.length - 1;
+  if (nextBtn) nextBtn.textContent = isLast ? "Done" : "NEXT";
+  if (skipBtn) {
+    if (isLast) skipBtn.classList.add("hidden");
+    else skipBtn.classList.remove("hidden");
+  }
+
+  // 2. FIND & ELEVATE CURRENT STEP TARGET ONLY
+  let targetElement = null;
+  if (step.targetSelector) {
+    targetElement = document.querySelector(step.targetSelector);
+    if (targetElement && step.targetSelector.includes("user-coin-balance")) {
+      targetElement = targetElement.closest('#tut-coins-container') || targetElement;
+    }
+  }
+
+  if (targetElement && step.position !== "center") {
+    // Elevate ONLY this active step's target above the backdrop overlay
+    targetElement.classList.add("z-[999]", "relative");
+    activeElevatedElement = targetElement;
+
+    const rect = targetElement.getBoundingClientRect();
+
+    // Position spotlight glow box over active element
+    if (spotlight) {
+      spotlight.style.top = `${rect.top - 6}px`;
+      spotlight.style.left = `${rect.left - 6}px`;
+      spotlight.style.width = `${rect.width + 12}px`;
+      spotlight.style.height = `${rect.height + 12}px`;
+      spotlight.classList.remove("hidden");
+    }
+
+    // Position speech bubble next to/under target element
+    container.style.position = "absolute";
+    if (step.position === "under") {
+      container.style.top = `${Math.min(window.innerHeight - 300, rect.bottom + 16)}px`;
+      container.style.left = `${Math.max(16, Math.min(window.innerWidth - container.offsetWidth - 16, rect.left + rect.width / 2 - container.offsetWidth / 2))}px`;
+    } else if (step.position === "side") {
+      if (window.innerWidth < 640) {
+        container.style.top = `${Math.min(window.innerHeight - 320, rect.bottom + 16)}px`;
+        container.style.left = "50%";
+        container.style.transform = "translateX(-50%)";
+      } else {
+        container.style.top = `${Math.max(16, rect.top)}px`;
+        const placeRight = rect.left < window.innerWidth / 2;
+        container.style.left = placeRight 
+          ? `${rect.right + 16}px` 
+          : `${rect.left - container.offsetWidth - 16}px`;
+        container.style.transform = "none";
+      }
+    }
+  } else {
+    // Centered step (e.g., Welcome or Finish screen)
+    if (spotlight) spotlight.classList.add("hidden");
+    container.style.position = "relative";
+    container.style.top = "auto";
+    container.style.left = "auto";
+    container.style.transform = "none";
+  }
+}
+
+/**
+ * Moves to next step or finishes tutorial
+ */
+function nextTutorialStep() {
+  if (currentTutorialStep < tutorialSteps.length - 1) {
+    currentTutorialStep++;
+    renderTutorialStep();
+  } else {
+    completeTutorial();
+  }
+}
+
+/**
+ * Skips and closes tutorial
+ */
+function confirmSkipTutorial() {
+  closeModal('skip-tutorial-modal');
+  completeTutorial();
+}
+
+/**
+ * Clears flags and closes tutorial UI
+ */
+function completeTutorial() {
+  if (activeElevatedElement) {
+    activeElevatedElement.classList.remove("z-[999]", "relative");
+    activeElevatedElement = null;
+  }
+  
+  // Changed from localStorage to sessionStorage to keep tab sessions independent
+  sessionStorage.setItem("pendingTutorial", "false");
+  sessionStorage.setItem("tutorialCompleted", "true");
+
+  const overlay = document.getElementById("tutorial-overlay");
+  if (overlay) overlay.classList.add("hidden");
+}
+
+// Automatically check on DOM Ready
+document.addEventListener("DOMContentLoaded", () => {
+  // Small delay ensures layout & target buttons are rendered before calculating positions
+  setTimeout(checkAndStartTutorial, 300);
+});
+
+// ==========================================
+// LOFI AUDIO PLAYER LOGIC
+// ==========================================
+
+const lofiTracks = [
+  { name: "Cozy Coffee Shop", src: "ASSETS/BGM/LOFI1.mp3" },
+  { name: "Late Night Rain", src: "ASSETS/BGM/LOFI2.mp3" },
+  { name: "Midnight Study", src: "ASSETS/BGM/LOFI3.mp3" },
+  { name: "Pixel Dreams", src: "ASSETS/BGM/LOFI4.mp3" }
+];
+
+let currentTrackIndex = 0;
+
+function getAudioPlayer() {
+  return document.getElementById("lofi-audio-player");
+}
+
+function initLofiPlayer() {
+  const audio = getAudioPlayer();
+  if (!audio) return;
+
+  // Set initial source and volume
+  audio.src = lofiTracks[currentTrackIndex].src;
+  audio.volume = 0.5;
+
+  // Sync state when track ends
+  audio.addEventListener("ended", () => {
+    updateLofiUI(false);
+  });
+}
+
+function toggleLofiPlay() {
+  const audio = getAudioPlayer();
+  if (!audio) return;
+
+  if (audio.paused) {
+    audio.play().then(() => {
+      updateLofiUI(true);
+    }).catch(err => {
+      console.warn("Playback blocked or track not found:", err);
+    });
+  } else {
+    audio.pause();
+    updateLofiUI(false);
+  }
+}
+
+function changeLofiTrack(index) {
+  const audio = getAudioPlayer();
+  if (!audio) return;
+
+  currentTrackIndex = parseInt(index, 10);
+  const track = lofiTracks[currentTrackIndex];
+  
+  audio.src = track.src;
+  
+  const titleDisplay = document.getElementById("lofi-current-title");
+  if (titleDisplay) titleDisplay.textContent = track.name;
+
+  // Play automatically on change if audio was already active
+  if (!audio.paused || document.getElementById("lofi-vinyl-icon")?.classList.contains("animate-spin-slow")) {
+    audio.play().then(() => {
+      updateLofiUI(true);
+    }).catch(err => console.warn(err));
+  }
+}
+
+function setLofiVolume(val) {
+  const audio = getAudioPlayer();
+  if (audio) {
+    audio.volume = parseFloat(val);
+  }
+}
+
+function updateLofiUI(isPlaying) {
+  const vinylIcon = document.getElementById("lofi-vinyl-icon");
+  const playIcon = document.getElementById("lofi-play-icon");
+  const playText = document.getElementById("lofi-play-text");
+  const playBtn = document.getElementById("lofi-play-btn");
+  const titleDisplay = document.getElementById("lofi-current-title");
+
+  if (titleDisplay) {
+    titleDisplay.textContent = lofiTracks[currentTrackIndex].name;
+  }
+
+  if (isPlaying) {
+    if (vinylIcon) vinylIcon.classList.add("animate-spin-slow");
+    if (playIcon) playIcon.textContent = "❚❚";
+    if (playText) playText.textContent = "PAUSE";
+    if (playBtn) {
+      playBtn.classList.remove("bg-[#788D55]");
+      playBtn.classList.add("bg-[#A53914]");
+    }
+  } else {
+    if (vinylIcon) vinylIcon.classList.remove("animate-spin-slow");
+    if (playIcon) playIcon.textContent = "▶";
+    if (playText) playText.textContent = "PLAY";
+    if (playBtn) {
+      playBtn.classList.remove("bg-[#A53914]");
+      playBtn.classList.add("bg-[#788D55]");
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initLofiPlayer();
+});
+
+
+// ==========================================
+// LEADERBOARD OVERLAY MODAL LOGIC
+// ==========================================
+function openLeaderboardModal() {
+  const iframe = document.getElementById("leaderboard-frame");
+  
+  // Set iframe source only when opening to delay loading resource
+  if (iframe && iframe.src !== window.location.origin + "/leaderboard.html") {
+    iframe.src = "leaderboard.html";
+  }
+  
+  openModal("leaderboard-modal");
+}
+
+function closeLeaderboardModal() {
+  closeModal("leaderboard-modal");
+}

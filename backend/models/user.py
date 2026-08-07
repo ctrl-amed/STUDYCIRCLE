@@ -67,6 +67,8 @@ class User(db.Model):
         nullable=True
     )
 
+    rooms = db.relationship('Room', backref='host', lazy=True, cascade="all, delete-orphan")
+
     def to_dict(self):
         return {
             "id": self.id,

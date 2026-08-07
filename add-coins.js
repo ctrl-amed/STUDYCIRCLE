@@ -5,20 +5,20 @@
 const COINS_KEY = 'player_user_coins';
 
 /**
- * Gets current coin balance from localStorage
+ * Gets current coin balance from sessionStorage
  */
 function getCoins() {
-  const saved = localStorage.getItem(COINS_KEY);
+  const saved = sessionStorage.getItem(COINS_KEY);
   // Default to 1000 starting coins
   return saved !== null ? parseInt(saved, 10) : 1000;
 }
 
 /**
- * Directly sets a new coin total in localStorage
+ * Directly sets a new coin total in sessionStorage
  */
 function setCoins(amount) {
   const finalAmount = Math.max(0, amount);
-  localStorage.setItem(COINS_KEY, finalAmount.toString());
+  sessionStorage.setItem(COINS_KEY, finalAmount.toString());
   updateCoinDisplays();
 }
 
@@ -41,7 +41,7 @@ function updateCoinDisplays() {
 }
 
 /**
- * Adds coins, saves to localStorage, and updates UI on all tabs/pages
+ * Adds coins, saves to sessionStorage, and updates UI on all tabs/pages
  */
 function addCoins(amount) {
   const currentCoins = getCoins();

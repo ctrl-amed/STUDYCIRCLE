@@ -74,8 +74,8 @@ let activeConfig = {};
 let historyStack = [];
 let userCoins = 0;
 
-// Track owned assets from localStorage
-let ownedAssets = JSON.parse(localStorage.getItem("ownedAssets")) || [];
+// Track owned assets from sessionStorage
+let ownedAssets = JSON.parse(sessionStorage.getItem("ownedAssets")) || [];
 
 // 3. Initialization
 // 3. Initialization in customavatar.html
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     userCoins = getCoins();
   }
 
-  const isJustSignedUp = localStorage.getItem("justSignedUp") === "true";
+ const isJustSignedUp = sessionStorage.getItem("justSignedUp") === "true";
   const savedConfig = window.getSavedAvatarConfig ? window.getSavedAvatarConfig() : null;
 
   // Trigger fade-out animation if redirected from signup
@@ -103,10 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  if (isJustSignedUp) {
+ if (isJustSignedUp) {
     // New Signup Flow: Mark tutorial as pending for next page load
-    localStorage.removeItem("justSignedUp");
-    localStorage.setItem("pendingTutorial", "true");
+    sessionStorage.removeItem("justSignedUp");
+    sessionStorage.setItem("pendingTutorial", "true");
 
     activeConfig = {
       body: "BODY1",
@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     if (!ownedAssets.includes("FACE1")) ownedAssets.push("FACE1");
     if (!ownedAssets.includes("BODY1")) ownedAssets.push("BODY1");
-    localStorage.setItem("ownedAssets", JSON.stringify(ownedAssets));
+    sessionStorage.setItem("ownedAssets", JSON.stringify(ownedAssets));
   } else if (savedConfig && Object.keys(savedConfig).length > 0) {
     activeConfig = savedConfig;
   } else {
@@ -563,7 +563,6 @@ function openPurchaseModal() {
 }
 
 // Confirm Purchase & Save Configuration
-// Confirm Purchase & Save Configuration
 function confirmPurchaseAndSave() {
   const unownedItems = [];
 
@@ -592,7 +591,6 @@ function confirmPurchaseAndSave() {
     if (catalogItem) totalCost += catalogItem.price;
   });
 
-  // Check balance using central function if available
   const currentBalance = typeof getCoins === "function" ? getCoins() : userCoins;
 
   if (currentBalance < totalCost) {
@@ -600,25 +598,25 @@ function confirmPurchaseAndSave() {
     return;
   }
 
-  // Deduct coins via add-coins.js helper
   if (typeof deductCoins === "function") {
-    deductCoins(totalCost); // Deducts & automatically updates localStorage and UI
+    deductCoins(totalCost);
     userCoins = getCoins();
   } else {
-    // Fallback if add-coins.js is missing
     userCoins -= totalCost;
     updateCoinsDisplay();
   }
 
-  // Register newly owned items
   unownedItems.forEach(item => {
     ownedAssets.push(item.id);
   });
-  localStorage.setItem("ownedAssets", JSON.stringify(ownedAssets));
+  sessionStorage.setItem("ownedAssets", JSON.stringify(ownedAssets));
 
   if (window.saveAvatarConfig) {
     window.saveAvatarConfig(activeConfig);
   }
+
+  // Sync to backend database
+  saveAvatarToBackend(activeConfig);
 
   renderBodySection();
   renderAssets();
@@ -679,7 +677,7 @@ function getUnownedSelectedItems() {
   return unownedItems;
 }
 
-// Action button click handler
+/// Action button click handler
 function handleSaveOrBuy() {
   const unownedItems = getUnownedSelectedItems();
 
@@ -691,8 +689,35 @@ function handleSaveOrBuy() {
     if (window.saveAvatarConfig) {
       window.saveAvatarConfig(activeConfig);
     }
+    
+    // Sync to backend database
+    saveAvatarToBackend(activeConfig);
+    
     showCustomizerSuccessToast("Avatar saved");
   }
+}
+
+async function saveAvatarToBackend(config) {
+    try {
+        const token = sessionStorage.getItem("token");// Adjust based on how you store your auth token
+        const response = await fetch("http://127.0.0.1:5000/api/update-avatar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ config: config })
+        });
+        
+        const data = await response.json();
+        if (!response.ok) {
+            console.error("Failed to sync avatar to database:", data.error);
+        } else {
+            console.log("Avatar successfully synced to Supabase!", data);
+        }
+    } catch (err) {
+        console.error("Network error while saving avatar:", err);
+    }
 }
 
 // Modal Utilities

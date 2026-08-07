@@ -23,12 +23,12 @@ let activeRoomConfig = { room: "ROOM1" };
 let roomHistoryStack = [];
 let userCoins = 0;
 
-let ownedFurniture = JSON.parse(localStorage.getItem("ownedFurniture")) || [];
+let ownedFurniture = JSON.parse(sessionStorage.getItem("ownedFurniture")) || [];
 
 function ensureDefaultOwnedFurniture() {
   if (!ownedFurniture.includes("ROOM1")) {
     ownedFurniture.push("ROOM1");
-    localStorage.setItem("ownedFurniture", JSON.stringify(ownedFurniture));
+    sessionStorage.setItem("ownedFurniture", JSON.stringify(ownedFurniture));
   }
 }
 
@@ -367,7 +367,7 @@ function confirmPurchaseAndSave() {
     userCoins = getCoins();
   } else {
     userCoins -= totalCost;
-    localStorage.setItem("player_user_coins", String(userCoins));
+    sessionStorage.setItem("player_user_coins", String(userCoins));
     updateCoinsDisplay();
   }
 
@@ -376,7 +376,7 @@ function confirmPurchaseAndSave() {
       ownedFurniture.push(item.id);
     }
   });
-  localStorage.setItem("ownedFurniture", JSON.stringify(ownedFurniture));
+  sessionStorage.setItem("ownedFurniture", JSON.stringify(ownedFurniture));
 
   saveActiveRoomConfig();
 
@@ -387,13 +387,39 @@ function confirmPurchaseAndSave() {
   showRoomCustomizerSuccessToast("Room Saved!");
 }
 
+async function saveRoomToBackend(config) {
+    try {
+        const token = sessionStorage.getItem("token");
+        const response = await fetch("http://127.0.0.1:5000/api/update-room", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ config: config })
+        });
+        
+        const data = await response.json();
+        if (!response.ok) {
+            console.error("Failed to sync room to database:", data.error);
+        } else {
+            console.log("Room successfully synced to Supabase!", data);
+        }
+    } catch (err) {
+        console.error("Network error while saving room:", err);
+    }
+}
+
 function saveActiveRoomConfig() {
   if (window.saveFurnitureConfig) {
     window.saveFurnitureConfig(activeRoomConfig);
   } else {
-    localStorage.setItem("user_furniture_config", JSON.stringify(activeRoomConfig));
+    sessionStorage.setItem("user_furniture_config", JSON.stringify(activeRoomConfig));
     window.dispatchEvent(new CustomEvent("furniture-updated", { detail: activeRoomConfig }));
   }
+
+  // Sync room configuration to backend Supabase database
+  saveRoomToBackend(activeRoomConfig);
 }
 
 function handleSaveOrBuy() {
@@ -468,7 +494,7 @@ window.addEventListener("storage", (event) => {
   }
 
   if (event.key === "ownedFurniture") {
-    ownedFurniture = JSON.parse(localStorage.getItem("ownedFurniture")) || [];
+    ownedFurniture = JSON.parse(sessionStorage.getItem("ownedFurniture")) || [];
     ensureDefaultOwnedFurniture();
     renderRoomAssets();
     updateRoomPreview();

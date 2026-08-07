@@ -8,6 +8,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnToggleNew = document.getElementById("btn-toggle-new-password");
   const btnToggleConfirm = document.getElementById("btn-toggle-confirm-password");
 
+  // --- EXTRACT TOKEN FROM URL ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
+
+  if (!token) {
+    securityNote.innerText = "Error: Invalid or missing password reset token.";
+    securityNote.classList.add("text-[#A94A4A]");
+    if (form) form.style.display = "none";
+    return;
+  }
+
   // --- PASSWORD VISIBILITY TOGGLE HANDLING ---
   function setupVisibilityToggle(button, inputElement) {
     if (!button || !inputElement) return;
@@ -41,8 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
-  // --- FORM SUBMISSION CONTROL ---
-  form.addEventListener("submit", (e) => {
+  // --- FORM SUBMISSION & BACKEND API CALL ---
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const newPassword = newPasswordInput.value;
@@ -57,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
     securityNote.classList.remove("text-[#A94A4A]");
     securityNote.classList.add("text-[#3D2013]");
 
-    // 1. Check if the text matches
+    // 1. Check if passwords match
     if (newPassword !== confirmPassword) {
       newPasswordInput.classList.add("border-[#A94A4A]");
       confirmPasswordInput.classList.add("border-[#A94A4A]");
@@ -66,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 2. Check password security strength criteria
+    // 2. Check password complexity strength
     if (!validateComplexity(newPassword)) {
       newPasswordInput.classList.add("border-[#A94A4A]");
       confirmPasswordInput.classList.add("border-[#A94A4A]");
@@ -77,8 +88,37 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 3. SUCCESS: Set the storage flag and redirect IMMEDIATELY
-    localStorage.setItem('passwordChangedSuccess', 'true');
-    window.location.href = "authentication.html#login";
+    // 3. SEND TO BACKEND FLASK API
+    try {
+      const response = await fetch("http://127.0.0.1:5000/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          token: token,
+          password: newPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        securityNote.innerText = data.message || "Failed to reset password.";
+        securityNote.classList.remove("text-[#3D2013]");
+        securityNote.classList.add("text-[#A94A4A]");
+        return;
+      }
+
+      // Success: Flag and redirect to login
+      localStorage.setItem('passwordChangedSuccess', 'true');
+      window.location.href = "authentication.html#login";
+
+    } catch (err) {
+      console.error(err);
+      securityNote.innerText = "Unable to connect to the backend server.";
+      securityNote.classList.remove("text-[#3D2013]");
+      securityNote.classList.add("text-[#A94A4A]");
+    }
   });
 });

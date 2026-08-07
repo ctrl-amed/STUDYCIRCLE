@@ -3,10 +3,10 @@
 <head>
 
   <script>
-    if (localStorage.getItem("justSignedUp") === "true") {
-      document.documentElement.classList.add("show-signup-overlay");
-    }
-  </script>
+  if (sessionStorage.getItem("justSignedUp") === "true") {
+    document.documentElement.classList.add("show-signup-overlay");
+  }
+</script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

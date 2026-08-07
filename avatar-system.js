@@ -13,9 +13,9 @@ const DEFAULT_AVATAR_CONFIG = {
   accessories: ""
 };
 
-// 1. Helper to fetch saved configuration from LocalStorage
+// 1. Helper to fetch saved configuration from SessionStorage
 window.getSavedAvatarConfig = function () {
-  const saved = localStorage.getItem("user_avatar_config");
+  const saved = sessionStorage.getItem("user_avatar_config");
   if (!saved) return { ...DEFAULT_AVATAR_CONFIG };
   try {
     return { ...DEFAULT_AVATAR_CONFIG, ...JSON.parse(saved) };
@@ -24,9 +24,9 @@ window.getSavedAvatarConfig = function () {
   }
 };
 
-// 2. Helper to save configuration to LocalStorage and notify all components
+// 2. Helper to save configuration to SessionStorage and notify all components
 window.saveAvatarConfig = function (newConfig) {
-  localStorage.setItem("user_avatar_config", JSON.stringify(newConfig));
+  sessionStorage.setItem("user_avatar_config", JSON.stringify(newConfig));
   // Fire event so all <custom-avatar> elements update instantly without page refresh
   window.dispatchEvent(new CustomEvent("avatar-updated", { detail: newConfig }));
 };
@@ -59,7 +59,7 @@ class CustomAvatar extends HTMLElement {
   }
 
   render(overrideConfig = null) {
-    // Priority: Explicit inline attribute > Event detail > LocalStorage saved
+    // Priority: Explicit inline attribute > Event detail > SessionStorage saved
     const rawAttrConfig = this.getAttribute("config");
     let config = overrideConfig;
 

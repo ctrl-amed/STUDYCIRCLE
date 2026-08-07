@@ -5,14 +5,19 @@ from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 from config import Config
 from models import db
 from models.user import User
+from models.room import Room
 from routes.auth import auth
 from utils.security import bcrypt
 from utils.mail import mail
 from utils.badges import award_badge
 import json
 
+from flask_cors import CORS
+
+
 # 1. Initialize App
 app = Flask(__name__)
+CORS(app)
 
 # 2. Set up CORS (Allows frontend to talk to backend securely)
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization"])
@@ -193,7 +198,48 @@ def update_room():
         }), 200
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500        
+        return jsonify({"error": str(e)}), 500      
+
+
+@app.route('/api/create-room', methods=['POST'])
+@jwt_required()
+def create_room():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(int(current_user_id))
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    data = request.get_json()
+    
+    try:
+        new_room = Room(
+            room_code=data.get('id'),
+            name=data.get('name'),
+            topic=data.get('topic'),
+            host_id=user.id,
+            players=data.get('players', 1),
+            max_players=data.get('maxPlayers', 6),
+            visibility=data.get('visibility', 'public'),
+            technique=data.get('technique', 'Pomodoro'),
+            checklist=data.get('checklist', []),
+            room_config=data.get('roomConfig', {})
+        )
+        db.session.add(new_room)
+        
+        # Increment user's rooms_created stat
+        user.rooms_created = (user.rooms_created or 0) + 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Room created successfully!",
+            "room": new_room.to_dict()
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        print("Error creating room:", str(e)) # Check your Flask terminal for this print!
+        return jsonify({"error": str(e)}), 500         
 
 # ========================================== #
 # SERVER EXECUTION                           #

@@ -1,6 +1,5 @@
 /**
- * Mock Profile Data Store
- * Modify this object to change default test values, badge ordering, or level boundaries.
+ * Mock Profile Data Store (Fallback if backend values are missing)
  */
 const profileMockData = {
   name: "Alex Rivera",
@@ -19,7 +18,6 @@ const profileMockData = {
     bestStreakDays: 18,
     lifetimeCoins: 4500
   },
-  // You can easily reorder or add badge images here
   badges: [
     "media/badge1.png",
     "media/badge2.png",
@@ -63,74 +61,181 @@ function switchTab(tabName) {
 
 /**
  * Render Badges Dynamically
- * To change badge order, modify the profileMockData.badges array.
  */
 function renderBadges(badgeList) {
   const container = document.getElementById('badges-container');
-  if (!container) return;
+  if (!container) {
+    console.error("Could not find 'badges-container' in the HTML!");
+    return; 
+  }
 
   container.innerHTML = ''; // Clear container
 
-  badgeList.forEach((badgeSrc, index) => {
+  // Clean up the array (prevents empty strings from rendering as broken images)
+  const validBadges = badgeList ? badgeList.filter(b => b && b.trim() !== "") : [];
+
+  if (validBadges.length === 0) {
+    container.innerHTML = '<p class="font-pixel text-[10px] sm:text-[12px] text-[#3D2013]/60 italic mt-2">No badges unlocked yet</p>';
+    return;
+  }
+
+  validBadges.forEach((badgeSrc, index) => {
     const img = document.createElement('img');
-    img.src = badgeSrc;
+    img.src = badgeSrc; // Points to "media/badge1.png"
     img.alt = `Badge ${index + 1}`;
     img.className = 'w-20 h-20 sm:w-25 sm:h-25 object-contain shrink-0';
+    
+    // ERROR CATCHER: If the image path is broken, this will highlight it in red
+    img.onerror = () => {
+        console.error(`❌ Failed to load badge image at path: ${badgeSrc}`);
+        img.style.border = "2px dashed red"; 
+        img.style.padding = "5px";
+    };
+    
     container.appendChild(img);
   });
 }
 
 /**
- * Populate Profile Page UI from Data Store
+ * Populate Profile Page UI from Data Store or Server Data
  */
 function loadProfileUI(data) {
   // 1. Profile Header & Card
-  document.getElementById('profile-name').textContent = data.name;
-  document.getElementById('profile-username').textContent = `@${data.username.replace(/^@/, '')}`;
-  document.getElementById('player-level').textContent = data.level;
+  const profileName = document.getElementById('profile-name');
+  const profileUsername = document.getElementById('profile-username');
+  const playerLevel = document.getElementById('player-level');
+
+  if (profileName) profileName.textContent = data.name || "Name";
+  if (profileUsername) profileUsername.textContent = `@${(data.username || "User_name").replace(/^@/, '')}`;
+  if (playerLevel) playerLevel.textContent = data.level || 1;
+
+  // Avatar Handling
+  const playerAvatar = document.getElementById("player-avatar");
+  const avatarPlaceholder = document.getElementById("avatar-placeholder");
+  if (data.avatarUrl && playerAvatar) {
+    playerAvatar.src = data.avatarUrl;
+    playerAvatar.classList.remove("hidden");
+    if (avatarPlaceholder) avatarPlaceholder.classList.add("hidden");
+  }
 
   // 2. Calculated Progress Bar & XP Ratio
-  const percentage = Math.min(100, Math.max(0, (data.currentXP / data.maxXP) * 100));
+  const currentXP = data.currentXP || 0;
+  const maxXP = data.maxXP || 10000;
+  const percentage = Math.min(100, Math.max(0, (currentXP / maxXP) * 100));
+  
   const xpBarFill = document.getElementById('xp-bar-fill');
   const xpText = document.getElementById('xp-text');
   
   if (xpBarFill) xpBarFill.style.width = `${percentage}%`;
-  if (xpText) xpText.textContent = `${data.currentXP.toLocaleString()}/${data.maxXP.toLocaleString()} XP`;
+  if (xpText) xpText.textContent = `${currentXP.toLocaleString()}/${maxXP.toLocaleString()} XP`;
 
   // 3. Status Badges
-  document.getElementById('coins-count').textContent = data.coins.toLocaleString();
-  document.getElementById('streak-count').textContent = `${data.streakDays}d`;
-  document.getElementById('friends-count').textContent = `${data.friendsCount}`;
+  const coinsCount = document.getElementById('coins-count');
+  const streakCount = document.getElementById('streak-count');
+  const friendsCount = document.getElementById('friends-count');
+
+  if (coinsCount) coinsCount.textContent = (data.coins || 0).toLocaleString();
+  if (streakCount) streakCount.textContent = `${data.streakDays || 0}d`;
+  if (friendsCount) friendsCount.textContent = `${data.friendsCount || 0}`;
 
   // 4. Detailed Stat Cards
-  document.getElementById('stat-study-hrs').textContent = data.stats.totalStudyHours;
-  document.getElementById('stat-rooms').textContent = data.stats.roomsCreated;
-  document.getElementById('stat-quiz').textContent = `${data.stats.avgQuizScore}%`;
-  document.getElementById('stat-streak').textContent = `${data.stats.bestStreakDays} Days`;
-  document.getElementById('stat-coins').textContent = data.stats.lifetimeCoins.toLocaleString();
+  const stats = data.stats || {};
+  const statStudyHrs = document.getElementById('stat-study-hrs');
+  const statRooms = document.getElementById('stat-rooms');
+  const statQuiz = document.getElementById('stat-quiz');
+  const statStreak = document.getElementById('stat-streak');
+  const statCoins = document.getElementById('stat-coins');
+
+  if (statStudyHrs) statStudyHrs.textContent = stats.totalStudyHours || "0 hrs";
+  if (statRooms) statRooms.textContent = stats.roomsCreated || 0;
+  if (statQuiz) statQuiz.textContent = `${stats.avgQuizScore || 0}%`;
+  if (statStreak) statStreak.textContent = `${stats.bestStreakDays || data.streakDays || 0} Days`;
+  if (statCoins) statCoins.textContent = (stats.lifetimeCoins || data.coins || 0).toLocaleString();
 
   // 5. Populate Form Inputs in Settings Tab
-  document.getElementById('settings-email').value = data.email;
-  document.getElementById('settings-username').value = data.username;
-  document.getElementById('settings-name').value = data.name;
+  const settingsEmail = document.getElementById('settings-email');
+  const settingsUsername = document.getElementById('settings-username');
+  const settingsName = document.getElementById('settings-name');
+
+  if (settingsEmail) settingsEmail.value = data.email || "";
+  if (settingsUsername) settingsUsername.value = data.username || "";
+  if (settingsName) settingsName.value = data.name || "";
 
   // 6. Render Badges
-  renderBadges(data.badges);
+  renderBadges(data.badges || profileMockData.badges);
 }
 
 /**
- * Form Submit Listener - Live Sync Name & Username
+ * Fetch Live Data from Backend API (/me) on Load
+ */
+async function fetchBackendProfile() {
+  const token = sessionStorage.getItem("token");
+
+  if (!token) {
+    window.location.href = "authentication.html#login";
+    return;
+  }
+
+  try {
+    const response = await fetch("http://127.0.0.1:5000/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      sessionStorage.removeItem("token");
+      window.location.href = "authentication.html#login";
+      return;
+    }
+
+    const userData = await response.json();
+
+    // Map backend user response into the data object structure
+    const liveData = {
+      name: userData.name || userData.username,
+      username: userData.username,
+      email: userData.email,
+      level: userData.level || 1,
+      currentXP: userData.currentXP || 0,
+      maxXP: userData.maxXP || 10000,
+      coins: userData.coins || 0,
+      streakDays: userData.streakDays || 0,
+      friendsCount: userData.friendsCount || 0,
+      avatarUrl: userData.avatarUrl || "",
+      stats: {
+        totalStudyHours: userData.totalStudyHours || 0,
+        roomsCreated: userData.roomsCreated || 0,
+        avgQuizScore: userData.avgQuizScore || 0,
+        bestStreakDays: userData.bestStreak || userData.streakDays || 0,
+        lifetimeCoins: userData.coins || 0
+      },
+      badges: userData.badges || profileMockData.badges
+    };
+
+    loadProfileUI(liveData);
+
+  } catch (err) {
+    console.error("Failed to connect to backend, falling back to mock UI:", err);
+    loadProfileUI(profileMockData); // Fallback so page doesn't break offline
+  }
+}
+
+/**
+ * Form Submit Listener - Sync with Backend /update-profile API
  */
 document.addEventListener('DOMContentLoaded', () => {
-  // Initial load
-  loadProfileUI(profileMockData);
+  // Initial load from server
+  fetchBackendProfile();
 
   const settingsForm = document.getElementById('form-settings');
   if (settingsForm) {
-    settingsForm.addEventListener('submit', (e) => {
+    settingsForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // Read form input values
+      const token = sessionStorage.getItem("token");
       const updatedName = document.getElementById('settings-name').value.trim();
       const updatedUsername = document.getElementById('settings-username').value.trim();
       const updatedEmail = document.getElementById('settings-email').value.trim();
@@ -139,20 +244,53 @@ document.addEventListener('DOMContentLoaded', () => {
       const newPass = document.getElementById('settings-new-pass').value;
       const confirmPass = document.getElementById('settings-confirm-pass').value;
 
-      // Update Local Data Model
-      if (updatedName) profileMockData.name = updatedName;
-      if (updatedUsername) profileMockData.username = updatedUsername;
-      if (updatedEmail) profileMockData.email = updatedEmail;
+      // Validate password changes if populated
+      if (newPass || oldPass || confirmPass) {
+        if (newPass !== confirmPass) {
+          alert('New passwords do not match.');
+          return;
+        }
+        if (!oldPass) {
+          alert('Please enter your old password to set a new one.');
+          return;
+        }
+      }
 
-      // Synchronize Card UI
-      loadProfileUI(profileMockData);
+      try {
+        const response = await fetch("http://127.0.0.1:5000/update-profile", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            email: updatedEmail,
+            username: updatedUsername,
+            name: updatedName,
+            old_password: oldPass || null,
+            new_password: newPass || null
+          })
+        });
 
-      // Clear password fields
-      document.getElementById('settings-old-pass').value = '';
-      document.getElementById('settings-new-pass').value = '';
-      document.getElementById('settings-confirm-pass').value = '';
+        const data = await response.json();
 
-      alert('Profile details updated successfully!');
+        if (response.ok) {
+          alert('Profile details updated successfully!');
+
+          // Clear password fields
+          document.getElementById('settings-old-pass').value = '';
+          document.getElementById('settings-new-pass').value = '';
+          document.getElementById('settings-confirm-pass').value = '';
+
+          // Reload UI data from server
+          fetchBackendProfile();
+        } else {
+          alert(data.message || 'Failed to update profile.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Unable to connect to the backend server.');
+      }
     });
   }
 });
