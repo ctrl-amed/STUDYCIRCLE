@@ -1,3 +1,7 @@
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://127.0.0.1:5000"  // Pwedeng palitan ng "https://studycircle-kv4v.onrender.com" kung gusto mo nang online
+  : "https://studycircle-kv4v.onrender.com";
+
 // 1. Elements
 const tabLogin = document.getElementById('tab-login');
 const tabSignup = document.getElementById('tab-signup');
@@ -326,7 +330,7 @@ if (formLogin) {
 
     // --- LOGIN SECTION ---
 try {
-  const response = await fetch("http://127.0.0.1:5000/login", {
+  const response = await fetch(`${API_BASE_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email: emailVal, password: passwordVal })
@@ -380,7 +384,7 @@ if (formSignup) {
     const passwordVal = signupPasswordInput.value;
 
     // SEND DATA TO FLASK DATABASE
-    fetch("http://127.0.0.1:5000/register", {
+    fetch(`${API_BASE_URL}/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -436,7 +440,7 @@ if (formReset) {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/forgot-password", {
+      const response = await fetch(`${API_BASE_URL}/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: emailVal })
