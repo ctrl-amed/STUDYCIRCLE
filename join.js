@@ -2,6 +2,9 @@
  * Dynamic Rooms Loader from Backend API with Local Storage Merging
  */
 let allRooms = [];
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "https://studycircle-kv4v.onrender.com"  // <-- Naka-point na direkta sa live server natin
+  : "https://studycircle-kv4v.onrender.com";
 
 /**
  * Fetches rooms from the backend API and merges them with local sessionStorage rooms
@@ -10,7 +13,7 @@ async function fetchRooms() {
   let backendRooms = [];
   try {
     const token = sessionStorage.getItem("token");
-    const response = await fetch("http://127.0.0.1:5000/api/rooms", {
+    const response = await fetch(`${API_BASE_URL}/api/rooms`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -211,7 +214,7 @@ async function submitPrivateRoomCode() {
       const token = sessionStorage.getItem("token");
       const currentUser = JSON.parse(sessionStorage.getItem("user_profile") || '{"id": "u1", "username": "You"}');
       
-      const response = await fetch(`http://127.0.0.1:5000/api/join-room`, {
+      const response = await fetch(`${API_BASE_URL}/api/join-room`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
