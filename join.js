@@ -1,13 +1,13 @@
 /**
- * Dynamic Rooms Loader from Backend API with Local Storage Merging
+ * Dynamic Rooms Loader from Backend API
  */
 let allRooms = [];
 const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "https://studycircle-kv4v.onrender.com"  // <-- Naka-point na direkta sa live server natin
-  : "https://studycircle-kv4v.onrender.com";
+  ? "http://127.0.0.1:5000"  // Local testing
+  : "https://studycircle-kv4v.onrender.com"; // Online production
 
 /**
- * Fetches rooms from the backend API and merges them with local sessionStorage rooms
+ * Fetches rooms primarily from the backend API so all users/accounts see them
  */
 async function fetchRooms() {
   let backendRooms = [];
@@ -26,21 +26,10 @@ async function fetchRooms() {
       backendRooms = data.rooms || [];
     }
   } catch (err) {
-    console.warn("Backend fetch failed, relying on sessionStorage.", err);
+    console.warn("Backend fetch failed for rooms.", err);
   }
 
-  // Always load user-created rooms from sessionStorage as well
-  const localUserRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
-
-  // Combine both sources and remove duplicates based on room id
-  const combinedMap = new Map();
-  [...localUserRooms, ...backendRooms].forEach(room => {
-    if (room && room.id) {
-      combinedMap.set(room.id.toUpperCase(), room);
-    }
-  });
-
-  allRooms = Array.from(combinedMap.values());
+  allRooms = backendRooms;
   renderRoomCards(allRooms);
 }
 
@@ -145,9 +134,12 @@ function filterRooms(query) {
 }
 
 function enterRoom(roomId) {
-  sessionStorage.setItem("activeRoomId", roomId);
+  // Siguraduhing string o code lang ang kukunin kung sakaling object ang naipasa
+  const cleanId = typeof roomId === 'object' ? roomId.id || roomId.room_code : roomId;
+  
+  sessionStorage.setItem("activeRoomId", cleanId);
   startSimulatedLoad("Joining Room...", 2000, () => {
-    window.location.href = `generated-homepage.html?room=${roomId}`;
+    window.location.href = `generated-homepage.html?room=${cleanId}`;
   });
 }
 
@@ -197,50 +189,37 @@ async function submitPrivateRoomCode() {
     return;
   }
 
-  // Refresh latest rooms pool right before checking
-  const localUserRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
-  const combinedMap = new Map();
-  [...localUserRooms, ...allRooms].forEach(room => {
-    if (room && room.id) {
-      combinedMap.set(room.id.toUpperCase(), room);
-    }
-  });
+  try {
+    const token = sessionStorage.getItem("token");
+    const currentUser = JSON.parse(sessionStorage.getItem("current_user") || '{"id": "u1", "username": "User"}');
+    
+    const response = await fetch(`${API_BASE_URL}/api/join-room`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ inviteCode: roomCode, user: currentUser })
+    });
 
-  let matchedRoom = combinedMap.get(roomCode);
-
-  // If still not found locally, check backend API endpoint
-  if (!matchedRoom) {
-    try {
-      const token = sessionStorage.getItem("token");
-      const currentUser = JSON.parse(sessionStorage.getItem("user_profile") || '{"id": "u1", "username": "You"}');
+    if (response.ok) {
+      const data = await response.json();
+      const matchedRoom = data.room;
       
-      const response = await fetch(`${API_BASE_URL}/api/join-room`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ inviteCode: roomCode, user: currentUser })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        matchedRoom = data.room;
+      closeJoinPrivateModal();
+      enterRoom(matchedRoom.id || roomCode);
+    } else {
+      const errData = await response.json();
+      if (errorText) {
+        errorText.textContent = `◆ ${errData.message || 'INVALID ROOM CODE'} ◆`;
+        errorText.classList.remove("hidden");
       }
-    } catch (err) {
-      console.error("Error validating room code with backend:", err);
     }
-  }
-
-  if (!matchedRoom) {
-    console.warn("Room code not found anywhere:", roomCode);
+  } catch (err) {
+    console.error("Error validating room code with backend:", err);
     if (errorText) {
-      errorText.textContent = "◆ INVALID ROOM CODE ◆";
+      errorText.textContent = "◆ CONNECTION ERROR ◆";
       errorText.classList.remove("hidden");
     }
-    return;
   }
-
-  closeJoinPrivateModal();
-  enterRoom(matchedRoom.id || roomCode);
 }

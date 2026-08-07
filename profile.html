@@ -55,10 +55,9 @@
   <!-- AVATAR & LEVEL BADGE CONTAINER -->
   <div class="relative flex-shrink-0 mx-auto w-40 h-40 xs:w-48 xs:h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 transition-all duration-200">
     <div class="w-full h-full rounded-full border-[4px] sm:border-[5px] border-[#3D2013] bg-[#FAE9CE] overflow-hidden flex items-center justify-center relative shadow-sm">
-      <img id="player-avatar" src="" alt="Player Avatar" class="w-full h-full object-cover hidden">
-      <svg id="avatar-placeholder" class="w-24 h-24 sm:w-32 sm:h-32 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 2L2 9l2 11h16l2-11L12 2zm0 4a3 3 0 110 6 3 3 0 010-6zm-6 12v-1.5c0-1.65 2.7-3 6-3s6 1.35 6 3V18H6z"/>
-      </svg>
+      
+      <!-- Custom Avatar Component -->
+      <custom-avatar id="profile-display-avatar" state="idle" class="scale-[1.6] sm:scale-[1.8] md:scale-[2.0] mt-24 sm:mt-28 md:mt-32 pointer-events-none w-full h-full"></custom-avatar>
     </div>
     
     <!-- Level Badge -->
@@ -66,7 +65,7 @@
       <span id="player-level" class="font-pressstart text-[10px] sm:text-[12px] md:text-[14px] text-[#3D2013] font-bold">1</span>
     </div>
   </div>
-
+  
 <!-- NAME & USERNAME -->
   <div class="flex flex-col items-center gap-1 w-full">
     <h2 id="profile-name" class="font-pressstart text-[16px] sm:text-[20px] md:text-[18px] text-black tracking-tight leading-tight">Name</h2>
@@ -293,6 +292,7 @@
 
   <div id="global-footer"></div>
 <script src="footer.js"></script>
+<script src="avatar-system.js"></script>
 
   <!-- JavaScript for Tab Switching -->
   <script src="profile.js"></script>

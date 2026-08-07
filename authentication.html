@@ -193,10 +193,6 @@
         </svg>
       </button>
     </div>
-    <!-- Password Requirement Note Under Confirm Password -->
-    <p id="signup-password-note" class="font-vt text-[#3D2013] text-[20px] leading-tight mt-1 transition-colors duration-150">
-      Create a strong password using 8 or more characters, including uppercase and lowercase letters, a number, and a special character.
-    </p>
   </div>
 
   <!-- Confirm Password Field -->
@@ -212,16 +208,20 @@
         </svg>
       </button>
     </div>
-    <!-- Dynamic Error Element for Confirm Password -->
-    <p id="signup-confirm-password-error" class="font-pixel text-sm text-[#A94A4A] hidden mt-0.5">
+    
+    <!-- Password Requirement Note (Properly placed under confirm) -->
+    <p id="signup-password-note" class="font-vt text-[#3D2013] text-[20px] leading-tight mt-1 transition-colors duration-150">
       Create a strong password using 8 or more characters, including uppercase and lowercase letters, a number, and a special character.
     </p>
+
+    <!-- Dynamic Error Element for Confirm Password -->
+    <p id="signup-confirm-password-error" class="font-pixel text-sm text-[#A94A4A] hidden mt-0.5"></p>
   </div>
+
   <button type="submit" class="font-pixel text-white bg-[#E87339] border-4 border-[#3D2013] py-3 mt-4 transition-all duration-150 retro-shadow">
     SIGN UP
   </button>
-  </div>
-</form>
+</form> <!-- This closing tag was missing! -->
 
 <!-- ========================================== -->
 <!-- 3. RESET PASSWORD FORM CONTEXT             -->
@@ -403,6 +403,7 @@
 </footer>
 
 <script src="script.js"></script>
+<script src="loading-overlay.js"></script>
 <script src="authscript.js"></script>
 </body>
 </html>

@@ -109,13 +109,33 @@ function loadProfileUI(data) {
   if (profileUsername) profileUsername.textContent = `@${(data.username || "User_name").replace(/^@/, '')}`;
   if (playerLevel) playerLevel.textContent = data.level || 1;
 
-  // Avatar Handling
-  const playerAvatar = document.getElementById("player-avatar");
-  const avatarPlaceholder = document.getElementById("avatar-placeholder");
-  if (data.avatarUrl && playerAvatar) {
-    playerAvatar.src = data.avatarUrl;
-    playerAvatar.classList.remove("hidden");
-    if (avatarPlaceholder) avatarPlaceholder.classList.add("hidden");
+  // --- AVATAR SYSTEM SYNC ---
+  // Fall back to existing session storage config or default config if backend value is empty
+  let avatarConfig = data.avatarUrl;
+  if (!avatarConfig || avatarConfig.trim() === "") {
+    avatarConfig = sessionStorage.getItem("user_avatar_config");
+  }
+
+  if (avatarConfig) {
+    sessionStorage.setItem("user_avatar_config", typeof avatarConfig === 'string' ? avatarConfig : JSON.stringify(avatarConfig));
+    
+    let parsedConfig = avatarConfig;
+    try {
+      while (typeof parsedConfig === 'string') {
+        parsedConfig = JSON.parse(parsedConfig);
+      }
+    } catch (e) {
+      parsedConfig = { body: "BODY1", face: "FACE1", tops: "TOP7", bottoms: "BOTTOM6" };
+    }
+
+    window.dispatchEvent(new CustomEvent("avatar-updated", { 
+      detail: parsedConfig 
+    }));
+  } else {
+    // Force a default dispatch if nothing exists anywhere
+    window.dispatchEvent(new CustomEvent("avatar-updated", { 
+      detail: { body: "BODY1", face: "FACE1", tops: "TOP7", bottoms: "BOTTOM6" } 
+    }));
   }
 
   // 2. Calculated Progress Bar & XP Ratio
