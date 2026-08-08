@@ -1,40 +1,86 @@
+const API_BASE_URL = "http://127.0.0.1:5000";
+
 /**
- * Mock Data Store for Admin Dashboard
+ * Live Data Store for Admin Users
  */
-const adminMockData = {
+let adminData = {
   administrator: {
-    name: "Eleanor Vance",
+    name: "Admin",
     role: "System Admin",
     pfpUrl: ""
   },
   stats: {
-    totalUsers: 1428,
-    activeUsers: 952,
-    suspendedUsers: 14,
-    newThisWeek: 126
+    totalUsers: 0,
+    activeUsers: 0,
+    suspendedUsers: 0,
+    newThisWeek: 0
   },
-  users: [
-    { id: 1, name: "PixelKnight", email: "pixel@game.com", level: 42, streak: 15, coins: 1200, status: "active", registered: "2023-01-15", pfpUrl: "" },
-    { id: 2, name: "RetroQueen", email: "queen@game.com", level: 88, streak: 45, coins: 5400, status: "active", registered: "2022-11-20", pfpUrl: "" },
-    { id: 3, name: "ShadowNinja", email: "shadow@game.com", level: 12, streak: 0, coins: 150, status: "inactive", registered: "2023-05-10", pfpUrl: "" },
-    { id: 4, name: "BitMaster", email: "bit@game.com", level: 65, streak: 30, coins: 3100, status: "active", registered: "2021-08-05", pfpUrl: "" },
-    { id: 5, name: "GamerGuy99", email: "gamer99@game.com", level: 5, streak: 2, coins: 80, status: "inactive", registered: "2023-09-01", pfpUrl: "" },
-    { id: 6, name: "CyberSamurai", email: "cyber@game.com", level: 99, streak: 120, coins: 9990, status: "active", registered: "2020-04-12", pfpUrl: "" },
-    { id: 7, name: "ArcadeHero", email: "arcade@game.com", level: 34, streak: 8, coins: 890, status: "active", registered: "2023-03-22", pfpUrl: "" },
-    { id: 8, name: "VaporWave", email: "vapor@game.com", level: 19, streak: 1, coins: 400, status: "inactive", registered: "2023-06-18", pfpUrl: "" },
-    { id: 9, name: "NeonRider", email: "neon@game.com", level: 51, streak: 22, coins: 2150, status: "active", registered: "2022-12-01", pfpUrl: "" },
-    { id: 10, name: "8BitLegend", email: "legend@game.com", level: 73, streak: 60, coins: 4800, status: "active", registered: "2021-02-14", pfpUrl: "" },
-    { id: 11, name: "QuestSeeker", email: "quest@game.com", level: 27, streak: 5, coins: 620, status: "inactive", registered: "2023-04-03", pfpUrl: "" },
-    { id: 12, name: "LevelUpPro", email: "pro@game.com", level: 91, streak: 95, coins: 8100, status: "active", registered: "2020-10-30", pfpUrl: "" }
-  ]
+  users: []
 };
 
 // State Variables
-let filteredUsers = [...adminMockData.users];
+let filteredUsers = [];
 let currentPage = 1;
 const pageSize = 5;
 let selectedUserId = null;
 let currentSortOrder = 'desc'; // Default sort order
+
+/**
+ * Fetch real users data from backend
+ */
+async function fetchAdminUsersData() {
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'authentication.html';
+        return;
+    }
+
+    try {
+        // 1. Fetch current logged-in admin user info for header badge
+        const profileRes = await fetch(`${API_BASE_URL}/me`, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (profileRes.ok) {
+            const userData = await profileRes.json();
+            const adminNameEl = document.getElementById('admin-name');
+            if (adminNameEl) {
+                adminNameEl.textContent = userData.username || userData.name || "Administrator";
+            }
+
+            if (userData.avatar_url) {
+                const pfpImg = document.getElementById('admin-pfp');
+                const pfpPlaceholder = document.getElementById('admin-pfp-placeholder');
+                if (pfpImg && pfpPlaceholder) {
+                    pfpImg.src = typeof userData.avatar_url === 'string' && userData.avatar_url.startsWith('{') 
+                        ? JSON.parse(userData.avatar_url).url || "" 
+                        : userData.avatar_url;
+                    pfpImg.classList.remove('hidden');
+                    pfpPlaceholder.classList.add('hidden');
+                }
+            }
+        }
+
+        // 2. Fetch live users and statistics from database
+        const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            adminData.stats = result.stats;
+            adminData.users = result.users;
+            filteredUsers = [...adminData.users];
+            loadAdminDashboard(adminData);
+        } else {
+            console.error("Failed to load users data");
+        }
+    } catch (err) {
+        console.error("Backend connection error:", err);
+    }
+}
 
 /**
  * Modal Toggle Functions
@@ -73,7 +119,7 @@ function handleSortCategoryChange() {
     numSorter.classList.add('flex');
     
     // Encode Min/Max range automatically based on dataset
-    const values = adminMockData.users.map(u => u[category]);
+    const values = adminData.users.map(u => u[category]);
     const minVal = Math.min(...values);
     const maxVal = Math.max(...values);
     
@@ -85,7 +131,7 @@ function handleSortCategoryChange() {
     dateSorter.classList.add('flex');
     
     // Encode Oldest/Newest dates automatically
-    const dates = adminMockData.users.map(u => u.registered).sort();
+    const dates = adminData.users.map(u => u.registered).sort();
     if (dates.length > 0) {
       document.getElementById('date-from').value = dates[0];
       document.getElementById('date-to').value = dates[dates.length - 1];
@@ -123,7 +169,7 @@ function applySortAndFilter() {
   const searchQuery = document.getElementById('user-search-input').value.toLowerCase().trim();
 
   // Filter by search query first
-  let list = adminMockData.users.filter(u => u.name.toLowerCase().includes(searchQuery));
+  let list = adminData.users.filter(u => u.name.toLowerCase().includes(searchQuery));
 
   if (category) {
     if (['level', 'streak', 'coins'].includes(category)) {
@@ -176,7 +222,7 @@ function handleLiveSearch() {
 }
 
 /**
- * Masks an email address for privacy (e.g., "pixel@game.com" -> "pi***@game.com")
+ * Masks an email address for privacy
  */
 function maskEmail(email) {
   if (!email || !email.includes('@')) return email;
@@ -221,7 +267,6 @@ function renderUserTable() {
     if (mobileList) mobileList.innerHTML = emptyHtml;
   } else {
     pageItems.forEach(u => {
-      // Mask email when inflating layout
       const maskedEmail = maskEmail(u.email);
 
       const statusBadge = u.status === 'active' 
@@ -241,13 +286,12 @@ function renderUserTable() {
               <div class="w-7 h-7 rounded-full bg-[#FAE9CE] border border-[#3D2013] flex items-center justify-center shrink-0 overflow-hidden">
                 ${avatarHtml}
               </div>
-              <span class=" truncate max-w-[120px]">${u.name}</span>
+              <span class="truncate max-w-[120px]">${u.name}</span>
             </div>
           </td>
-          <!-- Use masked email here -->
           <td class="p-3.5 text-[#3D2013]/80 truncate max-w-[150px]">${maskedEmail}</td>
           
-          <td class="p-3.5 text-center ">
+          <td class="p-3.5 text-center">
             <span class="bg-[#E3D2E5] text-[#261A36] border border-[#261A36] rounded-md px-2 py-1 inline-block text-[10px] w-full">
               Lv. ${u.level}
             </span>
@@ -304,8 +348,7 @@ function renderUserTable() {
                 ${avatarHtml}
               </div>
               <div class="flex flex-col">
-                <span class=" text-[11px] leading-tight text-[#3D2013]">${u.name}</span>
-                <!-- Use masked email here -->
+                <span class="text-[11px] leading-tight text-[#3D2013]">${u.name}</span>
                 <span class="text-[8px] text-[#3D2013]/70 truncate max-w-[150px]">${maskedEmail}</span>
               </div>
             </div>
@@ -328,7 +371,7 @@ function renderUserTable() {
           </div>
 
           <div class="grid grid-cols-3 gap-1 text-[9px] items-center text-center">
-            <span class="bg-[#E3D2E5] text-[#261A36] border border-[#261A36] rounded px-1.5 py-0.5 ">
+            <span class="bg-[#E3D2E5] text-[#261A36] border border-[#261A36] rounded px-1.5 py-0.5">
               Lv. ${u.level}
             </span>
 
@@ -394,12 +437,10 @@ function renderUserTable() {
  * Modal Actions
  */
 function handleViewUser(id) {
-  const user = adminMockData.users.find(u => u.id === id);
+  const user = adminData.users.find(u => u.id === id);
   if (!user) return;
   
-  // Mask the email address
   const maskedEmail = maskEmail(user.email);
-  
   const container = document.getElementById('view-user-details');
   const statusBadge = user.status === 'active' 
     ? `<span class="bg-[#CDECCF] text-[#5C8D57] font-pixel text-[15px] lg:text-[20px] border border-[#5C8D57] px-2 py-1 rounded-md text-[9px] inline-block w-full text-center">Active</span>`
@@ -447,26 +488,25 @@ function handleViewUser(id) {
           </svg>
           <span class="hidden sm:inline">Username</span>
         </div>
-        <div class="font-pixel text-[15px] lg:text-[20px]  break-words pr-2">${user.name}</div>
+        <div class="font-pixel text-[15px] lg:text-[20px] break-words pr-2">${user.name}</div>
 
         <div class="font-pixel text-[15px] lg:text-[20px] flex items-center gap-2 text-[#3D2013]/80">
           <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
           <span class="hidden sm:inline">Email</span>
         </div>
-        <!-- Updated to display maskedEmail for both text content and hover tooltip -->
-        <div class="font-pixel text-[15px] lg:text-[20px]  break-all pr-2" title="${maskedEmail}">${maskedEmail}</div>
+        <div class="font-pixel text-[15px] lg:text-[20px] break-all pr-2" title="${maskedEmail}">${maskedEmail}</div>
 
         <div class="font-pixel text-[15px] lg:text-[20px] flex items-center gap-2 text-[#3D2013]/80">
           <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
           <span class="hidden sm:inline">Registered</span>
         </div>
-        <div class="font-pixel text-[15px] lg:text-[20px]  break-words">${user.registered}</div>
+        <div class="font-pixel text-[15px] lg:text-[20px] break-words">${user.registered}</div>
 
         <div class="font-pixel text-[15px] lg:text-[20px] flex items-center gap-2 text-[#3D2013]/80">
           <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
           <span class="hidden sm:inline">Last Login</span>
         </div>
-        <div class="font-pixel text-[15px] lg:text-[20px]  break-words">${lastLoggedIn}</div>
+        <div class="font-pixel text-[15px] lg:text-[20px] break-words">${lastLoggedIn}</div>
       </div>
     </div>
   `;
@@ -483,7 +523,6 @@ function showUserDeletedToast(userName) {
 
   toast.innerHTML = `
     <div class="flex items-center gap-3 pr-2">
-      <!-- Retro Trash Icon -->
       <svg class="w-5 h-5 flex-shrink-0 text-[#A53914]" fill="currentColor" viewBox="0 0 24 24">
         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
       </svg>
@@ -498,13 +537,11 @@ function showUserDeletedToast(userName) {
 
   toastContainer.appendChild(toast);
 
-  // Trigger entering slide & fade-in animation
   requestAnimationFrame(() => {
     toast.classList.remove('opacity-0', 'translate-y-[-20px]');
     toast.classList.add('opacity-100', 'translate-y-0');
   });
 
-  // Slide out and remove after 4 seconds
   setTimeout(() => {
     toast.classList.remove('opacity-100', 'translate-y-0');
     toast.classList.add('opacity-0', 'translate-y-[-20px]');
@@ -513,7 +550,7 @@ function showUserDeletedToast(userName) {
 }
 
 function handleRemoveUser(id) {
-  const user = adminMockData.users.find(u => u.id === id);
+  const user = adminData.users.find(u => u.id === id);
   if (!user) return;
   selectedUserId = id;
 
@@ -521,35 +558,36 @@ function handleRemoveUser(id) {
   openModal('remove-user-modal');
 }
 
-function confirmRemoveUser() {
-  const idx = adminMockData.users.findIndex(u => u.id === selectedUserId);
-  if (idx !== -1) {
-    const deletedUser = adminMockData.users[idx]; // Store reference to get the username
-    adminMockData.users.splice(idx, 1);
-    applySortAndFilter();
-    
-    // Trigger notification toast
-    showUserDeletedToast(deletedUser.name);
+async function confirmRemoveUser() {
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const user = adminData.users.find(u => u.id === selectedUserId);
+  if (!user) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/${selectedUserId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      showUserDeletedToast(user.name);
+      await fetchAdminUsersData();
+    }
+  } catch (err) {
+    console.error("Error deleting user:", err);
   }
   closeModal('remove-user-modal');
 }
+
 /**
- * Load Dashboard Data
+ * Load Dashboard Stats & Profile Data
  */
 function loadAdminDashboard(data) {
   const adminName = document.getElementById('admin-name');
   const adminRole = document.getElementById('admin-role');
-  const adminPfp = document.getElementById('admin-pfp');
-  const adminPlaceholder = document.getElementById('admin-pfp-placeholder');
 
   if (adminName) adminName.textContent = data.administrator.name;
   if (adminRole) adminRole.textContent = data.administrator.role;
-
-  if (data.administrator.pfpUrl && adminPfp) {
-    adminPfp.src = data.administrator.pfpUrl;
-    adminPfp.classList.remove('hidden');
-    if (adminPlaceholder) adminPlaceholder.classList.add('hidden');
-  }
 
   const totalUsers = document.getElementById('stat-total-users');
   const activeUsers = document.getElementById('stat-active-users');
@@ -565,5 +603,5 @@ function loadAdminDashboard(data) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadAdminDashboard(adminMockData);
+  fetchAdminUsersData();
 });

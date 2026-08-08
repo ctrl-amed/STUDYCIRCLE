@@ -1,16 +1,50 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin User</title>
+  <title>Admin Users - StudyCircle</title>
   
   <!-- External CSS Stylesheet -->
   <link rel="stylesheet" href="style.css">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- ADMIN SECURITY GUARD SCRIPT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = 'authentication.html';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/check-admin', {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Verification failed with status ' + response.status);
+            }
+
+            const data = await response.json();
+            
+            if (!data.is_admin) {
+                window.location.href = 'homepage.html';
+            }
+        } catch (err) {
+            console.error('Authorization check error:', err);
+            window.location.href = 'authentication.html';
+        }
+    });
+  </script>
 </head>
 
 <!-- BASE BACKGROUND COLOR -->
@@ -145,10 +179,6 @@
 
           <!-- DYNAMIC CONTROLS -->
           <!-- 1. Number Sorter (Level, Streak, Coins) -->
-<!-- 1. Number Sorter (Level, Streak, Coins) -->
-<!-- DYNAMIC CONTROLS -->
-
-<!-- 1. Number Sorter (Level, Streak, Coins) -->
 <div id="number-sorter-container" class="hidden flex items-center gap-2">
   <div id="number-custom-inputs" class="flex items-center gap-1">
     <input type="number" id="num-min" oninput="applySortAndFilter()" placeholder="Min" 
@@ -273,7 +303,6 @@
     </div>
   </div>
 
-<!-- 1. VIEW USER MODAL -->
 <!-- 1. VIEW USER MODAL -->
 <div id="view-user-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
   <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-4 sm:p-6 max-w-xl w-full flex flex-col text-left max-h-[90vh] overflow-y-auto">

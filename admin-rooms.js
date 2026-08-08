@@ -1,38 +1,86 @@
+const API_BASE_URL = "http://127.0.0.1:5000";
+
 /**
- * Mock Data Store for Admin Rooms
+ * Live Data Store for Admin Rooms
  */
-const adminRoomsMockData = {
+let adminRoomsData = {
   administrator: {
-    name: "Eleanor Vance",
+    name: "Admin",
     role: "System Admin",
     pfpUrl: ""
   },
   stats: {
-    totalRooms: 48,
-    activeRooms: 35,
-    privateRooms: 12,
-    publicRooms: 36
+    totalRooms: 0,
+    activeRooms: 0,
+    privateRooms: 0,
+    publicRooms: 0
   },
-  rooms: [
-    { id: 1, name: "Retro Lounge", currentMembers: 3, maxMembers: 6, type: "Public", topic: "Retro Gaming", studyTechnique: "Pomodoro", sessions: 4, creatorName: "PixelKnight", creatorPfp: "", createdAt: "2023-01-15" },
-    { id: 2, name: "Vip Cyber Zone", currentMembers: 2, maxMembers: 4, type: "Private", topic: "Cybersecurity", studyTechnique: "52-17", sessions: 3, creatorName: "RetroQueen", creatorPfp: "", createdAt: "2022-11-20" },
-    { id: 3, name: "Shadow Guild", currentMembers: 1, maxMembers: 6, type: "Private", topic: "Algorithms", studyTechnique: "90mins", sessions: 2, creatorName: "ShadowNinja", creatorPfp: "", createdAt: "2023-05-10" },
-    { id: 4, name: "BitMaster Hub", currentMembers: 6, maxMembers: 6, type: "Public", topic: "Data Structures", studyTechnique: "Pomodoro", sessions: 6, creatorName: "BitMaster", creatorPfp: "", createdAt: "2021-08-05" },
-    { id: 5, name: "Beginner Arena", currentMembers: 3, maxMembers: 6, type: "Public", topic: "Web Development", studyTechnique: "Pomodoro", sessions: 4, creatorName: "GamerGuy99", creatorPfp: "", createdAt: "2023-09-01" },
-    { id: 6, name: "Samurai Dojo", currentMembers: 4, maxMembers: 5, type: "Private", topic: "Machine Learning", studyTechnique: "90mins", sessions: 2, creatorName: "CyberSamurai", creatorPfp: "", createdAt: "2020-04-12" },
-    { id: 7, name: "Arcade Corner", currentMembers: 5, maxMembers: 6, type: "Public", topic: "Game Design", studyTechnique: "52-17", sessions: 5, creatorName: "ArcadeHero", creatorPfp: "", createdAt: "2023-03-22" },
-    { id: 8, name: "Chill Wave Room", currentMembers: 1, maxMembers: 4, type: "Public", topic: "UI/UX Design", studyTechnique: "Pomodoro", sessions: 3, creatorName: "VaporWave", creatorPfp: "", createdAt: "2023-06-18" },
-    { id: 9, name: "Neon District", currentMembers: 4, maxMembers: 6, type: "Private", topic: "Cloud Computing", studyTechnique: "90mins", sessions: 4, creatorName: "NeonRider", creatorPfp: "", createdAt: "2022-12-01" },
-    { id: 10, name: "8Bit Legends", currentMembers: 2, maxMembers: 6, type: "Public", topic: "Assembly Language", studyTechnique: "Pomodoro", sessions: 5, creatorName: "8BitLegend", creatorPfp: "", createdAt: "2021-02-14" }
-  ]
+  rooms: []
 };
 
 // State Variables
-let filteredRooms = [...adminRoomsMockData.rooms];
+let filteredRooms = [];
 let currentPage = 1;
 const pageSize = 5;
 let selectedRoomId = null;
 let currentSortOrder = 'desc'; // Default sort order
+
+/**
+ * Fetch real rooms data from backend
+ */
+async function fetchAdminRoomsData() {
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'authentication.html';
+        return;
+    }
+
+    try {
+        // 1. Fetch current logged-in admin user info for header badge
+        const profileRes = await fetch(`${API_BASE_URL}/me`, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (profileRes.ok) {
+            const userData = await profileRes.json();
+            const adminNameEl = document.getElementById('admin-name');
+            if (adminNameEl) {
+                adminNameEl.textContent = userData.username || userData.name || "Administrator";
+            }
+
+            if (userData.avatar_url) {
+                const pfpImg = document.getElementById('admin-pfp');
+                const pfpPlaceholder = document.getElementById('admin-pfp-placeholder');
+                if (pfpImg && pfpPlaceholder) {
+                    pfpImg.src = typeof userData.avatar_url === 'string' && userData.avatar_url.startsWith('{') 
+                        ? JSON.parse(userData.avatar_url).url || "" 
+                        : userData.avatar_url;
+                    pfpImg.classList.remove('hidden');
+                    pfpPlaceholder.classList.add('hidden');
+                }
+            }
+        }
+
+        // 2. Fetch live rooms and statistics from database
+        const response = await fetch(`${API_BASE_URL}/api/admin/rooms`, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            adminRoomsData.stats = result.stats;
+            adminRoomsData.rooms = result.rooms;
+            filteredRooms = [...adminRoomsData.rooms];
+            loadAdminDashboard(adminRoomsData);
+        } else {
+            console.error("Failed to load admin rooms");
+        }
+    } catch (err) {
+        console.error("Backend connection error:", err);
+    }
+}
 
 /**
  * Modal Toggle Functions
@@ -73,7 +121,7 @@ function handleSortCategoryChange() {
     dateSorter.classList.add('flex');
     
     // Auto-encode Oldest/Newest dates
-    const dates = adminRoomsMockData.rooms.map(r => r.createdAt).sort();
+    const dates = adminRoomsData.rooms.map(r => r.createdAt).sort();
     if (dates.length > 0) {
       document.getElementById('date-from').value = dates[0];
       document.getElementById('date-to').value = dates[dates.length - 1];
@@ -85,7 +133,7 @@ function handleSortCategoryChange() {
     memberSorter.classList.remove('hidden');
     memberSorter.classList.add('flex');
     
-    const members = adminRoomsMockData.rooms.map(r => r.maxMembers);
+    const members = adminRoomsData.rooms.map(r => r.maxMembers);
     document.getElementById('num-min').value = Math.min(...members);
     document.getElementById('num-max').value = Math.max(...members);
   } else if (category === 'status') {
@@ -120,7 +168,7 @@ function applySortAndFilter() {
   const searchQuery = document.getElementById('room-search-input').value.toLowerCase().trim();
 
   // Filter by search query
-  let list = adminRoomsMockData.rooms.filter(r => r.name.toLowerCase().includes(searchQuery));
+  let list = adminRoomsData.rooms.filter(r => r.name.toLowerCase().includes(searchQuery));
 
   if (category) {
     if (category === 'created') {
@@ -255,7 +303,7 @@ function renderRoomTable() {
                 </svg>
               </button>
               
-              <button onclick="handleRemoveRoom(${r.id})" title="Remove Inflated Room"
+              <button onclick="handleRemoveRoom(${r.id})" title="Remove Room"
                       class="bg-[#A53914] border-[2px] border-[#3D2013] p-1.5 flex items-center justify-center rounded-[6px] transition-all duration-150 retro-shadow shrink-0 cursor-pointer hover:scale-105">
                 <svg class="w-4 h-4 text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -286,7 +334,7 @@ function renderRoomTable() {
                   <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                 </svg>
               </button>
-              <button onclick="handleRemoveRoom(${r.id})" title="Remove Inflated Room"
+              <button onclick="handleRemoveRoom(${r.id})" title="Remove Room"
                       class="bg-[#A53914] border-[1.5px] border-[#3D2013] p-1 flex items-center justify-center rounded-[5px] active:scale-95">
                 <svg class="w-3.5 h-3.5 text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -377,14 +425,10 @@ function switchRoomTab(tabName) {
 
 /**
  * Utility function to mask an email string.
- * Example: "john.doe@mail.com" -> "j******e@mail.com"
- * Example: "ab@mail.com"       -> "a*@mail.com"
  */
 function maskEmail(email) {
   if (!email || !email.includes('@')) return email;
-
   const [username, domain] = email.split('@');
-
   if (username.length <= 1) {
     return `*@${domain}`;
   } else if (username.length === 2) {
@@ -399,13 +443,11 @@ function maskEmail(email) {
  * Enhanced View Room Handler
  */
 function handleViewRoom(id) {
-  const room = adminRoomsMockData.rooms.find(r => r.id === id);
+  const room = adminRoomsData.rooms.find(r => r.id === id);
   if (!room) return;
 
-  // 1. Reset Modal State to "Overview" Tab
   switchRoomTab('overview');
 
-  // 2. Render Overview Tab Content
   const container = document.getElementById('view-room-details');
   const typeBadge = room.type === 'Public' 
     ? `<span class="bg-[#CDECCF] text-[#5C8D57] border border-[#5C8D57] px-2 py-1 rounded-md font-pixel text-[15px] lg:text-[20px] inline-block text-center">Public</span>`
@@ -427,9 +469,9 @@ function handleViewRoom(id) {
 
         <span class="text-[#3D2013]/80">Created By:</span>
         <div class="flex items-center gap-2 font-pixel text-[15px] lg:text-[20px]">
-<div class="w-5 h-5 rounded-full bg-[#FAE9CE] border border-[#3D2013] flex items-center justify-center overflow-hidden shrink-0">
-  ${room.creatorPfp ? `<img src="${room.creatorPfp}" class="w-full h-full object-cover">` : `<svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-[#3D2013]" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M12 4a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4" /></svg>`}
-</div>
+          <div class="w-5 h-5 rounded-full bg-[#FAE9CE] border border-[#3D2013] flex items-center justify-center overflow-hidden shrink-0">
+            ${room.creatorPfp ? `<img src="${room.creatorPfp}" class="w-full h-full object-cover">` : `<svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-[#3D2013]" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M12 4a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4" /></svg>`}
+          </div>
           <span>${room.creatorName}</span>
         </div>
 
@@ -439,10 +481,7 @@ function handleViewRoom(id) {
     </div>
   `;
 
-  // 3. Render Members Tab Table Content
   const membersListContainer = document.getElementById('view-room-members-list');
-  
-  // Dynamic member generator according to currentMembers count
   const memberData = room.memberDetails || Array.from({ length: room.currentMembers }, (_, index) => ({
     username: index === 0 ? room.creatorName : `User_${index + 1}`,
     email: index === 0 ? `${room.creatorName.toLowerCase()}@mail.com` : `user_${index + 1}@mail.com`,
@@ -450,22 +489,22 @@ function handleViewRoom(id) {
   }));
 
   membersListContainer.innerHTML = memberData.map(m => `
-<tr class="hover:bg-[#FAE9CE]/80 transition-colors">
-  <td class="p-2.5">
-    <div class="w-6 h-6 rounded-full bg-[#FEF4E0] border border-[#3D2013] flex items-center justify-center overflow-hidden shrink-0">
-      ${m.pfp ? `<img src="${m.pfp}" class="w-full h-full object-cover">` : `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#3D2013]" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M12 4a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4" /></svg>`}
-    </div>
-  </td>
-  <td class="p-2.5 font-pixel text-[15px] lg:text-[20px] truncate max-w-[100px]">${m.username}</td>
-  <td class="p-2.5 text-[#3D2013]/70 truncate max-w-[140px]">${maskEmail(m.email)}</td>
-</tr>
+    <tr class="hover:bg-[#FAE9CE]/80 transition-colors">
+      <td class="p-2.5">
+        <div class="w-6 h-6 rounded-full bg-[#FEF4E0] border border-[#3D2013] flex items-center justify-center overflow-hidden shrink-0">
+          ${m.pfp ? `<img src="${m.pfp}" class="w-full h-full object-cover">` : `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#3D2013]" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M12 4a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4" /></svg>`}
+        </div>
+      </td>
+      <td class="p-2.5 font-pixel text-[15px] lg:text-[20px] truncate max-w-[100px]">${m.username}</td>
+      <td class="p-2.5 text-[#3D2013]/70 truncate max-w-[140px]">${maskEmail(m.email)}</td>
+    </tr>
   `).join('');
 
   openModal('view-room-modal');
 }
 
 function handleEditRoom(id) {
-  const room = adminRoomsMockData.rooms.find(r => r.id === id);
+  const room = adminRoomsData.rooms.find(r => r.id === id);
   if (!room) return;
   selectedRoomId = id;
 
@@ -479,17 +518,32 @@ function handleEditRoom(id) {
   openModal('edit-room-modal');
 }
 
-function saveRoomDetails() {
-  const room = adminRoomsMockData.rooms.find(r => r.id === selectedRoomId);
-  if (room) {
-    room.name = document.getElementById('edit-room-name').value;
-    room.type = document.getElementById('edit-room-type').value;
-    room.maxMembers = parseInt(document.getElementById('edit-room-members').value, 10) || 6;
-    room.topic = document.getElementById('edit-room-topic').value;
-    room.studyTechnique = document.getElementById('edit-room-technique').value;
-    room.sessions = parseInt(document.getElementById('edit-room-sessions').value, 10) || 1;
-    
-    applySortAndFilter();
+async function saveRoomDetails() {
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const updatedData = {
+    name: document.getElementById('edit-room-name').value,
+    type: document.getElementById('edit-room-type').value,
+    maxMembers: parseInt(document.getElementById('edit-room-members').value, 10) || 6,
+    topic: document.getElementById('edit-room-topic').value,
+    studyTechnique: document.getElementById('edit-room-technique').value,
+    sessions: parseInt(document.getElementById('edit-room-sessions').value, 10) || 1
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/rooms/${selectedRoomId}`, {
+      method: "PUT",
+      headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` 
+      },
+      body: JSON.stringify(updatedData)
+    });
+
+    if (response.ok) {
+      await fetchAdminRoomsData();
+    }
+  } catch (err) {
+    console.error("Error updating room:", err);
   }
   closeModal('edit-room-modal');
 }
@@ -504,7 +558,6 @@ function showRoomDeletedToast(roomName) {
 
   toast.innerHTML = `
     <div class="flex items-center gap-3 pr-2">
-      <!-- Retro Trash/Door Icon -->
       <svg class="w-5 h-5 flex-shrink-0 text-[#A53914]" fill="currentColor" viewBox="0 0 24 24">
         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
       </svg>
@@ -519,13 +572,11 @@ function showRoomDeletedToast(roomName) {
 
   toastContainer.appendChild(toast);
 
-  // Trigger entering slide & fade-in animation
   requestAnimationFrame(() => {
     toast.classList.remove('opacity-0', 'translate-y-[-20px]');
     toast.classList.add('opacity-100', 'translate-y-0');
   });
 
-  // Slide out and remove after 4 seconds
   setTimeout(() => {
     toast.classList.remove('opacity-100', 'translate-y-0');
     toast.classList.add('opacity-0', 'translate-y-[-20px]');
@@ -534,7 +585,7 @@ function showRoomDeletedToast(roomName) {
 }
 
 function handleRemoveRoom(id) {
-  const room = adminRoomsMockData.rooms.find(r => r.id === id);
+  const room = adminRoomsData.rooms.find(r => r.id === id);
   if (!room) return;
   selectedRoomId = id;
 
@@ -542,36 +593,36 @@ function handleRemoveRoom(id) {
   openModal('remove-room-modal');
 }
 
-function confirmRemoveRoom() {
-  const idx = adminRoomsMockData.rooms.findIndex(r => r.id === selectedRoomId);
-  if (idx !== -1) {
-    const deletedRoom = adminRoomsMockData.rooms[idx]; // Store reference to get room name
-    adminRoomsMockData.rooms.splice(idx, 1);
-    applySortAndFilter();
-    
-    // Trigger notification toast
-    showRoomDeletedToast(deletedRoom.name);
+async function confirmRemoveRoom() {
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const room = adminRoomsData.rooms.find(r => r.id === selectedRoomId);
+  if (!room) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/rooms/${selectedRoomId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      showRoomDeletedToast(room.name);
+      await fetchAdminRoomsData();
+    }
+  } catch (err) {
+    console.error("Error deleting room:", err);
   }
   closeModal('remove-room-modal');
 }
 
 /**
- * Load Dashboard Data
+ * Load Dashboard Data & Stats
  */
 function loadAdminDashboard(data) {
   const adminName = document.getElementById('admin-name');
   const adminRole = document.getElementById('admin-role');
-  const adminPfp = document.getElementById('admin-pfp');
-  const adminPlaceholder = document.getElementById('admin-pfp-placeholder');
 
   if (adminName) adminName.textContent = data.administrator.name;
   if (adminRole) adminRole.textContent = data.administrator.role;
-
-  if (data.administrator.pfpUrl && adminPfp) {
-    adminPfp.src = data.administrator.pfpUrl;
-    adminPfp.classList.remove('hidden');
-    if (adminPlaceholder) adminPlaceholder.classList.add('hidden');
-  }
 
   const totalRooms = document.getElementById('stat-total-rooms');
   const activeRooms = document.getElementById('stat-active-rooms');
@@ -587,5 +638,5 @@ function loadAdminDashboard(data) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadAdminDashboard(adminRoomsMockData);
+  fetchAdminRoomsData();
 });

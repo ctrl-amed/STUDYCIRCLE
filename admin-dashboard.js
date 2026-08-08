@@ -1,4 +1,4 @@
-// Mock Data set for each timeframe selection
+// Mock Data set for each timeframe selection (used for charts and fallback options)
 const mockDashboardData = {
   "7days": {
     subtitle: "Overview of StudyCircle Community in the last 7 days",
@@ -83,6 +83,7 @@ const mockDashboardData = {
 };
 
 let barChart, pieChart, lineChart;
+const API_BASE_URL = "http://127.0.0.1:5000";
 
 // Modal Helpers
 function openModal(id) {
@@ -118,8 +119,9 @@ function applyCustomRange() {
 // Update DOM elements and Chart datasets
 function updateDashboard(key) {
   const data = mockDashboardData[key];
+  if (!data) return;
 
-  // Update text elements
+  // Update text elements (note: stat cards will be overridden by live DB stats if fetched)
   document.getElementById('timeframe-subtitle').textContent = data.subtitle;
   document.getElementById('stat-total-users').textContent = data.totalUsers;
   document.getElementById('stat-active-rooms').textContent = data.activeRooms;
@@ -139,9 +141,63 @@ function updateDashboard(key) {
   lineChart.update();
 }
 
+// Fetch live database statistics and profile info on load
+async function fetchAdminDashboardData() {
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        // 1. Fetch current logged-in admin user info for the header badge
+        const profileRes = await fetch(`${API_BASE_URL}/me`, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (profileRes.ok) {
+            const userData = await profileRes.json();
+            const adminNameEl = document.getElementById('admin-name');
+            if (adminNameEl) {
+                adminNameEl.textContent = userData.username || userData.name || "Administrator";
+            }
+
+            if (userData.avatar_url) {
+                const pfpImg = document.getElementById('admin-pfp');
+                const pfpPlaceholder = document.getElementById('admin-pfp-placeholder');
+                if (pfpImg && pfpPlaceholder) {
+                    pfpImg.src = typeof userData.avatar_url === 'string' && userData.avatar_url.startsWith('{') 
+                        ? JSON.parse(userData.avatar_url).url || "" 
+                        : userData.avatar_url;
+                    pfpImg.classList.remove('hidden');
+                    pfpPlaceholder.classList.add('hidden');
+                }
+            }
+        }
+
+        // 2. Fetch live metrics from database for stat cards
+        const statsRes = await fetch(`${API_BASE_URL}/api/admin/stats`, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (statsRes.ok) {
+            const stats = await statsRes.json();
+            
+            document.getElementById('stat-total-users').textContent = stats.total_users.toLocaleString();
+            document.getElementById('stat-active-rooms').textContent = stats.active_rooms.toLocaleString();
+            document.getElementById('stat-study-sessions').textContent = stats.study_sessions.toLocaleString();
+            document.getElementById('stat-avg-productivity').textContent = stats.avg_productivity;
+        }
+    } catch (error) {
+        console.error("Failed to load dashboard live data:", error);
+    }
+}
+
 // Initialize Charts on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
   const textThemeColor = '#3D2013';
+
+  // Fetch live stats from database
+  fetchAdminDashboardData();
 
   // 1. Weekly Active Users Bar Chart
   const ctxBar = document.getElementById('activeUsersChart').getContext('2d');
