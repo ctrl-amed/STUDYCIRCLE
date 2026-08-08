@@ -329,37 +329,38 @@ if (formLogin) {
     loginErrorText.textContent = '';
 
     // --- LOGIN SECTION ---
-try {
-  const response = await fetch(`${API_BASE_URL}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: emailVal, password: passwordVal })
-  });
+    try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailVal, password: passwordVal })
+      });
 
-  const data = await response.json();
+      const data = await response.json();
 
-  if (response.ok) {
-    // 1. SAVE THE JWT TOKEN TO SESSIONSTORAGE INSTEAD OF LOCALSTORAGE
-    // This isolates the login session strictly to this specific browser tab/window
-    sessionStorage.setItem("token", data.token);
-    
-    // If your backend returns user info (like username or ID), save it here too:
-    if (data.user) {
-      sessionStorage.setItem("current_user", JSON.stringify(data.user));
-    }
+      if (response.ok) {
+        // 1. SAVE THE JWT TOKEN TO SESSIONSTORAGE
+        sessionStorage.setItem("token", data.token);
+        
+        if (data.user) {
+          sessionStorage.setItem("current_user", JSON.stringify(data.user));
+        }
 
-    // 2. TRIGGER LOADING AND REDIRECT TO HOMEPAGE
-    triggerLoadingAndRedirect(' LOGGING IN ', 'homepage.html');
-  } else {
-    loginEmailInput.style.borderColor = "#A94A4A";
-    loginPasswordInput.style.borderColor = "#A94A4A";
-    loginErrorText.textContent = "✘ " + data.message;
-    loginErrorText.classList.remove('hidden');
-  }
-} catch (error) {
-  console.error(error);
-  alert("Unable to connect to backend.");
+       // 2. CHECK IF ADMIN & REDIRECT ACCORDINGLY
+        const targetPage = data.is_admin ? 'admin-dashboard.html' : 'homepage.html';
+        const loadingText = data.is_admin ? ' LOADING ADMIN PANEL ' : ' LOGGING IN ';
+
+        triggerLoadingAndRedirect(loadingText, targetPage);
+      } else {
+        loginEmailInput.style.borderColor = "#A94A4A";
+        loginPasswordInput.style.borderColor = "#A94A4A";
+        loginErrorText.textContent = "✘ " + data.message;
+        loginErrorText.classList.remove('hidden');
       }
+    } catch (error) {
+      console.error(error);
+      alert("Unable to connect to backend.");
+    }
   });
 }
 
@@ -368,13 +369,11 @@ if (formSignup) {
   formSignup.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    // Evaluate every field's validity status on submit
     const isUsernameValid = validateUsername();
     const isEmailValid = validateEmail();
     const isPasswordValid = validatePassword();
     const isConfirmValid = validateConfirmPassword();
 
-    // Stop form submission if any single check fails
     if (!isUsernameValid || !isEmailValid || !isPasswordValid || !isConfirmValid) {
       return;
     }
@@ -383,7 +382,6 @@ if (formSignup) {
     const emailVal = signupEmailInput.value.trim();
     const passwordVal = signupPasswordInput.value;
 
-    // SEND DATA TO FLASK DATABASE
     fetch(`${API_BASE_URL}/register`, {
       method: "POST",
       headers: {
@@ -396,27 +394,23 @@ if (formSignup) {
       })
     })
     .then(response => response.json())
-    // --- SIGNUP SECTION ---
-.then(data => {
-  if (data.message === "User registered successfully!") {
-    // Reset input fields upon success
-    signupUsernameInput.value = '';
-    signupEmailInput.value = '';
-    signupPasswordInput.value = '';
-    signupConfirmPasswordInput.value = '';
-    
-    // Use sessionStorage so signups in different tabs don't cross-contaminate
-    sessionStorage.setItem("justSignedUp", "true");
-    triggerLoadingAndRedirect(' CREATING ACCOUNT ', 'customavatar.html');
-  } else {
-    // DETECT WHICH ERROR THE BACKEND SENT
-    if (data.message.includes("Username")) {
-      setFieldError(signupUsernameInput, signupUsernameError, data.message);
-    } else {
-      setFieldError(signupEmailInput, signupEmailError, data.message);
-    }
-  }
-})
+    .then(data => {
+      if (data.message === "User registered successfully!") {
+        signupUsernameInput.value = '';
+        signupEmailInput.value = '';
+        signupPasswordInput.value = '';
+        signupConfirmPasswordInput.value = '';
+        
+        sessionStorage.setItem("justSignedUp", "true");
+        triggerLoadingAndRedirect(' CREATING ACCOUNT ', 'customavatar.html');
+      } else {
+        if (data.message.includes("Username")) {
+          setFieldError(signupUsernameInput, signupUsernameError, data.message);
+        } else {
+          setFieldError(signupEmailInput, signupEmailError, data.message);
+        }
+      }
+    })
     .catch(error => {
       console.error(error);
       alert("Unable to connect to the backend.");
@@ -485,7 +479,6 @@ window.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    // Make sure toastContainer exists in your scope before appending
     const toastContainer = document.getElementById('toast-container') || document.body;
     if (toastContainer) {
       toastContainer.appendChild(incomingToast);

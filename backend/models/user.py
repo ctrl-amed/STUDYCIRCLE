@@ -27,6 +27,13 @@ class User(db.Model):
         nullable=False
     )
 
+    # Admin Flag
+    is_admin = db.Column(
+        db.Boolean,
+        default=False,
+        nullable=False
+    )
+
     # Full Name (Starts blank/nullable since sign-up only asks for username/email)
     name = db.Column(
         db.String(150),
@@ -43,7 +50,8 @@ class User(db.Model):
     avatar_url = db.Column(db.Text, nullable=True, default="")
     room_url = db.Column(db.Text, nullable=True, default="")
     badges = db.Column(db.Text, nullable=True, default="")
-# Detailed Game Stats
+    
+    # Detailed Game Stats
     total_study_hours = db.Column(db.Float, default=0.0)
     rooms_created = db.Column(db.Integer, default=0)
     avg_quiz_score = db.Column(db.Integer, default=0)
@@ -74,6 +82,7 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "email": self.email,
+            "isAdmin": self.is_admin,
             "name": self.name if self.name else "", 
             "level": self.level,
             "currentXP": self.current_xp,
@@ -85,7 +94,6 @@ class User(db.Model):
             "roomUrl": self.room_url or "",
             "badges": self.badges.split(",") if self.badges else [],
             
-            # 👇 Add these new lines right here!
             "totalStudyHours": self.total_study_hours,
             "roomsCreated": self.rooms_created,
             "avgQuizScore": self.avg_quiz_score,

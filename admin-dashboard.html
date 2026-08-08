@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - StudyCircle</title>
+
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- Chart.js CDN for Rendering Bar, Pie, and Line Graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ADMIN SECURITY GUARD SCRIPT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = 'authentication.html';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/check-admin', {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Verification failed with status ' + response.status);
+            }
+
+            const data = await response.json();
+            
+            // If the user is not an admin, kick them out to the user homepage
+            if (!data.is_admin) {
+                window.location.href = 'homepage.html';
+            }
+        } catch (err) {
+            console.error('Authorization check error:', err);
+            window.location.href = 'authentication.html';
+        }
+    });
+  </script>
+</head>
+
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen relative text-[#3D2013] overflow-x-hidden flex flex-col">
+
+  <!-- ========================================== -->
+  <!-- EXTRACTED DESIGN: BACKGROUND & ATMOSPHERE  -->
+  <!-- ========================================== -->
+
+  <!-- 1. FIXED BACKGROUND TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- EXTRACTED DESIGN: HEADER SECTION           -->
+  <!-- ========================================== -->
+  <header class="relative z-10 p-4 sm:p-6 md:ml-[20%] flex justify-end items-center transition-all duration-300">
+    <div class="flex items-center gap-3">
+      <!-- ADMIN PROFILE BADGE -->
+      <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] px-3 sm:px-4 py-1.5 flex items-center gap-3 shadow-md">
+        <div class="w-9 h-9 rounded-full border-[2px] border-[#3D2013] bg-[#FAE9CE] flex items-center justify-center overflow-hidden shrink-0">
+          <img id="admin-pfp" src="" alt="Admin PFP" class="w-full h-full object-cover hidden">
+          <svg id="admin-pfp-placeholder" class="w-5 h-5 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span id="admin-name" class="font-pressstart text-[11px] sm:text-[12px] text-[#3D2013] leading-tight">Admin Name</span>
+          <span id="admin-role" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]/70 leading-tight">Administrator</span>
+        </div>
+      </div>
+
+      <!-- LOGOUT BUTTON -->
+      <button onclick="openModal('logout-modal')" title="Logout"
+              class="bg-[#A53914] border-[2.5px] sm:border-[3px] border-[#3D2013] p-2.5 sm:p-3 rounded-[10px] flex items-center justify-center transition-all duration-150 retro-shadow shrink-0 cursor-pointer">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- MAIN DASHBOARD CONTENT AREA                 -->
+  <!-- ========================================== -->
+  <main class="relative z-10 px-4 sm:px-8 pb-8 md:ml-[5%] transition-all duration-300 flex-1">
+    
+    <!-- HEADER CONTROLS SECTION -->
+    <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h1 class="font-pressstart text-lg sm:text-2xl text-[#3D2013] mb-2">Dashboard</h1>
+        <p id="timeframe-subtitle" class="font-pressstart text-[9px] sm:text-[11px] text-[#3D2013]/70">
+          Overview of StudyCircle Community in the last 7 days
+        </p>
+      </div>
+
+      <!-- RANGE DROPDOWN & CUSTOM RANGE INPUTS -->
+      <div class="flex flex-wrap items-center gap-3">
+        <select id="timeframe-select" onchange="handleTimeframeChange()" 
+                class="bg-[#FEF4E0] border-[3px] border-[#3D2013] text-[#3D2013] font-pressstart text-[10px] sm:text-xs rounded-[10px] px-3 py-2 shadow-md cursor-pointer outline-none">
+          <option value="7days" selected>7 days</option>
+          <option value="1month">1 month</option>
+          <option value="6months">6 months</option>
+          <option value="1year">1 year</option>
+          <option value="custom">Custom Range</option>
+        </select>
+
+        <!-- CUSTOM DATE RANGE INPUTS (HIDDEN BY DEFAULT) -->
+        <div id="custom-date-container" class="hidden flex items-center gap-2 bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[10px] p-1.5 shadow-md">
+          <input type="date" id="start-date" onchange="applyCustomRange()" class="font-pressstart text-[9px] text-[#3D2013] bg-transparent outline-none cursor-pointer">
+          <span class="font-pressstart text-[10px] text-[#3D2013]">-</span>
+          <input type="date" id="end-date" onchange="applyCustomRange()" class="font-pressstart text-[9px] text-[#3D2013] bg-transparent outline-none cursor-pointer">
+        </div>
+      </div>
+    </div>
+
+<!-- 1ST ROW: STAT CARDS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
+  
+  <!-- CARD 1: TOTAL USERS -->
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md flex flex-col justify-between">
+    <div class="flex items-center gap-3 sm:gap-4 mb-3">
+      <!-- Icon with Background -->
+      <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#E3D2E5] border-2 border-[#261A36] rounded-[10px] flex items-center justify-center text-[#261A36] shrink-0 text-2xl sm:text-3xl">
+        <svg class="w-[1em] h-[1em]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+        </svg>
+      </div>
+      <div class="flex flex-col min-w-0 overflow-hidden">
+        <span id="stat-total-users" class="font-pressstart text-lg sm:text-2xl text-[#3D2013] font-bold leading-none truncate">1,248</span>
+        <span class="font-pixel text-[15px] sm:text-[18px] text-[#3D2013]/70 uppercase tracking-tight mt-1 leading-tight truncate">Total Users</span>
+      </div>
+    </div>
+    
+    <!-- Border Separator & Action Link -->
+    <div class="pt-2.5 border-t border-[#3D2013]/50 flex justify-end">
+      <a href="admin-users.html" class="font-pressstart text-[10px] text-[#3D2013] hover:underline flex items-center gap-1 group">
+        View all users <span class="transition-transform group-hover:translate-x-0.5">&gt;</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- CARD 2: ACTIVE ROOMS -->
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md flex flex-col justify-between">
+    <div class="flex items-center gap-3 sm:gap-4 mb-3">
+      <!-- Icon with Background -->
+      <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#CDECCF] border-2 border-[#5C8D57] rounded-[10px] flex items-center justify-center text-[#5C8D57] shrink-0 text-2xl sm:text-3xl">
+        <svg class="w-[1em] h-[1em]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+        </svg>
+      </div>
+      <div class="flex flex-col min-w-0 overflow-hidden">
+        <span id="stat-active-rooms" class="font-pressstart text-lg sm:text-2xl text-[#3D2013] font-bold leading-none truncate">42</span>
+        <span class="font-pixel text-[15px] sm:text-[18px] text-[#3D2013]/70 uppercase tracking-tight mt-1 leading-tight truncate">Active Rooms</span>
+      </div>
+    </div>
+
+    <!-- Border Separator & Action Link -->
+    <div class="pt-2.5 border-t border-[#3D2013]/50 flex justify-end">
+      <a href="admin-rooms.html" class="font-pressstart text-[10px] text-[#3D2013] hover:underline flex items-center gap-1 group">
+        View all rooms <span class="transition-transform group-hover:translate-x-0.5">&gt;</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- CARD 3: STUDY SESSIONS -->
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md flex flex-col justify-between">
+    <div class="flex items-center gap-3 sm:gap-4 mb-3">
+      <!-- Icon with Background -->
+      <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#FFD7A3] border-2 border-[#944444] rounded-[10px] flex items-center justify-center text-[#944444] shrink-0 text-2xl sm:text-3xl">
+        <svg class="w-[1em] h-[1em]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+        </svg>
+      </div>
+      <div class="flex flex-col min-w-0 overflow-hidden">
+        <span id="stat-study-sessions" class="font-pressstart text-lg sm:text-2xl text-[#3D2013] font-bold leading-none truncate">318</span>
+        <span class="font-pixel text-[15px] sm:text-[18px] text-[#3D2013]/70 uppercase tracking-tight mt-1 leading-tight truncate">Study Sessions</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 4: AVG PRODUCTIVITY -->
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md flex flex-col justify-between">
+    <div class="flex items-center gap-3 sm:gap-4 mb-3">
+      <!-- Icon with Background -->
+      <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#CDE9F8] border-2 border-[#4F87B6] rounded-[10px] flex items-center justify-center text-[#4F87B6] shrink-0 text-2xl sm:text-3xl">
+        <svg class="w-[1em] h-[1em]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+        </svg>
+      </div>
+      <div class="flex flex-col min-w-0 overflow-hidden">
+        <span id="stat-avg-productivity" class="font-pressstart text-lg sm:text-2xl text-[#3D2013] font-bold leading-none truncate">84%</span>
+        <span class="font-pixel text-[15px] sm:text-[18px] text-[#3D2013]/70 uppercase tracking-tight mt-1 leading-tight truncate">Avg Productivity</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+    <!-- 2ND ROW: BAR GRAPH + PIE GRAPH -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      
+      <!-- WEEKLY ACTIVE USERS (BAR GRAPH) -->
+      <div class="lg:col-span-2 bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-5 shadow-md flex flex-col justify-between">
+<div class="mb-4">
+  <h2 class="font-pressstart text-sm sm:text-base text-[#3D2013] flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-[1.25em] h-[1.25em] shrink-0 text-[#F6835E]" viewBox="0 0 16 16">
+      <path d="M0 0h16v16H0z" fill="none" />
+      <path fill="currentColor" d="M15.25 15H.75q-.311 0-.53-.22q-.22-.219-.22-.53t.22-.53q.219-.22.53-.22h14.5q.311 0 .53.22q.22.219.22.53t-.22.53q-.219.22-.53.22" />
+      <path fill="currentColor" d="M2.25 7h2.5a.25.25 0 0 1 .25.25v6.5a.25.25 0 0 1-.25.25h-2.5a.25.25 0 0 1-.25-.25v-6.5A.25.25 0 0 1 2.25 7m4-4h2.5a.25.25 0 0 1 .25.25v10.5a.25.25 0 0 1-.25.25h-2.5a.25.25 0 0 1-.25-.25V3.25A.25.25 0 0 1 6.25 3m4 6h2.5a.25.25 0 0 1 .25.25v4.5a.25.25 0 0 1-.25.25h-2.5a.25.25 0 0 1-.25-.25v-4.5a.25.25 0 0 1 .25-.25" />
+    </svg>
+    Weekly Active Users
+  </h2>
+</div>
+        <div class="relative h-64 w-full">
+          <canvas id="activeUsersChart"></canvas>
+        </div>
+      </div>
+
+      <!-- MOST USED STUDY TECHNIQUES (PIE GRAPH) -->
+      <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-5 shadow-md flex flex-col justify-between">
+        <div class="mb-4">
+          <h2 class="font-pressstart text-sm sm:text-base text-[#3D2013]">Study Techniques</h2>
+          <p class="font-pressstart text-[9px] text-[#3D2013]/70 mt-1">Usage distribution (%)</p>
+        </div>
+        <div class="relative h-64 w-full flex items-center justify-center">
+          <canvas id="techniquesChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3RD ROW: AVERAGE STUDY HOURS (LINE GRAPH) -->
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-5 shadow-md">
+      <div class="mb-4">
+        <h2 class="font-pressstart text-sm sm:text-base text-[#3D2013]">Average Study Hours</h2>
+        <p id="line-chart-subtitle" class="font-pressstart text-[9px] text-[#3D2013]/70 mt-1">Historical study hours trend</p>
+      </div>
+      <div class="relative h-72 w-full">
+        <canvas id="studyHoursChart"></canvas>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- LOGOUT MODAL -->
+  <div id="logout-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-8 max-w-md w-full flex flex-col items-center justify-center text-center">    
+      <h3 class="font-pressstart text-base sm:text-lg text-[#3D2013] mb-4">LOGOUT</h3>
+      <p class="font-pressstart text-sm sm:text-base text-[#3D2013] mb-6 leading-relaxed">
+        Are you sure you want to log out?
+      </p>
+      <div class="flex items-center gap-4 w-full">
+        <button onclick="closeModal('logout-modal')" class="flex-1 font-pressstart text-xs bg-[#F6DBBC] border-[2.5px] border-[#3D2013] text-[#3D2013] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+          CANCEL
+        </button>
+        <a href="index.html" class="flex-1 text-center font-pressstart text-xs bg-[#A53914] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer block">
+          CONFIRM
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- EXTRACTED DESIGN: SIDEBAR OVERLAY SCRIPT   -->
+  <!-- ========================================== -->
+  <script src="./sidebar-overlay.js"></script>
+  <script src="admin-dashboard.js"></script>
+</body>
+</html>

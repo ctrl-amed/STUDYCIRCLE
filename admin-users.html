@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin User</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen relative text-[#3D2013] overflow-x-hidden flex flex-col">
+
+  <!-- 1. FIXED BACKGROUND TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- STEP 1: HEADER SECTION -->
+  <header class="relative z-10 p-4 sm:p-6 md:ml-[20%] flex justify-end items-center transition-all duration-300">
+    <div class="flex items-center gap-3">
+      <!-- ADMIN PROFILE BADGE -->
+      <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] px-3 sm:px-4 py-1.5 flex items-center gap-3 shadow-md">
+        <div class="w-9 h-9 rounded-full border-[2px] border-[#3D2013] bg-[#FAE9CE] flex items-center justify-center overflow-hidden shrink-0">
+          <img id="admin-pfp" src="" alt="Admin PFP" class="w-full h-full object-cover hidden">
+          <svg id="admin-pfp-placeholder" class="w-5 h-5 text-[#3D2013]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span id="admin-name" class="font-pressstart text-[11px] sm:text-[12px] text-[#3D2013] leading-tight">Admin Name</span>
+          <span id="admin-role" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]/70 leading-tight">Administrator</span>
+        </div>
+      </div>
+
+      <!-- LOGOUT BUTTON -->
+      <button onclick="openModal('logout-modal')" title="Logout"
+              class="bg-[#A53914] border-[2.5px] sm:border-[3px] border-[#3D2013] p-2.5 sm:p-3 rounded-[10px] flex items-center justify-center transition-all duration-150 retro-shadow shrink-0 cursor-pointer">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- STEP 2: MAIN PAGE CONTENT -->
+  <main class="relative z-10 px-4 sm:px-8 pb-8 md:ml-[5%] transition-all duration-300 flex-1">
+
+<!-- 1ST ROW: 4 CARDS -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-8">
+  
+  <!-- CARD 1: TOTAL USERS -->
+  <div class="bg-[#E3D2E5] border-[3px] border-[#261A36] rounded-[12px] p-3 sm:p-5 shadow-md flex items-stretch gap-2 sm:gap-4 @container">
+    <div class="flex items-center justify-center text-[#261A36] shrink-0 text-3xl sm:text-4xl self-stretch">
+      <svg class="w-[1em] h-[1em]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+      </svg>
+    </div>
+    <div class="flex flex-col justify-center min-w-0 overflow-hidden">
+      <span id="stat-total-users" class="font-pressstart text-[clamp(0.85rem,13cqw,1.875rem)] text-[#3D2013] font-bold leading-none truncate">0</span>
+      <span class="font-pixel text-[15px] sm:text-[20px] text-[#3D2013]/70 uppercase tracking-tight mt-1 sm:mt-1.5 leading-tight truncate">Total Users</span>
+    </div>
+  </div>
+
+  <!-- CARD 2: ACTIVE USERS -->
+  <div class="bg-[#CDECCF] border-[3px] border-[#5C8D57] rounded-[12px] p-3 sm:p-5 shadow-md flex items-stretch gap-2 sm:gap-4 @container">
+    <div class="flex items-center justify-center text-[#5C8D57] shrink-0 text-3xl sm:text-4xl self-stretch">
+      <svg class="w-[1em] h-[1em]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+    </div>
+    <div class="flex flex-col justify-center min-w-0 overflow-hidden">
+      <span id="stat-active-users" class="font-pressstart text-[clamp(0.85rem,13cqw,1.875rem)] text-[#3D2013] font-bold leading-none truncate">0</span>
+      <span class="font-pixel text-[15px] sm:text-[20px] text-[#3D2013]/70 uppercase tracking-tight mt-1 sm:mt-1.5 leading-tight truncate">Active Users</span>
+    </div>
+  </div>
+
+  <!-- CARD 3: SUSPENDED USERS -->
+  <div class="bg-[#F7CACA] border-[3px] border-[#944444] rounded-[12px] p-3 sm:p-5 shadow-md flex items-stretch gap-2 sm:gap-4 @container">
+    <div class="flex items-center justify-center text-[#944444] shrink-0 text-3xl sm:text-4xl self-stretch">
+      <svg class="w-[1em] h-[1em]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+      </svg>
+    </div>
+    <div class="flex flex-col justify-center min-w-0 overflow-hidden">
+      <span id="stat-suspended-users" class="font-pressstart text-[clamp(0.85rem,13cqw,1.875rem)] text-[#3D2013] font-bold leading-none truncate">0</span>
+      <span class="font-pixel text-[15px] sm:text-[20px] text-[#3D2013]/70 uppercase tracking-tight mt-1 sm:mt-1.5 leading-tight truncate">Suspended Users</span>
+    </div>
+  </div>
+
+  <!-- CARD 4: NEW THIS WEEK -->
+  <div class="bg-[#CDE9F8] border-[3px] border-[#4F87B6] rounded-[12px] p-3 sm:p-5 shadow-md flex items-stretch gap-2 sm:gap-4 @container">
+    <div class="flex items-center justify-center text-[#4F87B6] shrink-0 text-3xl sm:text-4xl self-stretch">
+      <svg class="w-[1em] h-[1em]" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/>
+      </svg>
+    </div>
+    <div class="flex flex-col justify-center min-w-0 overflow-hidden">
+      <span id="stat-new-this-week" class="font-pressstart text-[clamp(0.85rem,13cqw,1.875rem)] text-[#3D2013] font-bold leading-none truncate">0</span>
+      <span class="font-pixel text-[15px] sm:text-[20px] text-[#3D2013]/70 uppercase tracking-tight mt-1 sm:mt-1.5 leading-tight truncate">New This Week</span>
+    </div>
+  </div>
+
+</div>
+
+    <!-- 2ND ROW: FILTERING & SEARCH CONTROLS -->
+    <div class="p-4 sm:p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      
+      <!-- LEFT SIDE: TITLE & DYNAMIC FILTER TOOLBAR -->
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-wrap items-start gap-2 sm:gap-3">
+          <h2 class="font-pressstart text-base sm:text-lg text-[#3D2013]">Users</h2>
+          
+          <!-- Primary Sort Dropdown -->
+          <select id="sort-category" onchange="handleSortCategoryChange()" 
+                  class="font-pressstart text-[10px] sm:text-xs bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[8px] px-2.5 py-1.5 text-[#3D2013] outline-none cursor-pointer">
+            <option value="" disabled selected>sort by</option>
+            <option value="level">Level</option>
+            <option value="streak">Streak</option>
+            <option value="coins">Coins</option>
+            <option value="registered">Registered</option>
+            <option value="status">Status</option>
+          </select>
+
+          <!-- DYNAMIC CONTROLS -->
+          <!-- 1. Number Sorter (Level, Streak, Coins) -->
+<!-- 1. Number Sorter (Level, Streak, Coins) -->
+<!-- DYNAMIC CONTROLS -->
+
+<!-- 1. Number Sorter (Level, Streak, Coins) -->
+<div id="number-sorter-container" class="hidden flex items-center gap-2">
+  <div id="number-custom-inputs" class="flex items-center gap-1">
+    <input type="number" id="num-min" oninput="applySortAndFilter()" placeholder="Min" 
+           class="font-pressstart text-[10px] bg-[#FAE9CE] border-[2px] border-[#3D2013] rounded-[8px] w-16 px-1.5 py-1 text-[#3D2013] outline-none">
+    <span class="font-pressstart text-xs">-</span>
+    <input type="number" id="num-max" oninput="applySortAndFilter()" placeholder="Max" 
+           class="font-pressstart text-[10px] bg-[#FAE9CE] border-[2px] border-[#3D2013] rounded-[8px] w-16 px-1.5 py-1 text-[#3D2013] outline-none">
+  </div>
+  <!-- Direction Toggle Button -->
+  <button id="num-sort-order-btn" type="button" onclick="toggleSortOrder()" title="Toggle Sort Order"
+          class="font-pressstart text-[10px] bg-[#FAE9CE] border-[2px] border-[#3D2013] rounded-[8px] px-2 py-1 text-[#3D2013] hover:bg-[#FEF4E0] transition-colors cursor-pointer flex items-center justify-center">
+    <span id="num-sort-order-icon">▼</span>
+  </button>
+</div>
+
+<!-- 2. Date Sorter (Registered) -->
+<div id="date-sorter-container" class="hidden flex items-center gap-2">
+  <div id="date-custom-inputs" class="flex items-center gap-1">
+    <input type="date" id="date-from" onchange="applySortAndFilter()" 
+           class="font-pressstart text-[9px] bg-[#FAE9CE] border-[2px] border-[#3D2013] rounded-[8px] px-1 py-1 text-[#3D2013] outline-none">
+    <span class="font-pressstart text-xs">-</span>
+    <input type="date" id="date-to" onchange="applySortAndFilter()" 
+           class="font-pressstart text-[9px] bg-[#FAE9CE] border-[2px] border-[#3D2013] rounded-[8px] px-1 py-1 text-[#3D2013] outline-none">
+  </div>
+  <!-- Direction Toggle Button -->
+  <button id="date-sort-order-btn" type="button" onclick="toggleSortOrder()" title="Toggle Sort Order"
+          class="font-pressstart text-[10px] bg-[#FAE9CE] border-[2px] border-[#3D2013] rounded-[8px] px-2 py-1 text-[#3D2013] hover:bg-[#FEF4E0] transition-colors cursor-pointer flex items-center justify-center">
+    <span id="date-sort-order-icon">▼</span>
+  </button>
+</div>
+
+<!-- 3. Status Sorter (Active / Inactive) -->
+<div id="status-sorter-container" class="hidden">
+  <select id="status-filter" onchange="applySortAndFilter()" 
+          class="font-pressstart text-[10px] sm:text-xs bg-[#FAE9CE] border-[2px] border-[#3D2013] rounded-[8px] px-2.5 py-1.5 text-[#3D2013] outline-none cursor-pointer">
+    <option value="all">All</option>
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+  </select>
+</div>
+
+        </div>
+
+        <p class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]/70">
+          Manage and monitor all users here.
+        </p>
+      </div>
+
+      <!-- RIGHT SIDE: LIVE SEARCH BAR -->
+      <div class="relative w-full md:w-100">
+        <input type="text" id="user-search-input" oninput="handleLiveSearch()" placeholder="Search username..." 
+               class="w-full font-pressstart text-[10px] sm:text-xs bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[8px] pl-8 pr-3 py-2 text-[#3D2013] placeholder-[#3D2013]/50 outline-none">
+        <svg class="w-4 h-4 text-[#3D2013]/70 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+      </div>
+
+    </div>
+
+<!-- 3RD ROW: USER CARD TABLE / MOBILE CARDS & FOOTER -->
+<div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] shadow-md overflow-hidden">
+  
+  <!-- DESKTOP VIEW: STANDARD TABLE (Hidden on mobile) -->
+  <div class="hidden md:block overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[700px]">
+      <thead>
+        <tr class="bg-[#FAE9CE] border-b-[3px] border-[#3D2013] font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">
+          <th class="p-3.5">User</th>
+          <th class="p-3.5">Email</th>
+          <th class="p-3.5 text-center">Level</th>
+          <th class="p-3.5 text-center">Streak</th>
+          <th class="p-3.5 text-center">Coins</th>
+          <th class="p-3.5 text-center">Status</th>
+          <th class="p-3.5 text-center">Registered</th>
+          <th class="p-3.5 text-center">Actions</th>
+        </tr>
+      </thead>
+      <!-- Desktop Rows Inflated by JS -->
+      <tbody id="user-table-body" class="divide-y-[2px] divide-[#3D2013]/10 font-pressstart text-[10px] sm:text-xs text-[#3D2013]">
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MOBILE VIEW: STACKED CARDS (Visible only on mobile/tablet) -->
+  <div id="user-card-mobile-list" class="block md:hidden p-3 space-y-3 font-pressstart">
+    <!-- Dynamic mobile cards render here -->
+  </div>
+
+</div>
+
+  <!-- FOOTER: PAGINATION -->
+  <div class="p-4 border-t-[2px] md:border-t-0 border-[#3D2013]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <!-- Left Side Stats -->
+    <span id="pagination-info" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]/80">
+      Showing 0-0 of 0 Users
+    </span>
+
+    <!-- Right Side Page Controls -->
+    <div id="pagination-controls" class="flex items-center gap-2">
+      <!-- Rendered dynamically by JS -->
+    </div>
+  </div>
+    
+
+  </main>
+
+  <!-- LOGOUT MODAL -->
+  <div id="logout-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-8 max-w-md w-full flex flex-col items-center justify-center text-center">    
+      <h3 class="font-pressstart text-base sm:text-lg text-[#3D2013] mb-4">LOGOUT</h3>
+      <p class="font-pressstart text-sm sm:text-base text-[#3D2013] mb-6 leading-relaxed">
+        Are you sure you want to log out?
+      </p>
+      <div class="flex items-center gap-4 w-full">
+        <button onclick="closeModal('logout-modal')" class="flex-1 font-pressstart text-xs bg-[#F6DBBC] border-[2.5px] border-[#3D2013] text-[#3D2013] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer">
+          CANCEL
+        </button>
+        <a href="index.html" class="flex-1 text-center font-pressstart text-xs bg-[#A53914] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-3 rounded-lg transition-all duration-150 retro-shadow cursor-pointer block">
+          CONFIRM
+        </a>
+      </div>
+    </div>
+  </div>
+
+<!-- 1. VIEW USER MODAL -->
+<!-- 1. VIEW USER MODAL -->
+<div id="view-user-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-4 sm:p-6 max-w-xl w-full flex flex-col text-left max-h-[90vh] overflow-y-auto">
+    
+    <!-- HEADER -->
+    <div class="flex items-center gap-3 pb-3 sm:pb-4 border-b-[2px] border-[#3D2013]">
+      <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-[12px] sm:rounded-[15px] bg-[#E87339] border-[2px] border-[#3D2013] flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#FEF4E0]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      </div>
+      <h3 class="font-pressstart text-sm sm:text-base text-[#3D2013]">User Details</h3>
+    </div>
+
+    <!-- BODY -->
+    <div id="view-user-details" class="font-pressstart text-xs text-[#3D2013] py-4 sm:py-5">
+      <!-- JavaScript injects content here -->
+    </div>
+
+    <!-- FOOTER -->
+    <div class="pt-3 sm:pt-4 border-t-[2px] border-[#3D2013] flex justify-end">
+      <button onclick="closeModal('view-user-modal')" class="font-pressstart text-xs bg-[#FD923E] border-[2px] border-[#3D2013] text-[#FEF4E0] px-5 sm:px-6 py-2 sm:py-2.5 rounded-lg retro-shadow cursor-pointer hover:scale-105 transition-transform">
+        CLOSE
+      </button>
+    </div>
+
+  </div>
+</div>
+
+  <!-- 3. REMOVE USER MODAL -->
+  <div id="remove-user-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+    <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] outline outline-[6px] outline-[#F6DBBC] -outline-offset-[9px] rounded-[23px] p-6 max-w-md w-full flex flex-col items-center text-center">
+      <h3 class="font-pressstart text-base text-[#3D2013] mb-4">REMOVE USER</h3>
+      <p id="remove-user-text" class="font-pressstart text-xs text-[#3D2013] mb-6 leading-relaxed">
+        Are you sure you want to remove this user?
+      </p>
+      <div class="flex gap-3 w-full">
+        <button onclick="closeModal('remove-user-modal')" class="flex-1 font-pressstart text-xs bg-[#F6DBBC] border-[2px] border-[#3D2013] text-[#3D2013] py-2.5 rounded-lg retro-shadow cursor-pointer">
+          CANCEL
+        </button>
+        <button onclick="confirmRemoveUser()" class="flex-1 font-pressstart text-xs bg-[#A53914] border-[2px] border-[#3D2013] text-[#FEF4E0] py-2.5 rounded-lg retro-shadow cursor-pointer">
+          REMOVE
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GLOBAL RETRO NOTIFICATION TOAST CONTAINER -->
+<div id="toast-container" class="fixed top-28 right-6 z-50 pointer-events-none flex flex-col gap-3"></div>
+
+  <!-- Scripts -->
+  <script src="./sidebar-overlay.js"></script>
+  <script src="admin-users.js"></script>
+</body>
+</html>

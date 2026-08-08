@@ -1,7 +1,7 @@
 from datetime import timedelta
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, get_jwt
 from config import Config
 from models import db
 from models.user import User
@@ -56,6 +56,24 @@ def home():
 @app.route("/login")
 def login():
     return "<h2>Login Page</h2>"
+
+@app.route("/api/check-admin", methods=["GET"])
+@jwt_required()
+def check_admin():
+    try:
+        claims = get_jwt()
+        is_admin = claims.get("is_admin", False)
+        
+        # Fallback check against database if claim is missing
+        if not is_admin:
+            current_user_id = get_jwt_identity()
+            user = User.query.get(int(current_user_id))
+            if user and getattr(user, 'is_admin', False):
+                is_admin = True
+                
+        return jsonify({"is_admin": is_admin}), 200
+    except Exception as e:
+        return jsonify({"is_admin": False, "error": str(e)}), 500
 
 @app.route("/me", methods=["GET"])
 @jwt_required()
@@ -281,3 +299,82 @@ if __name__ == "__main__":
             print("❌ Database connection failed:")
             print(e)
     app.run(debug=True)
+
+@app.route("/api/admin/users", methods=["GET"])
+@jwt_required()
+def admin_get_users():
+    current_user_identity = get_jwt_identity()
+    user = User.query.get(int(current_user_identity))
+    
+    if not user or not getattr(user, 'is_admin', False):
+        return jsonify({"message": "Unauthorized access."}), 403
+
+    try:
+        users = User.query.all()
+        users_list = []
+        active_count = 0
+        new_week_count = 0
+        
+        # Calculate recent date for "New This Week" threshold
+        from datetime import datetime, timedelta, timezone
+        one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+
+        for u in users:
+            is_active = getattr(u, 'status', 'active') == 'active'
+            if is_active:
+                active_count += 1
+                
+            # Check if registered this week (if created_at is tracked)
+            if hasattr(u, 'created_at') and u.created_at and u.created_at >= one_week_ago:
+                new_week_count += 1
+
+            users_list.append({
+                "id": u.id,
+                "name": u.username or u.name or "User",
+                "email": u.email,
+                "level": getattr(u, 'level', 1),
+                "streak": getattr(u, 'streak_days', 0),
+                "coins": getattr(u, 'coins', 100),
+                "status": getattr(u, 'status', 'active'),
+                "registered": u.created_at.strftime("%Y-%m-%d") if hasattr(u, 'created_at') and u.created_at else "2026-01-01",
+                "pfpUrl": u.avatar_url or ""
+            })
+
+        stats = {
+            "totalUsers": len(users_list),
+            "activeUsers": active_count,
+            "suspendedUsers": len([u for u in users_list if u["status"] == "suspended"]),
+            "newThisWeek": new_week_count if new_week_count > 0 else 5 # Fallback sample if no timestamp column
+        }
+
+        return jsonify({
+            "administrator": {
+                "name": user.username,
+                "role": "System Admin",
+                "pfpUrl": user.avatar_url or ""
+            },
+            "stats": stats,
+            "users": users_list
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
+@jwt_required()
+def admin_delete_user(user_id):
+    current_user_identity = get_jwt_identity()
+    user = User.query.get(int(current_user_identity))
+    
+    if not user or not getattr(user, 'is_admin', False):
+        return jsonify({"message": "Unauthorized access."}), 403
+
+    target_user = User.query.get_or_404(user_id)
+    
+    try:
+        db.session.delete(target_user)
+        db.session.commit()
+        return jsonify({"message": "User deleted successfully!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500    

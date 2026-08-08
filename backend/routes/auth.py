@@ -91,13 +91,22 @@ def login():
             "message": "Invalid email or password."
         }), 401
 
-    access_token = create_access_token(identity=str(user.id))
+    # Check if user is admin (defaults to False if column is null/missing)
+    is_admin = bool(getattr(user, 'is_admin', False))
+
+    # Embed is_admin inside JWT claims
+    access_token = create_access_token(
+        identity=str(user.id),
+        additional_claims={"is_admin": is_admin}
+    )
 
     return jsonify({
         "message": "Login successful!",
         "token": access_token,
+        "is_admin": is_admin,
         "username": user.username,
-        "email": user.email
+        "email": user.email,
+        "user": user.to_dict()
     }), 200
 
 
