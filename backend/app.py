@@ -59,7 +59,7 @@ app.register_blueprint(auth)
 # GEMINI API CLIENT SETUP                    #
 # ========================================== #
 # Initialize the new google-genai client
-gemini_client = genai.Client(api_key="AQ.Ab8RN6KoeRvE-e9I19IlM_jgbgn8-aQmSgxBMoxNhjkIRv1keA")
+api_key = os.getenv("GEMINI_API_KEY")
 
 # Define upload folder configuration
 UPLOAD_FOLDER = 'uploads'
