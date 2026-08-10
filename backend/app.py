@@ -59,7 +59,7 @@ app.register_blueprint(auth)
 # GEMINI API CLIENT SETUP                    #
 # ========================================== #
 # Initialize the new google-genai client
-gemini_client = genai.Client(api_key=os.environ.get("GCP_API_KEY"))
+gemini_client = genai.Client(api_key="AQ.Ab8RN6KoeRvE-e9I19IlM_jgbgn8-aQmSgxBMoxNhjkIRv1keA")
 
 # Define upload folder configuration
 UPLOAD_FOLDER = 'uploads'
@@ -333,14 +333,8 @@ def kitsu_ai_chat():
         return jsonify({"error": "Kitsu AI is currently resting. Try again later!"}), 500
     
 @app.route("/api/upload-source", methods=["POST"])
-@jwt_required()
+# @jwt_required()  # NAKA-COMMENT PARA SA TESTING
 def upload_source():
-    current_user_id = get_jwt_identity()
-    user = User.query.get(int(current_user_id))
-    
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-        
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
         
@@ -376,7 +370,7 @@ def upload_source():
                 "id": file_id,
                 "name": filename,
                 "size": file_size_mb,
-                "addedBy": user.username or user.name,
+                "addedBy": "Guest User", # Pinalitan muna natin dahil walang login
                 "textLength": len(extracted_text)
             }
         }), 201

@@ -309,7 +309,7 @@ function renderStep1Checkboxes() {
   `).join('');
 }
 
-// Step 1 Next Button Click Handler
+// --- 2. GENERATE TOOL FUNCTION (Connected to Flask & Gemini) ---
 async function handleStep1Next() {
   const checkboxes = document.querySelectorAll('#step-1-file-checkbox-list input[type="checkbox"]:checked');
   
@@ -318,7 +318,6 @@ async function handleStep1Next() {
     return;
   }
 
-  // Gather selected file IDs
   const selectedFileIds = Array.from(checkboxes).map(cb => cb.value);
   const token = sessionStorage.getItem('token') || localStorage.getItem('token');
 
@@ -340,7 +339,6 @@ async function handleStep1Next() {
     if (response.ok) {
       const result = await response.json();
 
-      // Set up currentGeneratedItem with server data
       currentGeneratedItem = {
         id: Date.now().toString(),
         title: result.title,
@@ -352,7 +350,6 @@ async function handleStep1Next() {
         notesState: result.notesState || null
       };
 
-      // Populate state variables based on tool type
       const container = document.getElementById('mock-output-content');
       if (result.quizState) {
         quizState = JSON.parse(JSON.stringify(result.quizState));
@@ -367,11 +364,9 @@ async function handleStep1Next() {
 
       hasActiveToolChanged = true;
 
-      // Update header title
       const titleElem = document.getElementById('tools-header-title');
       if (titleElem) titleElem.textContent = currentGeneratedItem.title;
 
-      // Save into generatedItems array and update sidebar list
       const existingIndex = generatedItems.findIndex(item => item.id === currentGeneratedItem.id);
       if (existingIndex !== -1) {
         generatedItems[existingIndex] = { ...currentGeneratedItem };
@@ -380,7 +375,6 @@ async function handleStep1Next() {
       }
       renderGeneratedItemsList();
 
-      // Switch views to Step 2
       document.getElementById('step-1-source-select').classList.add('hidden');
       document.getElementById('step-2-generated-container').classList.remove('hidden');
     } else {
@@ -1530,7 +1524,10 @@ function handleFileDrop(e) {
   }
 }
 
+/// --- 1. UPLOAD FUNCTION (Connected to Flask) ---
 async function processUploadedFile(file) {
+  console.log("🔥 NA-TRIGGER ANG UPLOAD FUNCTION!", file);
+  
   if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
     showCustomizerSuccessToast('Error: Only PDF files are supported.');
     return;
@@ -1570,6 +1567,7 @@ async function processUploadedFile(file) {
     const headers = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
+    console.log("📤 Pinapadala sa Flask backend...");
     const response = await fetch("http://127.0.0.1:5000/api/upload-source", {
       method: "POST",
       headers: headers,
@@ -1577,26 +1575,29 @@ async function processUploadedFile(file) {
     });
 
     clearInterval(progressInterval);
+    console.log("📥 Server Response Status:", response.status);
 
     if (response.ok) {
       const data = await response.json();
+      console.log("✅ SERVER DATA RECEIVED:", data);
       
       if (progressBar) progressBar.style.width = '100%';
       if (progressPercent) progressPercent.textContent = '100%';
 
       setTimeout(() => {
-        // 1. Push the backend response file object directly to the TOP of the array
-        uploadedFiles.unshift(data.file);
+        // Tinitiyak na umiiral ang uploadedFiles array
+        if (typeof uploadedFiles === 'undefined') {
+          window.uploadedFiles = [];
+        }
 
-        // 2. Re-render the files list container
-        renderUploadedFiles();
+        uploadedFiles.unshift(data.file);
+        console.log("📦 ARRAY NGAYON:", uploadedFiles);
         
-        // 3. Close modal & reset
+        renderUploadedFiles();
         closePdfModal();
         showCustomizerSuccessToast(`Uploaded: ${file.name}`);
         resetModalProgress();
 
-        // 4. Auto-scroll the tools container to the top so the new file is visible
         const toolsContainer = document.querySelector('#tools-col .overflow-y-auto');
         const listContainer = document.getElementById('uploaded-files-list');
         if (toolsContainer) toolsContainer.scrollTop = 0;
@@ -1604,55 +1605,17 @@ async function processUploadedFile(file) {
       }, 300);
     } else {
       const errData = await response.json().catch(() => ({}));
-      const errorMsg = errData.error || errData.msg || errData.message || 'Unauthorized Server Error';
-      
-      if (progressBar) progressBar.style.width = '100%';
-      if (progressPercent) progressPercent.textContent = '100%';
-
-      setTimeout(() => {
-        // UI FALLBACK: Add file locally so you can still test the UI tools
-        uploadedFiles.unshift({
-            id: 'mock-' + Date.now(),
-            name: file.name,
-            size: formattedSize,
-            addedBy: 'You (Local Mode)'
-        });
-        renderUploadedFiles();
-        closePdfModal();
-        showCustomizerSuccessToast(`Server: ${errorMsg}. Added locally instead!`);
-        resetModalProgress();
-        
-        const toolsContainer = document.querySelector('#tools-col .overflow-y-auto');
-        const listContainer = document.getElementById('uploaded-files-list');
-        if (toolsContainer) toolsContainer.scrollTop = 0;
-        if (listContainer) listContainer.scrollTop = 0;
-      }, 300);
+      console.error("❌ SERVER ERROR:", errData);
+      showCustomizerSuccessToast(`Error: ${errData.error || 'Server error'}`);
+      closePdfModal();
+      resetModalProgress();
     }
   } catch (err) {
     clearInterval(progressInterval);
-    console.error("Upload network error:", err);
-    
-    if (progressBar) progressBar.style.width = '100%';
-    if (progressPercent) progressPercent.textContent = '100%';
-
-    setTimeout(() => {
-      // UI FALLBACK: Add file locally if Python server is turned off completely
-      uploadedFiles.unshift({
-          id: 'mock-' + Date.now(),
-          name: file.name,
-          size: formattedSize,
-          addedBy: 'You (Offline Mode)'
-      });
-      renderUploadedFiles();
-      closePdfModal();
-      showCustomizerSuccessToast(`Server Offline. Added locally instead!`);
-      resetModalProgress();
-      
-      const toolsContainer = document.querySelector('#tools-col .overflow-y-auto');
-      const listContainer = document.getElementById('uploaded-files-list');
-      if (toolsContainer) toolsContainer.scrollTop = 0;
-      if (listContainer) listContainer.scrollTop = 0;
-    }, 300);
+    console.error("🚨 UPLOAD NETWORK ERROR:", err);
+    showCustomizerSuccessToast(`Network Error. Make sure Flask server is running.`);
+    closePdfModal();
+    resetModalProgress();
   }
 }
 
@@ -1669,9 +1632,12 @@ function formatBytes(bytes, decimals = 1) {
 // Render uploaded source files list on Main Menu
 function renderUploadedFiles() {
   const list = document.getElementById('uploaded-files-list');
-  if (!list) return;
+  if (!list) {
+    console.warn("⚠️ Warning: Element #uploaded-files-list ay hindi makita sa HTML!");
+    return;
+  }
 
-  if (uploadedFiles.length === 0) {
+  if (typeof uploadedFiles === 'undefined' || uploadedFiles.length === 0) {
     list.innerHTML = '';
     list.classList.add('hidden'); // Force hide container if empty
     return;
@@ -1682,7 +1648,6 @@ function renderUploadedFiles() {
   list.innerHTML = uploadedFiles.map(file => {
     const uploaderLabel = (!file.addedBy || file.addedBy === "You") ? "You" : file.addedBy;
 
-    // REMOVED the broken 'animate-fadeIn' class so it actually shows up!
     return `
       <div class="flex items-center justify-between rounded-xl p-2.5 bg-[#FFF8EC]/60 border border-[#3D2013]/15 shadow-sm">
         <div class="flex items-center gap-2.5 min-w-0">
@@ -1695,7 +1660,7 @@ function renderUploadedFiles() {
           <div class="flex flex-col min-w-0">
             <div class="flex items-center gap-1.5 min-w-0">
               <span class="font-pressstart text-[8px] lg:text-[10px] text-[#3D2013] truncate">${file.name}</span>
-              <span class="font-pixel text-[15px] text-[#482A1D] shrink-0" leading-none>• Added by: ${uploaderLabel}</span>
+              <span class="font-pixel text-[15px] text-[#482A1D] shrink-0">• Added by: ${uploaderLabel}</span>
             </div>
             <span class="font-pixel text-[11px] text-[#3D2013]/60">${file.size || 'Unknown size'}</span>
           </div>
@@ -1706,6 +1671,13 @@ function renderUploadedFiles() {
       </div>
     `;
   }).join('');
+}
+
+function removeUploadedFile(id) {
+  if (typeof uploadedFiles !== 'undefined') {
+    uploadedFiles = uploadedFiles.filter(f => f.id !== id);
+    renderUploadedFiles();
+  }
 }
 
 function removeUploadedFile(id) {
@@ -1776,3 +1748,35 @@ timerChannel.onmessage = (event) => {
     }
   }
 };
+
+console.log("Kitsu JS is successfully loaded!");
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM is fully loaded. Waiting for file upload...");
+
+    // 1. Hanapin ang file input kung meron man (palitan ang 'pdf-file-input' kung iba ang ID sa HTML mo)
+    /*const fileInput = document.getElementById('pdf-file-input') || document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                console.log("File selected via input:", e.target.files[0].name);
+                processUploadedFile(e.target.files[0]);
+            }
+        });
+    }*/
+
+    // 2. I-setup ang Drag-and-Drop zone para siguradong sumasalo ng PDF
+    const dropZone = document.getElementById('drag-drop-zone');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                console.log("File dropped:", e.dataTransfer.files[0].name);
+                processUploadedFile(e.dataTransfer.files[0]);
+            }
+        });
+    }
+});
