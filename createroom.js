@@ -1,5 +1,5 @@
 /**
- * Create Room Dynamic Step Form Controller
+ * Create Room Dynamic Step Form Controller & Database Sync
  */
 let currentStep = 1;
 
@@ -12,6 +12,22 @@ const allSteps = [
   { stepId: 5, title: "Review" }
 ];
 
+// Dynamic Room Code Generator for Step 2
+let generatedRoomCode = `SC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Initialize dynamic room code and links in Step 2
+  const inviteCodeDisplay = document.getElementById("invite-code-display");
+  const inviteLinkDisplay = document.getElementById("invite-link-display");
+  
+  if (inviteCodeDisplay) inviteCodeDisplay.textContent = generatedRoomCode;
+  if (inviteLinkDisplay) inviteLinkDisplay.textContent = `studycircle.app/join/${generatedRoomCode}`;
+
+  renderDraftTasks();
+  fetchRealFriends(); // Fetch actual friends from database instead of mock data
+  updateStepUI();
+});
+
 /**
  * Gets the active steps list based on Max Players count (1 = Solo mode skips Step 4)
  */
@@ -19,16 +35,14 @@ function getActiveSteps() {
   const playersSelect = document.getElementById('room-players');
   const maxPlayers = playersSelect ? parseInt(playersSelect.value, 10) : 0;
 
-  // If 1 Player (Solo), exclude Step 4 (Invite)
   if (maxPlayers === 1) {
     return allSteps.filter(step => step.stepId !== 4);
   }
-  
   return allSteps;
 }
 
 /**
- * Renders the step progress bars dynamically based on active steps count (4 or 5)
+ * Renders the step progress bars dynamically
  */
 function renderProgressBars() {
   const container = document.getElementById("session-bars-container");
@@ -53,7 +67,6 @@ function updateStepUI() {
   const activeSteps = getActiveSteps();
   const totalSteps = activeSteps.length;
   
-  // Find current step position in active steps array
   let currentStepIndex = activeSteps.findIndex(s => s.stepId === currentStep);
   if (currentStepIndex === -1) {
     currentStep = activeSteps[0].stepId;
@@ -63,13 +76,11 @@ function updateStepUI() {
   const stepNumberText = document.getElementById("step-number-text");
   const stepTitleText = document.getElementById("step-title-text");
 
-  // Step counter text: "Step 1 of 4" or "Step 1 of 5"
   if (stepNumberText) stepNumberText.textContent = `${currentStepIndex + 1} of ${totalSteps}`;
   if (stepTitleText) stepTitleText.textContent = activeSteps[currentStepIndex].title;
 
   renderProgressBars();
 
-  // Show only active step panel, hide others
   for (let i = 1; i <= 5; i++) {
     const formPanel = document.getElementById(`step-form-${i}`);
     if (formPanel) {
@@ -81,7 +92,6 @@ function updateStepUI() {
     }
   }
 
-  // Trigger Review Summary rendering when arriving at Step 5
   if (currentStep === 5) {
     renderReviewSummary();
   }
@@ -90,7 +100,6 @@ function updateStepUI() {
   const btnNext = document.getElementById("btn-next");
   const btnCreate = document.getElementById("btn-create");
 
-  // Manage Back button visibility
   if (btnBack) {
     if (currentStepIndex === 0) {
       btnBack.classList.add("hidden");
@@ -101,7 +110,6 @@ function updateStepUI() {
     }
   }
 
-  // Manage Next / Create button visibility on the final step
   if (btnNext && btnCreate) {
     if (currentStepIndex === totalSteps - 1) {
       btnNext.classList.add("hidden");
@@ -123,32 +131,24 @@ function updateStepUI() {
 function validateStep(step) {
   if (step === 1) {
     let isValid = true;
-    
     const roomNameInput = document.getElementById('room-name');
     const roomTopicInput = document.getElementById('room-topic');
     const roomPlayersSelect = document.getElementById('room-players');
     const roomSessionsSelect = document.getElementById('room-sessions');
     const customSessionsInput = document.getElementById('custom-sessions-input');
 
-    // Check Room Name
     if (!roomNameInput || roomNameInput.value.trim() === '') {
       showError('room-name');
       isValid = false;
     }
-
-    // Check Room Topic
     if (!roomTopicInput || roomTopicInput.value.trim() === '') {
       showError('room-topic');
       isValid = false;
     }
-
-    // Check Max Players
     if (!roomPlayersSelect || roomPlayersSelect.value === '' || Number(roomPlayersSelect.value) < 1 || Number(roomPlayersSelect.value) > 6) {
       showError('room-players');
       isValid = false;
     }
-
-    // Check Room Sessions
     if (!roomSessionsSelect || roomSessionsSelect.value === '') {
       showError('room-sessions');
       isValid = false;
@@ -158,20 +158,14 @@ function validateStep(step) {
         isValid = false;
       }
     }
-
     return isValid;
   }
-
   return true;
 }
 
-/**
- * Toggles arrow rotation (up/down) when select dropdown is focused/blurred
- */
 function toggleDropdownArrow(isOpen) {
   const arrowIcon = document.getElementById("arrow-icon-players");
   if (!arrowIcon) return;
-
   if (isOpen) {
     arrowIcon.classList.add("rotate-180");
   } else {
@@ -179,130 +173,50 @@ function toggleDropdownArrow(isOpen) {
   }
 }
 
-/**
- * Updates text color once an option is selected & clears error message
- */
 function handlePlayersChange(selectEl) {
   clearError('room-players');
-
   if (selectEl.value !== "") {
     selectEl.classList.remove("text-[#3D2013]/40");
     selectEl.classList.add("text-[#3D2013]");
   }
-
-  // Re-evaluate friends selection limit and uninvite extra friends if player count dropped
   enforceInviteLimits();
   renderFriendsList();
-  
-  // Refresh UI steps bar dynamically
   updateStepUI();
 }
 
-/**
- * Displays red outline and shows the error text underneath
- */
 function showError(fieldId) {
   const inputEl = document.getElementById(fieldId);
   const errorEl = document.getElementById(`error-${fieldId}`);
-
   if (inputEl) inputEl.classList.add('border-[#D9383A]');
   if (errorEl) errorEl.classList.remove('hidden');
 }
 
-/**
- * Clears error state on typing/selecting
- */
 function clearError(fieldId) {
   const inputEl = document.getElementById(fieldId);
   const errorEl = document.getElementById(`error-${fieldId}`);
-
   if (inputEl) inputEl.classList.remove('border-[#D9383A]');
   if (errorEl) errorEl.classList.add('hidden');
 }
 
-/**
- * Action triggered on Next Button click
- */
 function nextStep() {
   if (!validateStep(currentStep)) return;
-
   const activeSteps = getActiveSteps();
   const currentStepIndex = activeSteps.findIndex(s => s.stepId === currentStep);
-
   if (currentStepIndex < activeSteps.length - 1) {
     currentStep = activeSteps[currentStepIndex + 1].stepId;
     updateStepUI();
   }
 }
 
-/**
- * Action triggered on Back Button click
- */
 function previousStep() {
   const activeSteps = getActiveSteps();
   const currentStepIndex = activeSteps.findIndex(s => s.stepId === currentStep);
-
   if (currentStepIndex > 0) {
     currentStep = activeSteps[currentStepIndex - 1].stepId;
     updateStepUI();
   }
 }
 
-function submitCreateRoom() {
-  // 1. Gather values from user inputs
-  const roomName = document.getElementById("room-name")?.value.trim() || "Untitled Room";
-  const roomTopic = document.getElementById("room-topic")?.value.trim() || "General Study";
-  
-  const playersSelect = document.getElementById("room-players");
-  const roomPlayers = playersSelect && playersSelect.value ? parseInt(playersSelect.value, 10) : 1;
-
-  const techniqueTitles = {
-    pomodoro: "Pomodoro",
-    "5217": "52-17",
-    "90min": "90-mins"
-  };
-  const technique = techniqueTitles[selectedTechniqueKey] || "Pomodoro";
-
-  const formattedDate = new Date().toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric"
-  });
-
-  const validTasks = draftTasks.filter(t => t.trim() !== "");
-  const checklist = validTasks.length > 0
-    ? validTasks.map(task => ({ title: task, status: "inprogress" }))
-    : [{ title: "Initial Study Focus", status: "inprogress" }];
-
-  const customConfig = JSON.parse(sessionStorage.getItem("user_furniture_config") || '{"room":"ROOM1"}');
-
-  // 2. Build room object using roomPlayers
-  const newRoom = {
-    id: `RM-${Math.floor(100 + Math.random() * 900)}`,
-    name: roomName,
-    topic: roomTopic,
-    host: "You",
-    players: roomPlayers,      // <-- Fixed: Now dynamically uses selected room players
-    maxPlayers: roomPlayers,   // <-- Updated to match selected capacity
-    dateCreated: formattedDate,
-    progressPercent: 0,
-    visibility: selectedPrivacy || "public",
-    technique: technique,
-    checklist: checklist,
-    roomConfig: customConfig
-  };
-
- // 3. Save to sessionStorage
-  const existingRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
-  existingRooms.unshift(newRoom);
-  sessionStorage.setItem("userCreatedRooms", JSON.stringify(existingRooms));
-
-  // 4. Redirect
-  window.location.href = "generated-homepage.html";
-}
-/**
- * Header Close (X) button navigation handler
- */
 function goBack() {
   if (document.referrer && document.referrer.includes(window.location.host)) {
     window.history.back();
@@ -311,17 +225,13 @@ function goBack() {
   }
 }
 
-// Currently selected technique state
 let selectedTechniqueKey = 'pomodoro';
-
 function selectTechnique(technique) {
   selectedTechniqueKey = technique;
   const techniques = ['pomodoro', '5217', '90min'];
-
   techniques.forEach(tech => {
     const btn = document.getElementById(`btn-tech-${tech}`);
     if (!btn) return;
-
     if (tech === technique) {
       btn.classList.remove('bg-[#FAE9CE]', 'flat-retro-shadow-hover');
       btn.classList.add('bg-[#FD923E]');
@@ -333,13 +243,10 @@ function selectTechnique(technique) {
 }
 
 let selectedPrivacy = 'public';
-
 function selectPrivacy(type) {
   selectedPrivacy = type;
-
   const publicCard = document.getElementById('card-privacy-public');
   const privateCard = document.getElementById('card-privacy-private');
-
   if (type === 'public') {
     publicCard.className = "flex flex-col gap-2 p-3 sm:p-4 bg-[#FD923E] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer transition-all duration-150 select-none";
     privateCard.className = "flex flex-col gap-2 p-3 sm:p-4 bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer flat-retro-shadow-hover transition-all duration-150 select-none";
@@ -357,9 +264,8 @@ function copyText(textToCopy, label) {
   });
 }
 
-// Initial draft tasks state
+// Draft Tasks Management (Shared Tasklist sync)
 let draftTasks = [];
-
 function renderDraftTasks() {
   const container = document.getElementById("tasks-list-container");
   if (!container) return;
@@ -378,7 +284,7 @@ function renderDraftTasks() {
       <input type="text" 
              value="${taskText.replace(/"/g, '&quot;')}" 
              onchange="updateDraftTaskRow(${index}, this.value)"
-             placeholder="Enter task item..." 
+             placeholder="Enter shared task item..." 
              class="flex-1 bg-[#FAE9CE] text-[#3D2013] border-[2px] border-[#3D2013] !rounded-none p-2 font-pressstart text-[8px] sm:text-[9px] focus:outline-none focus:bg-[#FEF4E0] placeholder-[#3D2013]/40 transition-colors">
       
       <button type="button" onclick="deleteDraftTaskRow(${index})" 
@@ -393,7 +299,6 @@ function renderDraftTasks() {
 function addDraftTaskRow() {
   draftTasks.push("");
   renderDraftTasks();
-
   setTimeout(() => {
     const container = document.getElementById("tasks-list-container");
     if (container) {
@@ -418,31 +323,47 @@ function deleteDraftTaskRow(index) {
   }
 }
 
-// Mock list of friends state
-let friendsList = [
-  { id: 'f1', name: 'PixelSam', avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Sam', invited: false },
-  { id: 'f2', name: 'RetroAlex', avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Alex', invited: false },
-  { id: 'f3', name: 'CyberMaya', avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Maya', invited: false },
-  { id: 'f4', name: 'ByteJordan', avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Jordan', invited: false },
-  { id: 'f5', name: 'CodeTaylor', avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Taylor', invited: false }
-];
+// REAL FRIENDS INTEGRATION
+let friendsList = [];
 
-/**
- * Calculates max allowed invitations: (Max Players Selected) - 1 (Host)
- */
+async function fetchRealFriends() {
+  const token = sessionStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const response = await fetch("http://127.0.0.1:5000/api/friends", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      // Map real database friends
+      friendsList = (data.friends || []).map(f => ({
+        id: f.id.toString(),
+        name: f.username || f.name || "Friend",
+        avatar: f.avatarUrl || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=' + f.username,
+        invited: false
+      }));
+      renderFriendsList();
+    }
+  } catch (err) {
+    console.warn("Could not fetch real friends, using empty list:", err);
+  }
+}
+
 function getMaxInviteLimit() {
   const playersSelect = document.getElementById('room-players');
   const maxPlayers = playersSelect ? parseInt(playersSelect.value, 10) : 6;
   return Math.max(0, maxPlayers - 1);
 }
 
-/**
- * Ensures invited count does not exceed current limit if player dropdown changes
- */
 function enforceInviteLimits() {
   const maxInvites = getMaxInviteLimit();
   let invitedCount = 0;
-
   friendsList.forEach(friend => {
     if (friend.invited) {
       invitedCount++;
@@ -453,12 +374,14 @@ function enforceInviteLimits() {
   });
 }
 
-/**
- * Renders the list of friends inside Step 4 with limit controls
- */
 function renderFriendsList() {
   const container = document.getElementById("friends-list-container");
   if (!container) return;
+
+  if (friendsList.length === 0) {
+    container.innerHTML = `<p class="font-pressstart text-[8px] text-[#3D2013]/60 italic py-2">No friends found. Add friends first to invite them!</p>`;
+    return;
+  }
 
   const maxInvites = getMaxInviteLimit();
   const currentInvitedCount = friendsList.filter(f => f.invited).length;
@@ -475,24 +398,17 @@ function renderFriendsList() {
     const isLimitReached = !friend.invited && currentInvitedCount >= maxInvites;
     
     const iconSvg = friend.invited 
-      ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
-           <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-         </svg>`
-      : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
-           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-         </svg>`;
+      ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>`;
 
     return `
       <div class="flex items-center justify-between p-2.5 ${bgClass} border-[2px] sm:border-[3px] border-[#3D2013] transition-colors duration-200 select-none">
-        <!-- LEFT SIDE: Profile Avatar + Name -->
         <div class="flex items-center gap-2.5">
           <img src="${friend.avatar}" alt="${friend.name}" class="w-7 h-7 sm:w-8 sm:h-8 border-[2px] border-[#3D2013] bg-[#FAE9CE] shrink-0" />
           <span class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] truncate max-w-[130px] sm:max-w-[180px]">
             ${friend.name}
           </span>
         </div>
-
-        <!-- RIGHT SIDE: Plus Icon + Invite Text -->
         <button type="button" 
                 onclick="toggleInviteFriend('${friend.id}')"
                 ${isLimitReached ? 'disabled' : ''} 
@@ -507,9 +423,6 @@ function renderFriendsList() {
   container.innerHTML = headerHTML + listHTML;
 }
 
-/**
- * Toggles friend invitation status respecting Max Invites limit
- */
 function toggleInviteFriend(friendId) {
   const friend = friendsList.find(f => f.id === friendId);
   if (!friend) return;
@@ -526,15 +439,8 @@ function toggleInviteFriend(friendId) {
   renderFriendsList();
 }
 
-// Initialize form state on DOM load
-document.addEventListener("DOMContentLoaded", () => {
-  renderDraftTasks();
-  renderFriendsList();
-  updateStepUI();
-});
-
 /**
- * Renders the final review summary card list inside Step 5
+ * Renders final review summary card list inside Step 5
  */
 function renderReviewSummary() {
   const container = document.getElementById("review-summary-container");
@@ -565,15 +471,14 @@ function renderReviewSummary() {
   };
   const roomTechnique = techniqueTitles[selectedTechniqueKey] || "Pomodoro";
 
-  const inviteCode = document.getElementById("invite-code-display")?.textContent.trim() || "K7P9-X2M4";
-  const privacyText = selectedPrivacy === "public" ? "Public" : `Private (${inviteCode})`;
+  const privacyText = selectedPrivacy === "public" ? "Public" : `Private (${generatedRoomCode})`;
 
   const validTasks = draftTasks.filter(t => t.trim() !== "");
   const tasksText = `${validTasks.length} Task(s)`;
 
-  const invitedCount = friendsList.filter(f => f.invited).length;
+  const invitedFriends = friendsList.filter(f => f.invited);
   const maxPlayers = playersSelect ? parseInt(playersSelect.value, 10) : 1;
-  const invitedText = maxPlayers === 1 ? "N/A (Solo)" : `${invitedCount} Friend(s)`;
+  const invitedText = maxPlayers === 1 ? "N/A (Solo)" : `${invitedFriends.length} Friend(s)`;
 
   const summaryItems = [
     { label: "Name", value: roomName },
@@ -598,32 +503,15 @@ function renderReviewSummary() {
   `).join('');
 }
 
-/**
- * Restricts keypress inputs to only allow numeric key codes (0-9, Backspace, Arrow keys, Delete, Tab)
- */
 function restrictToNumbersOnly(e) {
-  const allowedKeys = [
-    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'
-  ];
-  
-  // Allow navigation / control keys
-  if (allowedKeys.includes(e.key) || (e.ctrlKey || e.metaKey)) {
-    return;
-  }
-
-  // Prevent input if key is not a digit (0-9)
-  if (!/^[0-9]$/.test(e.key)) {
-    e.preventDefault();
-  }
+  const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
+  if (allowedKeys.includes(e.key) || (e.ctrlKey || e.metaKey)) return;
+  if (!/^[0-9]$/.test(e.key)) e.preventDefault();
 }
 
-/**
- * Toggles arrow rotation (up/down) when sessions dropdown is focused/blurred
- */
 function toggleSessionsDropdownArrow(isOpen) {
   const arrowIcon = document.getElementById("arrow-icon-sessions");
   if (!arrowIcon) return;
-
   if (isOpen) {
     arrowIcon.classList.add("rotate-180");
   } else {
@@ -631,19 +519,13 @@ function toggleSessionsDropdownArrow(isOpen) {
   }
 }
 
-/**
- * Handles session selection change & toggles custom input visibility
- */
 function handleSessionsChange(selectEl) {
   clearError('room-sessions');
-
   const customInput = document.getElementById('custom-sessions-input');
-
   if (selectEl.value !== "") {
     selectEl.classList.remove("text-[#3D2013]/40");
     selectEl.classList.add("text-[#3D2013]");
   }
-
   if (selectEl.value === 'custom') {
     if (customInput) {
       customInput.classList.remove('hidden');
@@ -657,8 +539,10 @@ function handleSessionsChange(selectEl) {
   }
 }
 
+/**
+ * Final Action: Submits created room data with synced tasks and invited real friends to backend
+ */
 async function submitCreateRoom() {
-  // 1. Gather values from user inputs
   const roomName = document.getElementById("room-name")?.value.trim() || "Untitled Room";
   const roomTopic = document.getElementById("room-topic")?.value.trim() || "General Study";
   
@@ -679,23 +563,34 @@ async function submitCreateRoom() {
   });
 
   const validTasks = draftTasks.filter(t => t.trim() !== "");
+  // Shared tasklist configuration (Synced across all room members)
   const checklist = validTasks.length > 0
     ? validTasks.map(task => ({ title: task, status: "inprogress" }))
     : [{ title: "Initial Study Focus", status: "inprogress" }];
 
   const customConfig = JSON.parse(sessionStorage.getItem("user_furniture_config") || '{"room":"ROOM1"}');
-  
-  // FIX: Safely initialize currentUser so it doesn't crash
-  const currentUser = JSON.parse(sessionStorage.getItem("user_profile") || '{"id": "u1", "username": "You", "avatar": ""}');
+  const currentUser = JSON.parse(sessionStorage.getItem("current_user") || sessionStorage.getItem("user_profile") || '{"id": "u1", "username": "You", "avatar": ""}');
+
+  // Gather invited real friends
+  const invitedMembers = friendsList.filter(f => f.invited).map(f => ({
+    id: f.id,
+    username: f.name,
+    avatar: f.avatar
+  }));
+
+  const allMembers = [
+    { id: currentUser.id || 'u1', username: currentUser.username || currentUser.name || "You", avatar: currentUser.avatar || currentUser.avatar_url || "" },
+    ...invitedMembers
+  ];
 
   const newRoom = {
-    id: `RM-${Math.floor(100 + Math.random() * 900)}`,
+    id: generatedRoomCode,
     name: roomName,
     topic: roomTopic,
-    host: currentUser.username || "You",
-    players: 1, 
-    maxPlayers: roomPlayers, 
-    members: [{ id: currentUser.id || 'u1', username: currentUser.username || "You", avatar: currentUser.avatar || "" }],
+    host: currentUser.username || currentUser.name || "You",
+    players: allMembers.length,
+    maxPlayers: roomPlayers,
+    members: allMembers,
     dateCreated: formattedDate,
     progressPercent: 0,
     visibility: selectedPrivacy || "public",
@@ -704,7 +599,22 @@ async function submitCreateRoom() {
     roomConfig: customConfig
   };
 
-  // 3. Save to backend database & sessionStorage fallback
+  // Create notifications for invited friends
+  const existingNotifications = JSON.parse(localStorage.getItem("userNotifications") || "[]");
+  invitedMembers.forEach(friend => {
+    existingNotifications.unshift({
+      id: `NOTIF-${Date.now()}-${friend.id}`,
+      recipientId: friend.id.toString(),
+      sender: currentUser.username || currentUser.name || "Host",
+      message: `${currentUser.username || currentUser.name || "Host"} invited you to join the study room: "${roomName}"`,
+      roomCode: generatedRoomCode,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      read: false
+    });
+  });
+  localStorage.setItem("userNotifications", JSON.stringify(existingNotifications));
+
+  // Sync to Backend Database via API
   try {
     const token = sessionStorage.getItem("token");
     const response = await fetch("http://127.0.0.1:5000/api/create-room", {
@@ -717,17 +627,18 @@ async function submitCreateRoom() {
     });
 
     if (!response.ok) {
-      console.warn("Failed to sync room to database, saving locally.");
+      console.warn("Failed to sync room to database, saving locally via sessionStorage.");
     }
   } catch (err) {
     console.error("Network error while creating room:", err);
   }
 
-  // Also store in sessionStorage for instant UI reflection
+  // Instant local reflections and active room setup
+  sessionStorage.setItem("activeRoomId", generatedRoomCode);
   const existingRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
   existingRooms.unshift(newRoom);
   sessionStorage.setItem("userCreatedRooms", JSON.stringify(existingRooms));
 
-  alert("Study Room created successfully!");
-  window.location.href = "generated-homepage.html";
+  // Step 5 final redirect to generated homepage with room code query parameter
+  window.location.href = `generated-homepage.html?room=${generatedRoomCode}`;
 }

@@ -7,7 +7,7 @@ const API_BASE_URL = window.location.hostname === "localhost" || window.location
   : "https://studycircle-kv4v.onrender.com"; // Online production
 
 /**
- * Fetches rooms primarily from the backend API so all users/accounts see them
+ * Fetches rooms primarily from the backend API and filters out private or finished rooms
  */
 async function fetchRooms() {
   let backendRooms = [];
@@ -29,7 +29,28 @@ async function fetchRooms() {
     console.warn("Backend fetch failed for rooms.", err);
   }
 
-  allRooms = backendRooms;
+  // Filter backend rooms to only include public and ongoing rooms
+  allRooms = backendRooms.filter(room => {
+    const visibility = room.visibility ? room.visibility.toLowerCase() : 'public';
+    
+    // Calculate progress percentage to check if it's finished
+    let calculatedPercent = room.progressPercent || 0;
+    if (room.checklist && room.checklist.length > 0) {
+      let checklistArray = room.checklist;
+      while (typeof checklistArray === 'string') {
+        try { checklistArray = JSON.parse(checklistArray); } catch(e) { break; }
+      }
+      if (Array.isArray(checklistArray) && checklistArray.length > 0) {
+        const completedCount = checklistArray.filter(c => c.status === "complete" || c.completed === true || c.status === "completed").length;
+        calculatedPercent = Math.round((completedCount / checklistArray.length) * 100);
+      }
+    }
+
+    const isFinished = calculatedPercent >= 100 || room.status === "finished";
+
+    return visibility === 'public' && !isFinished;
+  });
+
   renderRoomCards(allRooms);
 }
 
@@ -45,7 +66,7 @@ function renderRoomCards(rooms) {
   if (rooms.length === 0) {
     container.innerHTML = `
       <div class="col-span-full bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-none p-6 text-center shadow-md">
-        <p class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013]">NO ROOMS FOUND.</p>
+        <p class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013]">NO ONGOING PUBLIC ROOMS FOUND.</p>
       </div>
     `;
     return;
@@ -134,7 +155,7 @@ function filterRooms(query) {
 }
 
 function enterRoom(roomId) {
-  // Siguraduhing string o code lang ang kukunin kung sakaling object ang naipasa
+  // Ensure we extract a valid string or code if an object is passed
   const cleanId = typeof roomId === 'object' ? roomId.id || roomId.room_code : roomId;
   
   sessionStorage.setItem("activeRoomId", cleanId);

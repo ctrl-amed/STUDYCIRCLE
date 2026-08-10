@@ -807,21 +807,21 @@
           <!-- COLUMN 2: ACTION BUTTONS -->
           <div class="flex flex-col gap-3 justify-center">
             <!-- PAUSE / START BUTTON -->
-            <button id="timer-toggle-btn" onclick="toggleTimer()" class="w-full font-pressstart text-[10px] bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] !rounded-none py-2 px-3 flex items-center justify-center gap-2 transition-all duration-150 retro-shadow cursor-pointer">
-              <svg id="timer-toggle-icon" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+            <button id="timer-toggle-btn" class="w-full font-pressstart text-[10px] bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] !rounded-none py-2 px-3 flex items-center justify-center gap-2 transition-all duration-150 retro-shadow cursor-pointer pointer-events-auto">
+              <svg id="timer-toggle-icon" class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24">
                 <rect x="6" y="4" width="4" height="16" />
                 <rect x="14" y="4" width="4" height="16" />
               </svg>
-              <span id="timer-toggle-text">PAUSE</span>
+              <span id="timer-toggle-text" class="pointer-events-none">START</span>
             </button>
 
             <!-- RESET BUTTON -->
-            <button onclick="resetTimer()" class="w-full font-pressstart text-[10px] bg-[#FEF4E0] border-[2.5px] border-[#3D2013] text-[#3D2013] !rounded-none py-2 px-3 flex items-center justify-center gap-2 transition-all duration-150 retro-shadow cursor-pointer">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <button onclick="resetTimer()" class="w-full font-pressstart text-[10px] bg-[#FEF4E0] border-[2.5px] border-[#3D2013] text-[#3D2013] !rounded-none py-2 px-3 flex items-center justify-center gap-2 transition-all duration-150 retro-shadow cursor-pointer pointer-events-auto">
+              <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                 <path d="M3 3v5h5" />
               </svg>
-              <span>RESET</span>
+              <span class="pointer-events-none">RESET</span>
             </button>
           </div>
 
@@ -1393,8 +1393,7 @@
 
     <!-- RIGHT SIDE: KICK BUTTON -->
     <div class="shrink-0 pl-1 border-l-[2px] border-[#3D2013]/20">
-      <button onclick="kickMockPlayer()" 
-              title="Kick Player"
+      <button id="modal-kick-btn" onclick="kickMockPlayer()" 
               class="bg-[#A53914] border-[2.5px] sm:border-[3px] border-[#3D2013] px-3 py-2 sm:px-4 sm:py-2.5 rounded-[8px] flex items-center justify-center gap-1.5 text-[#FEF4E0] font-pressstart text-[9px] sm:text-[10px] retro-shadow hover:brightness-110 active:translate-x-[1px] active:translate-y-[1px] cursor-pointer transition-all">
         <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current shrink-0" viewBox="0 0 24 24">
           <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>

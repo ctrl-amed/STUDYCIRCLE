@@ -29,33 +29,46 @@ const profileMockData = {
 };
 
 /**
- * Tab Navigation Switcher
+ * Tab Navigation Switcher (Badges, Analytics, Settings)
  */
 function switchTab(tabName) {
   const btnBadges = document.getElementById('tab-badges');
+  const btnAnalytics = document.getElementById('tab-analytics');
   const btnSettings = document.getElementById('tab-settings');
+
   const formBadges = document.getElementById('form-badges');
+  const formAnalytics = document.getElementById('form-analytics');
   const formSettings = document.getElementById('form-settings');
 
   const chosenStyle = 'flex-1 text-center bg-[#E87339] text-[#FFFFF6] border-[3px] border-[#3D2013] !rounded-none py-3 px-2 font-pressstart text-[10px] sm:text-[12px] tracking-tight cursor-default transition-all duration-150';
   const unchosenStyle = 'flex-1 text-center bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none py-3 px-2 font-pressstart text-[10px] sm:text-[12px] tracking-tight cursor-pointer flat-retro-shadow-hover transition-all duration-150';
 
-  if (tabName === 'badges') {
+  // Hide all forms
+  [formBadges, formAnalytics, formSettings].forEach(form => {
+    if (form) {
+      form.classList.add('hidden');
+      form.classList.remove('flex');
+    }
+  });
+
+  // Reset all buttons
+  if (btnBadges) btnBadges.className = unchosenStyle;
+  if (btnAnalytics) btnAnalytics.className = unchosenStyle;
+  if (btnSettings) btnSettings.className = unchosenStyle;
+
+  // Show selected form and set active style
+  if (tabName === 'badges' && formBadges && btnBadges) {
     formBadges.classList.remove('hidden');
     formBadges.classList.add('flex');
-    formSettings.classList.add('hidden');
-    formSettings.classList.remove('flex');
-
     btnBadges.className = chosenStyle;
-    btnSettings.className = unchosenStyle;
-  } else if (tabName === 'settings') {
+  } else if (tabName === 'analytics' && formAnalytics && btnAnalytics) {
+    formAnalytics.classList.remove('hidden');
+    formAnalytics.classList.add('flex');
+    btnAnalytics.className = chosenStyle;
+  } else if (tabName === 'settings' && formSettings && btnSettings) {
     formSettings.classList.remove('hidden');
     formSettings.classList.add('flex');
-    formBadges.classList.add('hidden');
-    formBadges.classList.remove('flex');
-
     btnSettings.className = chosenStyle;
-    btnBadges.className = unchosenStyle;
   }
 }
 
@@ -172,6 +185,34 @@ function loadProfileUI(data) {
   if (statStreak) statStreak.textContent = `${stats.bestStreakDays || data.streakDays || 0} Days`;
   if (statCoins) statCoins.textContent = (stats.lifetimeCoins || data.coins || 0).toLocaleString();
 
+  // --- 4.1 WSA ANALYTICS CALCULATION SYNC ---
+  const avgQuiz = stats.avgQuizScore || 0;
+  const studyHrs = parseFloat(stats.totalStudyHours) || 0;
+  const rooms = stats.roomsCreated || 0;
+
+  const c1 = Math.round(((avgQuiz / 100) * 40) * 10) / 10;
+  const c2 = Math.round((Math.min(35, (studyHrs / 50) * 35)) * 10) / 10;
+  const c3 = Math.round((Math.min(25, (rooms / 10) * 25)) * 10) / 10;
+  const totalWSA = Math.round((c1 + c2 + c3) * 10) / 10;
+
+  const wsaTotalScore = document.getElementById('wsa-total-score');
+  const wsaC1Score = document.getElementById('wsa-c1-score');
+  const wsaC1Bar = document.getElementById('wsa-c1-bar');
+  const wsaC2Score = document.getElementById('wsa-c2-score');
+  const wsaC2Bar = document.getElementById('wsa-c2-bar');
+  const wsaC3Score = document.getElementById('wsa-c3-score');
+  const wsaC3Bar = document.getElementById('wsa-c3-bar');
+
+  if (wsaTotalScore) wsaTotalScore.textContent = totalWSA;
+  if (wsaC1Score) wsaC1Score.textContent = `${c1} / 40 pts`;
+  if (wsaC1Bar) wsaC1Bar.style.width = `${(c1 / 40) * 100}%`;
+
+  if (wsaC2Score) wsaC2Score.textContent = `${c2} / 35 pts`;
+  if (wsaC2Bar) wsaC2Bar.style.width = `${(c2 / 35) * 100}%`;
+
+  if (wsaC3Score) wsaC3Score.textContent = `${c3} / 25 pts`;
+  if (wsaC3Bar) wsaC3Bar.style.width = `${(c3 / 25) * 100}%`;
+
   // 5. Populate Form Inputs in Settings Tab
   const settingsEmail = document.getElementById('settings-email');
   const settingsUsername = document.getElementById('settings-username');
@@ -242,7 +283,6 @@ async function fetchBackendProfile() {
     loadProfileUI(profileMockData); // Fallback so page doesn't break offline
   }
 }
-
 /**
  * Form Submit Listener - Sync with Backend /update-profile API
  */

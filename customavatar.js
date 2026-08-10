@@ -74,17 +74,67 @@ let activeConfig = {};
 let historyStack = [];
 let userCoins = 0;
 
-// Track owned assets from sessionStorage
-let ownedAssets = JSON.parse(sessionStorage.getItem("ownedAssets")) || [];
+// Track owned assets from sessionStorage (fallback to free defaults)
+let ownedAssets = JSON.parse(sessionStorage.getItem("ownedAssets")) || ["BODY1", "BODY2", "BODY3", "FACE1", "HAIR3", "HAIR4", "TOP5", "TOP6", "SHOE1", "SHOE6"];
 
-// 3. Initialization
-// 3. Initialization in customavatar.html
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof getCoins === "function") {
-    userCoins = getCoins();
+// 3. Initialization - Fetch user profile, coins, and saved avatar state from database (Exact same approach as profile.js)
+document.addEventListener("DOMContentLoaded", async () => {
+  const token = sessionStorage.getItem("token");
+
+  if (!token) {
+    window.location.href = "authentication.html#login";
+    return;
   }
 
- const isJustSignedUp = sessionStorage.getItem("justSignedUp") === "true";
+  try {
+    const response = await fetch("http://127.0.0.1:5000/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      
+      // Directly assign coins exactly like profile.js does
+      userCoins = userData.coins !== undefined ? userData.coins : 0;
+
+      // Sync owned assets / inventory from database if available
+      if (userData.inventory) {
+        let inv = userData.inventory;
+        if (typeof inv === 'string') {
+          try { inv = JSON.parse(inv); } catch (e) {}
+        }
+        if (Array.isArray(inv)) {
+          inv.forEach(item => {
+            if (!ownedAssets.includes(item)) ownedAssets.push(item);
+          });
+        }
+      }
+
+      // Sync saved avatar configuration from database if available
+      const savedAvatar = userData.avatar_url || userData.avatarUrl;
+      if (savedAvatar) {
+        try {
+          let parsedAvatar = savedAvatar;
+          while (typeof parsedAvatar === 'string') {
+            parsedAvatar = JSON.parse(parsedAvatar);
+          }
+          if (typeof parsedAvatar === 'object' && parsedAvatar !== null) {
+            activeConfig = parsedAvatar;
+          }
+        } catch (e) {
+          console.warn("Could not parse backend avatar configuration:", e);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to fetch user profile data from backend:", err);
+  }
+
+  const isJustSignedUp = sessionStorage.getItem("justSignedUp") === "true";
   const savedConfig = window.getSavedAvatarConfig ? window.getSavedAvatarConfig() : null;
 
   // Trigger fade-out animation if redirected from signup
@@ -103,8 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
- if (isJustSignedUp) {
-    // New Signup Flow: Mark tutorial as pending for next page load
+  if (isJustSignedUp) {
     sessionStorage.removeItem("justSignedUp");
     sessionStorage.setItem("pendingTutorial", "true");
 
@@ -122,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sessionStorage.setItem("ownedAssets", JSON.stringify(ownedAssets));
   } else if (savedConfig && Object.keys(savedConfig).length > 0) {
     activeConfig = savedConfig;
-  } else {
+  } else if (!activeConfig || Object.keys(activeConfig).length === 0) {
     activeConfig = {
       body: "BODY1",
       face: "FACE1",
@@ -134,6 +183,16 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // Ensure default free assets are permanently marked as owned
+  Object.keys(ASSET_CATALOG).forEach(cat => {
+    ASSET_CATALOG[cat].forEach(item => {
+      if (item.price === 0 && !ownedAssets.includes(item.id)) {
+        ownedAssets.push(item.id);
+      }
+    });
+  });
+  sessionStorage.setItem("ownedAssets", JSON.stringify(ownedAssets));
+
   historyStack.push(JSON.parse(JSON.stringify(activeConfig)));
   updateCoinsDisplay();
   renderBodySection();
@@ -141,11 +200,10 @@ document.addEventListener("DOMContentLoaded", () => {
   updateAvatarPreview();
 });
 
-
 // Helper: Generates Coin Overlay Badge HTML
 function getCoinBadgeHTML(item) {
   if (ownedAssets.includes(item.id)) {
-    return ""; // Hide badge if already owned
+    return ""; // Hide coin badge if item is already owned
   }
 
   return `
@@ -156,21 +214,18 @@ function getCoinBadgeHTML(item) {
   `;
 }
 
-// Update Coins UI
+// Update Coins UI across all badge elements and selectors
 function updateCoinsDisplay() {
-  // Always get fresh coin count from storage if available
-  if (typeof getCoins === "function") {
-    userCoins = getCoins();
+  const coinsElems = document.querySelectorAll(".user-coin-balance");
+  coinsElems.forEach(el => {
+    el.textContent = userCoins.toLocaleString();
+  });
+
+  const altCoinsElem = document.getElementById("coins-count");
+  if (altCoinsElem) {
+    altCoinsElem.textContent = userCoins.toLocaleString();
   }
 
-  // Update elements in customavatar page
-  const coinsElem = document.getElementById("coins-count");
-  const modalCoinsElem = document.getElementById("modal-coins-count");
-
-  if (coinsElem) coinsElem.textContent = userCoins.toLocaleString();
-  if (modalCoinsElem) modalCoinsElem.textContent = userCoins.toLocaleString();
-
-  // Also trigger central display updater to sync header/modal badges
   if (typeof updateCoinDisplays === "function") {
     updateCoinDisplays();
   }
@@ -251,7 +306,6 @@ function renderBodySection() {
 }
 
 // Clear current category asset (Returns layer to default empty state)
-// Excludes 'body' and 'face'
 function clearCategory(category) {
   if (category === "body" || category === "face") return;
 
@@ -275,7 +329,7 @@ function renderAssets() {
 
   let htmlMarkup = "";
 
-  // Insert No Asset / Clear Button for all categories EXCEPT body and face
+  // Insert None/Clear Button for categories except body and face
   if (currentCategory !== "body" && currentCategory !== "face") {
     const isNoneSelected = !activeConfig[meta.layerKey] || activeConfig[meta.layerKey] === "";
     
@@ -293,7 +347,7 @@ function renderAssets() {
     `;
   }
 
-  // Render grid items
+  // Render catalog grid items
   htmlMarkup += items.map(item => {
     const isSelected = activeConfig[meta.layerKey] === item.id;
     const imgPath = `ASSETS/${meta.folder}/${item.id}.png`;
@@ -313,7 +367,6 @@ function renderAssets() {
   container.innerHTML = htmlMarkup;
 }
 
-// Asset Selection Event
 // Asset Selection Event (With Toggle/Unequip Logic)
 function selectAsset(category, assetId) {
   const meta = CATEGORY_MAP[category];
@@ -321,11 +374,10 @@ function selectAsset(category, assetId) {
 
   historyStack.push(JSON.parse(JSON.stringify(activeConfig)));
 
-  // If clicking an already equipped asset (excluding body and face), unequip it
+  // If clicking an already equipped asset, unequip it
   if (category !== "body" && category !== "face" && activeConfig[meta.layerKey] === assetId) {
     activeConfig[meta.layerKey] = "";
   } else {
-    // Otherwise, equip the selected asset
     activeConfig[meta.layerKey] = assetId;
   }
 
@@ -350,13 +402,13 @@ function updateAvatarPreview() {
     if (catalogItem) totalCost += catalogItem.price;
   });
 
-  // Update additional cost readout
+  // Update additional cost badge readout
   const costDisplay = document.getElementById("additional-cost-display");
   if (costDisplay) {
     costDisplay.textContent = totalCost.toLocaleString();
   }
 
-  // Update main action button text
+  // Update main action button label depending on purchase requirement
   const mainBtn = document.getElementById("main-action-btn");
   if (mainBtn) {
     mainBtn.textContent = unownedItems.length > 0 ? "BUY AND SAVE" : "SAVE";
@@ -591,23 +643,20 @@ function confirmPurchaseAndSave() {
     if (catalogItem) totalCost += catalogItem.price;
   });
 
-  const currentBalance = typeof getCoins === "function" ? getCoins() : userCoins;
-
-  if (currentBalance < totalCost) {
+  if (userCoins < totalCost) {
     insufficientCoinsMsg?.classList.remove("hidden");
     return;
   }
 
-  if (typeof deductCoins === "function") {
-    deductCoins(totalCost);
-    userCoins = getCoins();
-  } else {
-    userCoins -= totalCost;
-    updateCoinsDisplay();
-  }
+  // Deduct coins locally
+  userCoins -= totalCost;
+  updateCoinsDisplay();
 
+  // Mark items as owned permanently
   unownedItems.forEach(item => {
-    ownedAssets.push(item.id);
+    if (!ownedAssets.includes(item.id)) {
+      ownedAssets.push(item.id);
+    }
   });
   sessionStorage.setItem("ownedAssets", JSON.stringify(ownedAssets));
 
@@ -615,7 +664,7 @@ function confirmPurchaseAndSave() {
     window.saveAvatarConfig(activeConfig);
   }
 
-  // Sync to backend database
+  // Sync avatar configuration, remaining coins, and updated inventory back to backend database
   saveAvatarToBackend(activeConfig);
 
   renderBodySection();
@@ -677,15 +726,15 @@ function getUnownedSelectedItems() {
   return unownedItems;
 }
 
-/// Action button click handler
+// Action button click handler
 function handleSaveOrBuy() {
   const unownedItems = getUnownedSelectedItems();
 
   if (unownedItems.length > 0) {
-    // Has unowned items -> Open Purchase Modal
+    // Has unowned items -> Open Purchase Confirmation Modal
     openPurchaseModal();
   } else {
-    // Only equipped owned items -> Directly Save Configuration
+    // Only equipped owned items -> Directly save configuration
     if (window.saveAvatarConfig) {
       window.saveAvatarConfig(activeConfig);
     }
@@ -697,27 +746,32 @@ function handleSaveOrBuy() {
   }
 }
 
+// Backend Synchronization Function (Saves avatar configuration, inventory, and coins)
 async function saveAvatarToBackend(config) {
-    try {
-        const token = sessionStorage.getItem("token");// Adjust based on how you store your auth token
-        const response = await fetch("http://127.0.0.1:5000/api/update-avatar", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ config: config })
-        });
-        
-        const data = await response.json();
-        if (!response.ok) {
-            console.error("Failed to sync avatar to database:", data.error);
-        } else {
-            console.log("Avatar successfully synced to Supabase!", data);
-        }
-    } catch (err) {
-        console.error("Network error while saving avatar:", err);
+  try {
+    const token = sessionStorage.getItem("token");
+    const response = await fetch("http://127.0.0.1:5000/api/update-avatar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ 
+        config: config,
+        coins: userCoins,
+        inventory: ownedAssets 
+      })
+    });
+    
+    const data = await response.json();
+    if (!response.ok) {
+      console.error("Failed to sync avatar to database:", data.error);
+    } else {
+      console.log("Avatar and inventory successfully synced to database!", data);
     }
+  } catch (err) {
+    console.error("Network error while saving avatar configuration:", err);
+  }
 }
 
 // Modal Utilities
@@ -731,7 +785,7 @@ function closeModal(id) {
   if (el) el.classList.add("hidden");
 }
 
-// Sync avatar page userCoins when coins are purchased or updated in storage
+// Sync userCoins if modified from elsewhere across window sessions
 window.addEventListener("storage", (event) => {
   if (event.key === "player_user_coins") {
     if (typeof getCoins === "function") {

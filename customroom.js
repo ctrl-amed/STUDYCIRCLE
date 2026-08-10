@@ -32,11 +32,36 @@ function ensureDefaultOwnedFurniture() {
   }
 }
 
-// 3. Initialization
-document.addEventListener("DOMContentLoaded", () => {
+// 3. Initialization - Sync with Backend Database
+document.addEventListener("DOMContentLoaded", async () => {
   ensureDefaultOwnedFurniture();
 
-  if (typeof getCoins === "function") {
+  const token = sessionStorage.getItem("token");
+
+  if (token) {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/me", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        // Set userCoins exactly to what the database says
+        if (typeof userData.coins === "number") {
+          userCoins = userData.coins;
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch coins from backend:", err);
+    }
+  }
+
+  // Fallback if fetch fails
+  if (userCoins === 0 && typeof getCoins === "function") {
     userCoins = getCoins();
   }
 
@@ -44,6 +69,8 @@ document.addEventListener("DOMContentLoaded", () => {
   activeRoomConfig = normalizeRoomConfig(savedConfig);
 
   roomHistoryStack.push(cloneRoomConfig(activeRoomConfig));
+  
+  // Render and update UI after fetching
   updateCoinsDisplay();
   switchRoomCategory("room");
   updateRoomPreview();
@@ -75,15 +102,13 @@ function getCoinBadgeHTML(item) {
 }
 
 function updateCoinsDisplay() {
-  if (typeof getCoins === "function") {
-    userCoins = getCoins();
-  }
-
-  const coinsElem = document.getElementById("coins-count");
-  const modalCoinsElem = document.getElementById("modal-coins-count");
-
-  if (coinsElem) coinsElem.textContent = userCoins.toLocaleString();
-  if (modalCoinsElem) modalCoinsElem.textContent = userCoins.toLocaleString();
+  // Update all instances of user coin display matching this class or ID
+  const coinElements = document.querySelectorAll(".user-coin-balance, #coins-count, #modal-coins-count");
+  coinElements.forEach(el => {
+    if (el) {
+      el.textContent = userCoins.toLocaleString();
+    }
+  });
 
   if (typeof updateCoinDisplays === "function") {
     updateCoinDisplays();

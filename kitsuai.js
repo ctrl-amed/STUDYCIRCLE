@@ -1,8 +1,5 @@
 // --- STATE MANAGEMENT ---
-let uploadedFiles = [
-  { id: '1', name: 'Cell_Biology_Ch3.pdf', size: '2.4 MB', addedBy: 'Player 1' },
-  { id: '2', name: 'Organic_Chemistry_Summary.pdf', size: '1.1 MB', addedBy: 'You' }
-];
+let uploadedFiles = []; // Start with a completely clean slate!
 
 let generatedItems = []; // Saved tool items
 let currentActiveTool = ''; // 'Pre-quiz', 'Post-quiz', 'Flashcards', 'Notes'
@@ -176,11 +173,12 @@ function sendChatMessage() {
   triggerAIResponse(messageText);
 }
 
-// Simulated AI Answer Logic
-function triggerAIResponse(userQuery) {
+// Updated Simulated AI Answer Logic to fetch real backend AI responses
+async function triggerAIResponse(userQuery) {
   const chatStream = document.getElementById('chat-stream');
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
 
-  // Create AI container element: Plain text, pixel font, #3D2013 color, NO background/bubble
+  // Create AI container element: Plain text, pixel font, #3D2013 color
   const aiContainer = document.createElement('div');
   aiContainer.className = 'self-start max-w-[85%] font-pixel text-[#3D2013] text-sm sm:text-lg md:text-[20px] leading-snug py-1 break-words';
 
@@ -189,24 +187,36 @@ function triggerAIResponse(userQuery) {
   aiName.className = 'font-bold text-[#DD6E36] block text-xs sm:text-sm mb-0.5';
   aiName.textContent = 'Kitsu AI:';
 
-  // Response text container
+  // Response text container with typing indicator
   const aiText = document.createElement('span');
-  aiText.textContent = '...'; // Typing indicator placeholder
+  aiText.textContent = 'Thinking...';
 
   aiContainer.appendChild(aiName);
   aiContainer.appendChild(aiText);
 
-  // Delay simulation (1 second response time)
-  setTimeout(() => {
-    chatStream.appendChild(aiContainer);
-    scrollToBottom();
+  chatStream.appendChild(aiContainer);
+  scrollToBottom();
 
-    // Pick response based on user input or random fallback
-    const reply = getAIReplyText(userQuery);
-    
-    // Simulate typing effect
-    typeWriterEffect(aiText, reply, 25);
-  }, 600);
+  try {
+    const response = await fetch("http://127.0.0.1:5000/api/kitsu-ai/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ message: userQuery })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      typeWriterEffect(aiText, data.response, 25);
+    } else {
+      aiText.textContent = "Oops! Kitsu had trouble processing that request.";
+    }
+  } catch (err) {
+    console.error("AI Chat connection error:", err);
+    aiText.textContent = "Network error. Could not reach Kitsu AI server.";
+  }
 }
 
 // Quick keyword matcher for responses
@@ -300,40 +310,86 @@ function renderStep1Checkboxes() {
 }
 
 // Step 1 Next Button Click Handler
-function handleStep1Next() {
+async function handleStep1Next() {
   const checkboxes = document.querySelectorAll('#step-1-file-checkbox-list input[type="checkbox"]:checked');
   
   if (uploadedFiles.length > 0 && checkboxes.length === 0) {
-    alert('Please select at least one source file to continue.');
+    showCustomizerSuccessToast('Please select at least one source file to continue.');
     return;
   }
 
-  // 1. Instantly generate & inflate the mock content state based on the current tool
-  generateMockToolContent(currentActiveTool);
-  
-  // 2. Mark state as changed/dirty so navigation handlers track it
-  hasActiveToolChanged = true;
+  // Gather selected file IDs
+  const selectedFileIds = Array.from(checkboxes).map(cb => cb.value);
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
 
-  // 3. Update the header title dynamically to match the newly generated item
-  if (currentGeneratedItem && currentGeneratedItem.title) {
-    const titleElem = document.getElementById('tools-header-title');
-    if (titleElem) titleElem.textContent = currentGeneratedItem.title;
-  }
+  showCustomizerSuccessToast('Kitsu AI is generating your study materials...');
 
-  // 4. Automatically save/persist the generated item into the generatedItems array if it's new
-  if (currentGeneratedItem) {
-    const existingIndex = generatedItems.findIndex(item => item.id === currentGeneratedItem.id);
-    if (existingIndex !== -1) {
-      generatedItems[existingIndex] = { ...currentGeneratedItem };
+  try {
+    const response = await fetch("http://127.0.0.1:5000/api/generate-tool", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        toolType: currentActiveTool,
+        fileIds: selectedFileIds
+      })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+
+      // Set up currentGeneratedItem with server data
+      currentGeneratedItem = {
+        id: Date.now().toString(),
+        title: result.title,
+        type: result.type,
+        badgeColor: result.badgeColor,
+        date: new Date().toLocaleDateString(),
+        quizState: result.quizState || null,
+        flashcardState: result.flashcardState || null,
+        notesState: result.notesState || null
+      };
+
+      // Populate state variables based on tool type
+      const container = document.getElementById('mock-output-content');
+      if (result.quizState) {
+        quizState = JSON.parse(JSON.stringify(result.quizState));
+        renderQuizView(container);
+      } else if (result.flashcardState) {
+        flashcardState = JSON.parse(JSON.stringify(result.flashcardState));
+        renderFlashcardsView(container);
+      } else if (result.notesState) {
+        notesState = JSON.parse(JSON.stringify(result.notesState));
+        renderNotesView(container);
+      }
+
+      hasActiveToolChanged = true;
+
+      // Update header title
+      const titleElem = document.getElementById('tools-header-title');
+      if (titleElem) titleElem.textContent = currentGeneratedItem.title;
+
+      // Save into generatedItems array and update sidebar list
+      const existingIndex = generatedItems.findIndex(item => item.id === currentGeneratedItem.id);
+      if (existingIndex !== -1) {
+        generatedItems[existingIndex] = { ...currentGeneratedItem };
+      } else {
+        generatedItems.unshift({ ...currentGeneratedItem });
+      }
+      renderGeneratedItemsList();
+
+      // Switch views to Step 2
+      document.getElementById('step-1-source-select').classList.add('hidden');
+      document.getElementById('step-2-generated-container').classList.remove('hidden');
     } else {
-      generatedItems.unshift({ ...currentGeneratedItem });
+      showCustomizerSuccessToast('Failed to generate study tool from backend.');
     }
-    renderGeneratedItemsList();
+  } catch (err) {
+    console.error("Generation network error:", err);
+    showCustomizerSuccessToast('Network error while generating tool.');
   }
-
-  // 5. Hide Step 1, Show Step 2
-  document.getElementById('step-1-source-select').classList.add('hidden');
-  document.getElementById('step-2-generated-container').classList.remove('hidden');
 }
 
 // Reset Back to Tools Main View
@@ -1423,6 +1479,7 @@ function closePdfModal() {
   card.classList.add('scale-95', 'opacity-0');
   setTimeout(() => {
     modal.classList.add('hidden');
+    resetModalProgress();
   }, 200);
 }
 
@@ -1433,21 +1490,29 @@ function resetModalProgress() {
   const progressPercent = document.getElementById('upload-percent');
   const dropZone = document.getElementById('drag-drop-zone');
 
-  if (progressContainer) progressContainer.classList.add('hidden');
+  if (progressContainer) {
+    progressContainer.classList.add('hidden');
+    progressContainer.classList.remove('flex');
+  }
   if (dropZone) dropZone.classList.remove('hidden');
   if (progressBar) progressBar.style.width = '0%';
   if (progressPercent) progressPercent.textContent = '0%';
 }
 
+// Trigger hidden file input click
 function triggerFileInput() {
-  document.getElementById('pdf-file-input').click();
+  const input = document.getElementById('pdf-file-input');
+  if (input) input.click();
 }
 
+// Handle file selection from browse dialog
 function handleFileSelect(event) {
   const files = event.target.files;
   if (files && files[0]) {
-    simulateFileUpload(files[0]);
+    processUploadedFile(files[0]);
   }
+  // IMPORTANT FIX: Clear the file input value so selecting the same file triggers onchange again!
+  event.target.value = '';
 }
 
 function handleDragOver(e) {
@@ -1461,43 +1526,144 @@ function handleDragLeave(e) {
 function handleFileDrop(e) {
   e.preventDefault();
   if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-    simulateFileUpload(e.dataTransfer.files[0]);
+    processUploadedFile(e.dataTransfer.files[0]);
   }
 }
 
-function simulateFileUpload(file) {
-  const progressContainer = document.getElementById('upload-progress-container');
-  const progressBar = document.getElementById('upload-progress-bar');
-  const percentText = document.getElementById('upload-percent');
-  const nameText = document.getElementById('upload-filename');
-  const sizeText = document.getElementById('upload-filesize');
+async function processUploadedFile(file) {
+  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+    showCustomizerSuccessToast('Error: Only PDF files are supported.');
+    return;
+  }
 
-  progressContainer.classList.remove('hidden');
-  nameText.textContent = file.name;
-  sizeText.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const zone = document.getElementById('drag-drop-zone');
+  const progressContainer = document.getElementById('upload-progress-container');
+  const filenameElem = document.getElementById('upload-filename');
+  const filesizeElem = document.getElementById('upload-filesize');
+  const progressBar = document.getElementById('upload-progress-bar');
+  const progressPercent = document.getElementById('upload-percent');
+
+  const formattedSize = formatBytes(file.size);
+  if (filenameElem) filenameElem.textContent = file.name;
+  if (filesizeElem) filesizeElem.textContent = formattedSize;
+
+  if (zone) zone.classList.add('hidden');
+  if (progressContainer) {
+    progressContainer.classList.remove('hidden');
+    progressContainer.classList.add('flex');
+  }
 
   let progress = 0;
-  const interval = setInterval(() => {
-    progress += 20;
-    progressBar.style.width = `${progress}%`;
-    percentText.textContent = `${progress}%`;
+  const progressInterval = setInterval(() => {
+    if (progress < 90) {
+      progress += 10;
+      if (progressBar) progressBar.style.width = `${progress}%`;
+      if (progressPercent) progressPercent.textContent = `${progress}%`;
+    }
+  }, 100);
 
-    if (progress >= 100) {
-      clearInterval(interval);
+  try {
+    const headers = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const response = await fetch("http://127.0.0.1:5000/api/upload-source", {
+      method: "POST",
+      headers: headers,
+      body: formData
+    });
+
+    clearInterval(progressInterval);
+
+    if (response.ok) {
+      const data = await response.json();
+      
+      if (progressBar) progressBar.style.width = '100%';
+      if (progressPercent) progressPercent.textContent = '100%';
+
       setTimeout(() => {
-        uploadedFiles.push({
-          id: Date.now().toString(),
-          name: file.name,
-          size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-          addedBy: 'You'
+        // 1. Push the backend response file object directly to the TOP of the array
+        uploadedFiles.unshift(data.file);
+
+        // 2. Re-render the files list container
+        renderUploadedFiles();
+        
+        // 3. Close modal & reset
+        closePdfModal();
+        showCustomizerSuccessToast(`Uploaded: ${file.name}`);
+        resetModalProgress();
+
+        // 4. Auto-scroll the tools container to the top so the new file is visible
+        const toolsContainer = document.querySelector('#tools-col .overflow-y-auto');
+        const listContainer = document.getElementById('uploaded-files-list');
+        if (toolsContainer) toolsContainer.scrollTop = 0;
+        if (listContainer) listContainer.scrollTop = 0;
+      }, 300);
+    } else {
+      const errData = await response.json().catch(() => ({}));
+      const errorMsg = errData.error || errData.msg || errData.message || 'Unauthorized Server Error';
+      
+      if (progressBar) progressBar.style.width = '100%';
+      if (progressPercent) progressPercent.textContent = '100%';
+
+      setTimeout(() => {
+        // UI FALLBACK: Add file locally so you can still test the UI tools
+        uploadedFiles.unshift({
+            id: 'mock-' + Date.now(),
+            name: file.name,
+            size: formattedSize,
+            addedBy: 'You (Local Mode)'
         });
         renderUploadedFiles();
         closePdfModal();
-        progressContainer.classList.add('hidden');
-        progressBar.style.width = '0%';
+        showCustomizerSuccessToast(`Server: ${errorMsg}. Added locally instead!`);
+        resetModalProgress();
+        
+        const toolsContainer = document.querySelector('#tools-col .overflow-y-auto');
+        const listContainer = document.getElementById('uploaded-files-list');
+        if (toolsContainer) toolsContainer.scrollTop = 0;
+        if (listContainer) listContainer.scrollTop = 0;
       }, 300);
     }
-  }, 150);
+  } catch (err) {
+    clearInterval(progressInterval);
+    console.error("Upload network error:", err);
+    
+    if (progressBar) progressBar.style.width = '100%';
+    if (progressPercent) progressPercent.textContent = '100%';
+
+    setTimeout(() => {
+      // UI FALLBACK: Add file locally if Python server is turned off completely
+      uploadedFiles.unshift({
+          id: 'mock-' + Date.now(),
+          name: file.name,
+          size: formattedSize,
+          addedBy: 'You (Offline Mode)'
+      });
+      renderUploadedFiles();
+      closePdfModal();
+      showCustomizerSuccessToast(`Server Offline. Added locally instead!`);
+      resetModalProgress();
+      
+      const toolsContainer = document.querySelector('#tools-col .overflow-y-auto');
+      const listContainer = document.getElementById('uploaded-files-list');
+      if (toolsContainer) toolsContainer.scrollTop = 0;
+      if (listContainer) listContainer.scrollTop = 0;
+    }, 300);
+  }
+}
+
+// Format Bytes to KB/MB
+function formatBytes(bytes, decimals = 1) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
 // Render uploaded source files list on Main Menu
@@ -1505,12 +1671,20 @@ function renderUploadedFiles() {
   const list = document.getElementById('uploaded-files-list');
   if (!list) return;
 
+  if (uploadedFiles.length === 0) {
+    list.innerHTML = '';
+    list.classList.add('hidden'); // Force hide container if empty
+    return;
+  }
+
+  list.classList.remove('hidden'); // Force show container
+
   list.innerHTML = uploadedFiles.map(file => {
-    // Format addedBy display (defaults to "You" if missing or set to current user)
     const uploaderLabel = (!file.addedBy || file.addedBy === "You") ? "You" : file.addedBy;
 
+    // REMOVED the broken 'animate-fadeIn' class so it actually shows up!
     return `
-      <div class="flex items-center justify-between rounded-xl p-2.5 bg-[#FFF8EC]/60 border border-[#3D2013]/10">
+      <div class="flex items-center justify-between rounded-xl p-2.5 bg-[#FFF8EC]/60 border border-[#3D2013]/15 shadow-sm">
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="flex items-center justify-center shrink-0 text-[#E87339]">
             <svg xmlns="http://www.w3.org/2000/svg" width="1.25em" height="1.25em" viewBox="0 0 24 24">
@@ -1539,124 +1713,8 @@ function removeUploadedFile(id) {
   renderUploadedFiles();
 }
 
-// Validate PDF format & simulate upload progress
-function validateAndProcessPdf(file) {
-  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith('.pdf')) {
-    alert("Please upload PDF files only!");
-    return;
-  }
-
-  const dropZone = document.getElementById('drag-drop-zone');
-  const progressContainer = document.getElementById('upload-progress-container');
-  const filenameElem = document.getElementById('upload-filename');
-  const filesizeElem = document.getElementById('upload-filesize');
-  const progressBar = document.getElementById('upload-progress-bar');
-  const progressPercent = document.getElementById('upload-percent');
-
-  // Format File Size
-  const formattedSize = formatBytes(file.size);
-
-  if (filenameElem) filenameElem.textContent = file.name;
-  if (filesizeElem) filesizeElem.textContent = formattedSize;
-
-  // Show Progress View
-  if (dropZone) dropZone.classList.add('hidden');
-  if (progressContainer) {
-    progressContainer.classList.remove('hidden');
-    progressContainer.classList.add('flex');
-  }
-
-  // Simulate Upload Progress
-  let progress = 0;
-  const interval = setInterval(() => {
-    progress += Math.floor(Math.random() * 15) + 10;
-    if (progress >= 100) {
-      progress = 100;
-      clearInterval(interval);
-
-      if (progressBar) progressBar.style.width = '100%';
-      if (progressPercent) progressPercent.textContent = '100%';
-
-      setTimeout(() => {
-        // 1. Inflate File under Library Button
-        inflateUploadedFile(file.name, formattedSize, file);
-
-        // 2. Trigger Retro Success Toast
-        showCustomizerSuccessToast(`Uploaded: ${file.name}`);
-
-        // 3. Close Modal
-        closePdfModal();
-      }, 400);
-    } else {
-      if (progressBar) progressBar.style.width = `${progress}%`;
-      if (progressPercent) progressPercent.textContent = `${progress}%`;
-    }
-  }, 150);
-}
-
-// Format Bytes to KB/MB
-function formatBytes(bytes, decimals = 1) {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-}
-
-function inflateUploadedFile(filename, filesize, fileObject, addedBy = "You") {
-  const container = document.getElementById('uploaded-files-list');
-  if (!container) return;
-
-  const fileUrl = URL.createObjectURL(fileObject);
-
-  const fileCard = document.createElement('div');
-  fileCard.className = 
-    "uploaded-file-item p-2 flex items-center justify-between border-b border-[#3D2013]/10 last:border-b-0 " +
-    "transition-all animate-fadeIn";
-
-  // Check if added by the current user to display "You" vs the username
-  const uploaderLabel = (addedBy === "You" || !addedBy) ? "You" : addedBy;
-
-  fileCard.innerHTML = `
-    <div class="flex items-center gap-2.5 min-w-0 pr-2">
-      <div class="flex items-center justify-center shrink-0 text-[#E87339]">
-        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-          <path d="M0 0h24v24H0z" fill="none" />
-          <path fill="#ef5350" d="M13 9h5.5L13 3.5zM6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2m4.93 10.44c.41.9.93 1.64 1.53 2.15l.41.32c-.87.16-2.07.44-3.34.93l-.11.04l.5-1.04c.45-.87.78-1.66 1.01-2.4m6.48 3.81c.18-.18.27-.41.28-.66c.03-.2-.02-.39-.12-.55c-.29-.47-1.04-.69-2.28-.69l-1.29.07l-.87-.58c-.63-.52-1.2-1.43-1.6-2.56l.04-.14c.33-1.33.64-2.94-.02-3.6a.85.85 0 0 0-.61-.24h-.24c-.37 0-.7.39-.79.77c-.37 1.33-.15 2.06.22 3.27v.01c-.25.88-.57 1.9-1.08 2.93l-.96 1.8l-.89.49c-1.2.75-1.77 1.59-1.88 2.12c-.04.19-.02.36.05.54l.03.05l.48.31l.44.11c.81 0 1.73-.95 2.97-3.07l.18-.07c1.03-.33 2.31-.56 4.03-.75c1.03.51 2.24.74 3 .74c.44 0 .74-.11.91-.3m-.41-.71l.09.11c-.01.1-.04.11-.09.13h-.04l-.19.02c-.46 0-1.17-.19-1.9-.51c.09-.1.13-.1.23-.1c1.4 0 1.8.25 1.9.35M7.83 17c-.65 1.19-1.24 1.85-1.69 2c.05-.38.5-1.04 1.21-1.69zm3.02-6.91c-.23-.9-.24-1.63-.07-2.05l.07-.12l.15.05c.17.24.19.56.09 1.1l-.03.16l-.16.82z" />
-        </svg>
-      </div>
-      <div class="flex flex-col min-w-0">
-        <div class="flex items-center gap-1.5 min-w-0">
-          <span class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] truncate">${filename}</span>
-          <span class="font-pixel text-[11px] sm:text-xs text-[#E87339] shrink-0">• Added by ${uploaderLabel}</span>
-        </div>
-        <span class="font-pixel text-xs text-[#3D2013]/60">${filesize} • Just now</span>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-1.5 shrink-0">
-      <a href="${fileUrl}" download="${filename}" title="Download / Open File"
-         class="p-1.5 text-[#788D55] hover:text-[#5B6D3F] transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-      </a>
-      
-      <button onclick="this.closest('.uploaded-file-item').remove()" title="Remove File"
-              class="p-1.5 text-[#3D2013]/40 hover:text-[#A53914] transition-colors cursor-pointer">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-  `;
-
-  container.prepend(fileCard);
-}
-
-// Retro Toast Helper (Included from reference)
-function showCustomizerSuccessToast(message = "Purchase Successful!") {
+// Retro Toast Helper
+function showCustomizerSuccessToast(message = "Success!") {
   const container = document.getElementById("toast-container");
   if (!container) return;
 
@@ -1693,7 +1751,6 @@ function showCustomizerSuccessToast(message = "Purchase Successful!") {
   }, 4000);
 }
 
-// Add this helper function to handle flashcard flipping
 function toggleFlashcard(cardElement) {
   const front = cardElement.querySelector('.card-front');
   const back = cardElement.querySelector('.card-back');
@@ -1712,11 +1769,10 @@ timerChannel.onmessage = (event) => {
   if (roomTimerElement && data.formattedTime) {
     roomTimerElement.textContent = data.formattedTime;
     
-    // Optional: Dynamic styling based on break state
     if (data.isBreak) {
-      roomTimerElement.style.color = "#788D55"; // Green during breaks
+      roomTimerElement.style.color = "#788D55"; 
     } else {
-      roomTimerElement.style.color = "#3D2013"; // Default color
+      roomTimerElement.style.color = "#3D2013"; 
     }
   }
 };

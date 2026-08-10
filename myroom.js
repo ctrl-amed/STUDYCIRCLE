@@ -1,23 +1,66 @@
+// ==========================================
+// MY ROOM SCRIPT (DATABASE & SESSION SYNCED)
+// ==========================================
+
 let activeRoomId = null;
 
 /**
- * Retrieves rooms created by the user OR rooms the user has joined
+ * Retrieves rooms created by the current logged-in user OR rooms the user has joined
  */
-function getAllRooms() {
-  const userRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
-  const joinedRooms = JSON.parse(sessionStorage.getItem("userJoinedRooms") || "[]");
-  
-  // Combine and remove any potential duplicate rooms by ID
-  const combinedRooms = [...userRooms, ...joinedRooms];
-  const uniqueRooms = Array.from(new Map(combinedRooms.map(room => [room.id, room])).values());
-  
-  return uniqueRooms;
+async function getAllRooms() {
+  const token = sessionStorage.getItem("token");
+  if (!token) return [];
+
+  try {
+    // 1. Fetch current user profile to retrieve their ID and username
+    const profileRes = await fetch("http://127.0.0.1:5000/me", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    
+    let currentUserId = null;
+    let currentUsername = "";
+    if (profileRes.ok) {
+      const userData = await profileRes.json();
+      currentUserId = userData.id;
+      currentUsername = userData.username || userData.name;
+    }
+
+    // 2. Fetch all rooms from the Flask backend API
+    const response = await fetch("http://127.0.0.1:5000/api/rooms", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const allBackendRooms = data.rooms || [];
+
+      // 3. Filter: Keep only rooms where:
+      // - You are the host (host_id == currentUserId)
+      // - Or you are listed in the players_list of that room (you joined it)
+      const myRooms = allBackendRooms.filter(room => {
+        const isHost = String(room.host_id) === String(currentUserId);
+        const isJoined = room.players_list && room.players_list.some(p => String(p.id) === String(currentUserId));
+        
+        return isHost || isJoined;
+      });
+
+      return myRooms;
+    }
+  } catch (err) {
+    console.error("Failed to fetch filtered rooms for user:", err);
+  }
+
+  return [];
 }
 
 /**
  * Render Room Cards dynamically into the DOM container
  */
-function renderRoomCards(rooms) {
+async function renderRoomCards(rooms) {
   const container = document.getElementById("room-list-container");
   if (!container) return;
 
@@ -35,31 +78,46 @@ function renderRoomCards(rooms) {
   rooms.forEach((room) => {
     let calculatedPercent = room.progressPercent || 0;
     if (room.checklist && room.checklist.length > 0) {
-      const completedCount = room.checklist.filter(c => c.status === "complete").length;
-      calculatedPercent = Math.round((completedCount / room.checklist.length) * 100);
+      let checklistArray = room.checklist;
+      while (typeof checklistArray === 'string') {
+        try { checklistArray = JSON.parse(checklistArray); } catch(e) { break; }
+      }
+      if (Array.isArray(checklistArray) && checklistArray.length > 0) {
+        const completedCount = checklistArray.filter(c => c.status === "complete" || c.completed === true || c.status === "completed").length;
+        calculatedPercent = Math.round((completedCount / checklistArray.length) * 100);
+      }
     }
+
+    // Check if room is finished/completed (disables enter button, leaving only details)
+    const isFinished = calculatedPercent >= 100 || room.status === "finished";
+
+    const targetRoomId = room.room_code || room.id;
+
+    const enterButtonHTML = isFinished 
+      ? `<button disabled class="flex-[2] font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]/50 bg-[#DCDDC9] border-[2px] border-[#3D2013]/50 !rounded-none py-1.5 px-2 text-center cursor-not-allowed">FINISHED</button>`
+      : `<button onclick="enterRoom('${targetRoomId}')" class="flex-[2] font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] bg-[#FD923E] border-[2px] border-[#3D2013] !rounded-none py-1.5 px-2 text-center transition-all duration-150 cursor-pointer retro-shadow hover:brightness-105 active:scale-95">ENTER</button>`;
 
     const cardHTML = `
       <div class="bg-[#FEF4E0] border-[2.5px] border-[#3D2013] rounded-none p-3.5 flex flex-col justify-between gap-2.5 shadow-md transition-transform duration-150">
         
         <div class="flex flex-col gap-0.5">
           <h2 class="font-pressstart text-[10px] sm:text-[11px] text-[#3D2013] truncate leading-tight" title="${room.name}">
-            ${room.name}
+            ${room.name || "Study Room"}
           </h2>
           <p class="font-pressstart text-[8px] sm:text-[8.5px] text-[#3D2013]/70 truncate">
-            ${room.topic}
+            ${room.topic || targetRoomId}
           </p>
         </div>
 
         <div class="flex items-center gap-1 text-[#FD923E] font-pressstart text-[8px] sm:text-[8.5px]">
           <div class="flex items-center gap-1">
-            <span>${room.players || 1}</span>
+            <span>${room.players || room.players_list?.length || 1}</span>
             <svg class="w-3 h-3 text-[#583889]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
           </div>
           <span class="text-[10px] text-[#FD923E] leading-none">•</span>
-          <span>${room.dateCreated || "Recent"}</span>
+          <span>${room.dateCreated || "Active"}</span>
         </div>
 
         <div class="flex flex-col items-end gap-1 w-full shrink-0">
@@ -72,12 +130,9 @@ function renderRoomCards(rooms) {
         </div>
 
         <div class="flex items-center gap-2 pt-0.5">
-          <button onclick="enterRoom('${room.id}')" 
-                  class="flex-[2] font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] bg-[#FD923E] border-[2px] border-[#3D2013] !rounded-none py-1.5 px-2 text-center transition-all duration-150 cursor-pointer retro-shadow hover:brightness-105 active:scale-95">
-            ENTER
-          </button>
+          ${enterButtonHTML}
           
-          <button onclick="viewRoomDetails('${room.id}')" 
+          <button onclick="viewRoomDetails('${targetRoomId}')" 
                   class="flex-1 font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] bg-[#FEF4E0] border-[2px] border-[#3D2013] !rounded-none py-1.5 px-2 text-center transition-all duration-150 cursor-pointer retro-shadow hover:bg-[#F8E9D2] active:scale-95">
             DETAILS
           </button>
@@ -92,8 +147,8 @@ function renderRoomCards(rooms) {
 /**
  * Filter rooms based on query against name, topic, lobby code/ID, or host
  */
-function filterRooms(query) {
-  const allRooms = getAllRooms();
+async function filterRooms(query) {
+  const allRooms = await getAllRooms();
   const cleanQuery = query.toLowerCase().trim();
 
   if (!cleanQuery) {
@@ -105,44 +160,50 @@ function filterRooms(query) {
     return (
       (room.name && room.name.toLowerCase().includes(cleanQuery)) ||
       (room.topic && room.topic.toLowerCase().includes(cleanQuery)) ||
-      (room.id && room.id.toLowerCase().includes(cleanQuery)) ||
-      (room.host && room.host.toLowerCase().includes(cleanQuery))
+      (room.room_code && room.room_code.toLowerCase().includes(cleanQuery)) ||
+      (room.id && String(room.id).toLowerCase().includes(cleanQuery)) ||
+      (room.host && String(room.host).toLowerCase().includes(cleanQuery))
     );
   });
 
   renderRoomCards(filtered);
 }
 
-function enterRoom(roomId) {
-  // Find the selected room from active storage or mock lists if available
-  const allRooms = getAllRooms();
-  const roomToJoin = allRooms.find(r => r.id === roomId);
+async function enterRoom(roomId) {
+  const allRooms = await getAllRooms();
+  const roomToJoin = allRooms.find(r => (r.room_code || r.id) === roomId);
 
   if (roomToJoin) {
     const joinedRooms = JSON.parse(sessionStorage.getItem("userJoinedRooms") || "[]");
     
     // Prevent duplicate entries in userJoinedRooms
-    if (!joinedRooms.some(r => r.id === roomToJoin.id)) {
+    const identifier = roomToJoin.room_code || roomToJoin.id;
+    if (!joinedRooms.some(r => (r.room_code || r.id) === identifier)) {
       joinedRooms.push(roomToJoin);
       sessionStorage.setItem("userJoinedRooms", JSON.stringify(joinedRooms));
     }
+    
+    // Set active room id and redirect directly into the generated room page
+    sessionStorage.setItem("activeRoomId", identifier);
+    window.location.href = `generated-homepage.html?room=${identifier}`;
+  } else {
+    alert(`Room not found: ${roomId}`);
   }
-
-  alert(`Entering Room ID: ${roomId}`);
 }
 
-function viewRoomDetails(roomId) {
-  const allRooms = getAllRooms();
-  const room = allRooms.find(r => r.id === roomId);
+async function viewRoomDetails(roomId) {
+  const allRooms = await getAllRooms();
+  const room = allRooms.find(r => (r.room_code || r.id) === roomId);
   if (!room) return;
 
   activeRoomId = roomId;
 
-  document.getElementById("modal-room-name").textContent = room.name;
-  document.getElementById("modal-room-topic").textContent = room.topic;
+  document.getElementById("modal-room-name").textContent = room.name || "Study Room";
+  document.getElementById("modal-room-topic").textContent = room.topic || room.room_code || "";
   document.getElementById("modal-room-date").textContent = room.dateCreated || "Recent";
   
-  const playerText = room.players === 1 ? "1 player" : `${room.players || 1} players`;
+  const playerCount = room.players || room.players_list?.length || 1;
+  const playerText = playerCount === 1 ? "1 player" : `${playerCount} players`;
   document.getElementById("modal-room-players-allowed").textContent = playerText;
 
   const privacyEl = document.getElementById("modal-room-privacy");
@@ -151,10 +212,15 @@ function viewRoomDetails(roomId) {
   const techEl = document.getElementById("modal-study-technique");
   if (techEl) techEl.textContent = room.technique || "Pomodoro";
 
+  let checklistArray = room.checklist || [];
+  while (typeof checklistArray === 'string') {
+    try { checklistArray = JSON.parse(checklistArray); } catch(e) { break; }
+  }
+
   let calculatedPercent = room.progressPercent || 0;
-  if (room.checklist && room.checklist.length > 0) {
-    const completedCount = room.checklist.filter(c => c.status === "complete").length;
-    calculatedPercent = Math.round((completedCount / room.checklist.length) * 100);
+  if (Array.isArray(checklistArray) && checklistArray.length > 0) {
+    const completedCount = checklistArray.filter(c => c.status === "complete" || c.completed === true || c.status === "completed").length;
+    calculatedPercent = Math.round((completedCount / checklistArray.length) * 100);
   }
 
   document.getElementById("modal-progress-percent").textContent = `${calculatedPercent}%`;
@@ -162,18 +228,18 @@ function viewRoomDetails(roomId) {
 
   const checklistContainer = document.getElementById("modal-checklist-container");
   if (checklistContainer) {
-    if (!room.checklist || room.checklist.length === 0) {
+    if (!Array.isArray(checklistArray) || checklistArray.length === 0) {
       checklistContainer.innerHTML = `<p class="font-pressstart text-[8px] text-[#3D2013]/60 italic">No checklist items available.</p>`;
     } else {
-      checklistContainer.innerHTML = room.checklist.map(item => {
-        const isComplete = item.status === "complete";
+      checklistContainer.innerHTML = checklistArray.map(item => {
+        const isComplete = item.status === "complete" || item.completed === true || item.status === "completed";
         const statusText = isComplete ? "complete" : "inprogress";
         const statusTextColor = isComplete ? "text-[#788D55]" : "text-[#FD923E]";
 
         return `
           <div class="flex items-center justify-between py-2 border-b-[1.5px] border-[#3D2013]/30 last:border-b-0 w-full">
             <span class="font-pressstart text-[8px] sm:text-[8.5px] text-[#3D2013] truncate max-w-[200px] sm:max-w-[280px]">
-              ${item.title}
+              ${item.title || item}
             </span>
             <span class="font-pressstart text-[7px] sm:text-[8px] uppercase shrink-0 ${statusTextColor}">
               ${statusText}
@@ -191,18 +257,19 @@ function closeDetailsModal() {
   document.getElementById("room-details-modal")?.classList.add("hidden");
 }
 
-function openShareModal() {
-  const allRooms = getAllRooms();
-  const room = allRooms.find(r => r.id === activeRoomId);
+async function openShareModal() {
+  const allRooms = await getAllRooms();
+  const room = allRooms.find(r => (r.room_code || r.id) === activeRoomId);
   if (!room) return;
 
   const linkInput = document.getElementById("share-link-input");
   const visSelect = document.getElementById("share-visibility-select");
   const memSelect = document.getElementById("share-members-select");
 
-  if (linkInput) linkInput.value = `studycircle.app/join/${room.id}`;
+  const identifier = room.room_code || room.id;
+  if (linkInput) linkInput.value = `studycircle.app/join/${identifier}`;
   if (visSelect) visSelect.value = room.visibility || "public";
-  if (memSelect) memSelect.value = (room.maxPlayers || 4).toString();
+  if (memSelect) memSelect.value = (room.max_players || room.maxPlayers || 4).toString();
 
   document.getElementById("share-room-modal")?.classList.remove("hidden");
 }
@@ -220,26 +287,30 @@ function copyShareLink() {
   });
 }
 
-function saveRoomSettings() {
+async function saveRoomSettings() {
   const userRooms = JSON.parse(sessionStorage.getItem("userCreatedRooms") || "[]");
-  const userRoomIndex = userRooms.findIndex(r => r.id === activeRoomId);
+  const userRoomIndex = userRooms.findIndex(r => (r.room_code || r.id) === activeRoomId);
 
   const visSelect = document.getElementById("share-visibility-select");
   const memSelect = document.getElementById("share-members-select");
 
   if (userRoomIndex !== -1) {
     if (visSelect) userRooms[userRoomIndex].visibility = visSelect.value;
-    if (memSelect) userRooms[userRoomIndex].maxPlayers = parseInt(memSelect.value, 10);
+    if (memSelect) {
+      userRooms[userRoomIndex].maxPlayers = parseInt(memSelect.value, 10);
+      userRooms[userRoomIndex].max_players = parseInt(memSelect.value, 10);
+    }
     sessionStorage.setItem("userCreatedRooms", JSON.stringify(userRooms));
   }
 
   viewRoomDetails(activeRoomId);
-  renderRoomCards(getAllRooms());
+  renderRoomCards(await getAllRooms());
   closeShareModal();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  renderRoomCards(getAllRooms());
+document.addEventListener("DOMContentLoaded", async () => {
+  const rooms = await getAllRooms();
+  renderRoomCards(rooms);
 
   const searchInput = document.getElementById("room-search-input");
   if (searchInput) {

@@ -395,14 +395,34 @@ if (formSignup) {
     })
     .then(response => response.json())
     .then(data => {
+      // Tanggapin ang response kung nakaregister na at awtomatikong mag-login para makuha ang token
       if (data.message === "User registered successfully!") {
         signupUsernameInput.value = '';
         signupEmailInput.value = '';
         signupPasswordInput.value = '';
         signupConfirmPasswordInput.value = '';
         
-        sessionStorage.setItem("justSignedUp", "true");
-        triggerLoadingAndRedirect(' CREATING ACCOUNT ', 'customavatar.html');
+        // Pagkatapos mag-register, i-auto login natin para makuha ang JWT token agad
+        return fetch(`${API_BASE_URL}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: emailVal, password: passwordVal })
+        })
+        .then(res => res.json())
+        .then(loginData => {
+          if (loginData.token) {
+            sessionStorage.setItem("token", loginData.token);
+            if (loginData.user) {
+              sessionStorage.setItem("current_user", JSON.stringify(loginData.user));
+            }
+          }
+          
+          // IT ANG MAHALAGA: I-set natin ito para malaman ng homepage na mag-trigger ang TUTORIAL
+          sessionStorage.setItem("pendingTutorial", "true");
+          
+          // Direktang pumunta sa homepage kasama ang loading state
+          triggerLoadingAndRedirect(' CREATING ACCOUNT ', 'homepage.html');
+        });
       } else {
         if (data.message.includes("Username")) {
           setFieldError(signupUsernameInput, signupUsernameError, data.message);

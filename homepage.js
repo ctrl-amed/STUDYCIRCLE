@@ -26,11 +26,8 @@ let playerData = {
  * Fetch user data from backend API (/me) and update dashboard state
  */
 async function loadUserData() {
-  // CHANGED: Now looks in sessionStorage to match authscript.js
   const token = sessionStorage.getItem("token");
-
   if (!token) {
-    // If no token is found, redirect to login page
     window.location.href = "authentication.html#login";
     return;
   }
@@ -38,14 +35,10 @@ async function loadUserData() {
   try {
     const response = await fetch("http://127.0.0.1:5000/me", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      }
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
     });
 
     if (!response.ok) {
-      // If token is invalid or expired, clear from sessionStorage and redirect to login
       sessionStorage.removeItem("token");
       window.location.href = "authentication.html#login";
       return;
@@ -53,17 +46,28 @@ async function loadUserData() {
 
     const userData = await response.json();
 
-    // Overwrite playerData state with database values
     playerData.name = userData.username || "ACORN_HERO";
     playerData.level = userData.level || 1;
     playerData.currentXP = userData.currentXP || 0;
     playerData.maxXP = userData.maxXP || 10000;
-    playerData.coins = userData.coins || 0;
-    playerData.streakDays = `${userData.streakDays || 0}d`;
     playerData.avatarUrl = userData.avatarUrl || "";
 
-    // Sync UI with the newly fetched data
+    // Sync from Backend, fallback to Account-Specific LocalStorage
+    const userCoinKey = `coins_${playerData.name}`;
+    const userStreakKey = `streak_${playerData.name}`;
+
+    playerData.coins = userData.coins ?? parseInt(localStorage.getItem(userCoinKey)) ?? 0;
+    playerData.streakDays = userData.streakDays ? `${userData.streakDays}d` : (localStorage.getItem(userStreakKey) || "0d");
+    
+    if (userData.checkInDates) {
+      calendarState.checkInDates = userData.checkInDates;
+    } else {
+      loadPlayerCalendarData(); // Load account-specific dates from browser
+    }
+
     updateDashboardState();
+    renderMiniCalendar();
+    renderFullCalendar();
 
   } catch (err) {
     console.error("Failed to connect to backend:", err);
@@ -73,7 +77,6 @@ async function loadUserData() {
 // ==========================================
 // CORE UI FUNCTIONS
 // ==========================================
-
 /**
  * Updates all profile, coins, friends, and streak UI components
  */
@@ -96,9 +99,7 @@ function updateDashboardState() {
   const modalAvatarImg = document.getElementById("modal-player-avatar");
 
   // 2. Status elements
-  const coinsElement = document.getElementById("coins-count");
   const friendsElement = document.getElementById("friends-count");
-  const streakElement = document.getElementById("streak-count");
   const modalStreakVal = document.getElementById("modal-streak-val");
   const modalFriendsVal = document.getElementById("modal-friends-val");
 
@@ -149,10 +150,16 @@ function updateDashboardState() {
   if (xpTextElement) xpTextElement.textContent = xpFormatted;
   if (modalXpTextElement) modalXpTextElement.textContent = xpFormatted;
 
-  // 3. Update Status Badges
-  if (coinsElement) coinsElement.textContent = playerData.coins.toLocaleString();
+  // 3. Update Status Badges using querySelectorAll to catch duplicate IDs (Navbar + Modals)
+  document.querySelectorAll('#coins-count').forEach(el => {
+    el.textContent = playerData.coins.toLocaleString();
+  });
+  
+  document.querySelectorAll('#streak-count').forEach(el => {
+    el.textContent = playerData.streakDays;
+  });
+
   if (friendsElement) friendsElement.textContent = playerData.friendsCount;
-  if (streakElement) streakElement.textContent = playerData.streakDays;
   if (modalStreakVal) modalStreakVal.textContent = `${playerData.streakDays} study`;
   if (modalFriendsVal) modalFriendsVal.textContent = playerData.friendsCount;
 }
@@ -161,6 +168,7 @@ function updateDashboardState() {
 document.addEventListener("DOMContentLoaded", () => {
   loadUserData();
 });
+
 
 // ==========================================
 // MODAL CONTROLLERS
@@ -374,7 +382,7 @@ function deleteDraftTaskRow(index) {
 function addNewTaskRow() {
   draftChecklistData.push({
     id: Date.now(),
-    text: "New Task",
+    text: "", // Initialize as empty so unedited rows can be filtered out
     completed: false
   });
   renderDraftTaskList();
@@ -384,9 +392,22 @@ function addNewTaskRow() {
  * Commit draft changes to main checklist state and update UI
  */
 function saveTaskChanges() {
-  checklistData = draftChecklistData.filter(t => t.text.trim().length > 0);
+  // Filter out empty rows, whitespace-only rows, or unedited default text ("New Task")
+  checklistData = draftChecklistData.filter(t => {
+    if (!t || !t.text) return false;
+    const trimmedText = t.text.trim();
+    return trimmedText.length > 0 && trimmedText.toLowerCase() !== "new task";
+  });
+  
   renderChecklist();
-  closeModal("add-task-modal");
+  
+  // Close the modal cleanly after saving
+  if (typeof closeModal === "function") {
+    closeModal("add-task-modal");
+  } else {
+    const modal = document.getElementById("add-task-modal");
+    if (modal) modal.classList.add("hidden");
+  }
 }
 
 // Utility function to escape raw strings for HTML inputs/content
@@ -467,13 +488,13 @@ function updateTechniqueButtonsUI() {
  * Opens Edit Settings Modal with initial states
  */
 function openTimerEditModal() {
-  tempSelectedTechnique = timerState.selectedTechnique;
+  // Default to pomodoro if they haven't selected one yet
+  tempSelectedTechnique = timerState.selectedTechnique || 'pomodoro'; 
   const input = document.getElementById("session-input");
-  if (input) input.value = timerState.totalSessions;
+  if (input) input.value = timerState.totalSessions || 3;
   
   updateTechniqueButtonsUI();
   
-  // Directly reveal the modal element to avoid the recursive loop
   const modal = document.getElementById("timer-edit-modal");
   if (modal) modal.classList.remove("hidden");
 }
@@ -516,18 +537,35 @@ const timerChannel = new BroadcastChannel('study_timer_channel');
 function renderTimerUI() {
   const unselectedView = document.getElementById("timer-unselected-view");
   const activeView = document.getElementById("timer-active-view");
-
-  // --- NEW: Grab the Mini Timer Display element ---
   const miniDisplay = document.getElementById("mini-timer-display");
+  
+  // NEW: Target the Checklist Header
+  const checklistHeader = document.querySelector("#checklist-modal h3");
 
   if (!timerState.selectedTechnique) {
-    if (unselectedView) unselectedView.classList.remove("hidden");
+    if (unselectedView) {
+      unselectedView.classList.remove("hidden");
+      // Inject a big friendly button so they know where to click!
+      unselectedView.innerHTML = `
+        <div class="flex flex-col items-center gap-4 py-4">
+          <p class="font-pixel text-xl sm:text-2xl text-[#3D2013]/70 text-center">No study technique chosen</p>
+          <button onclick="openModal('timer-edit-modal')" class="font-pressstart text-[10px] bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] py-2.5 px-4 retro-shadow hover:scale-105 active:scale-95 transition-all cursor-pointer">
+            CHOOSE TECHNIQUE
+          </button>
+        </div>
+      `;
+    }
     if (activeView) activeView.classList.add("hidden");
     
     // Optional reset state when no technique is active
     if (miniDisplay) {
       miniDisplay.textContent = "00:00";
-      miniDisplay.style.color = "#A53914"; // Default terracotta
+      miniDisplay.style.color = "#A53914"; 
+    }
+    // Reset checklist header if timer is off
+    if (checklistHeader) {
+      checklistHeader.textContent = "CHECKLIST";
+      checklistHeader.style.color = "#3D2013";
     }
     return;
   }
@@ -540,7 +578,7 @@ function renderTimerUI() {
   const secs = timerState.secondsLeft % 60;
   const formattedTime = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-  // --- BROADCAST TIME TO OTHER PAGES ---
+  // BROADCAST TIME TO OTHER PAGES
   timerChannel.postMessage({
     formattedTime: formattedTime,
     isBreak: timerState.isBreak,
@@ -550,17 +588,16 @@ function renderTimerUI() {
   const display = document.getElementById("timer-display");
   if (display) display.textContent = formattedTime;
 
-  // --- NEW: Sync MM:SS and dynamic colors to the Mini Timer Display ---
+  // Sync to Mini Timer Display
   if (miniDisplay) {
     miniDisplay.textContent = formattedTime;
+    miniDisplay.style.color = timerState.isBreak ? "#788D55" : "#A53914";
+  }
 
-    if (timerState.isBreak) {
-      // Break Phase: Green (#788D55)
-      miniDisplay.style.color = "#788D55";
-    } else {
-      // Study Phase: Orange / Terracotta (#A53914)
-      miniDisplay.style.color = "#A53914";
-    }
+  // SYNC TO CHECKLIST HEADER
+  if (checklistHeader) {
+    checklistHeader.textContent = `CHECKLIST [${formattedTime}]`;
+    checklistHeader.style.color = timerState.isBreak ? "#788D55" : "#A53914";
   }
 
   // Phase Label (FOCUS vs BREAK)
@@ -575,7 +612,7 @@ function renderTimerUI() {
   // Circular SVG Progress Calculation
   const circleProgress = document.getElementById("timer-circle-progress");
   if (circleProgress && timerState.totalSeconds > 0) {
-    const maxOffset = 263.89; // 2 * PI * r (r=42)
+    const maxOffset = 263.89; 
     const progressRatio = timerState.secondsLeft / timerState.totalSeconds;
     const dashOffset = maxOffset * (1 - progressRatio);
     circleProgress.style.strokeDashoffset = dashOffset;
@@ -724,55 +761,68 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 
 const calendarState = {
-  viewDate: new Date(), // Tracks currently displayed month/year in full calendar
-  // BACKEND INTEGRATION: Array of checked-in dates in "YYYY-MM-DD" format
-  checkInDates: [
-    "2026-07-20",
-    "2026-07-21",
-    "2026-07-22"
-  ]
+  viewDate: new Date(), 
+  checkInDates: [] // Will be loaded dynamically per user
 };
 
 /**
- * Format Date object to "YYYY-MM-DD" string
+ * Loads check-in dates specific to the currently logged-in player
  */
-function formatDateKey(dateObj) {
-  const y = dateObj.getFullYear();
-  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const d = String(dateObj.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+function loadPlayerCalendarData() {
+  const userKey = `checkInDates_${playerData.name}`;
+  calendarState.checkInDates = JSON.parse(localStorage.getItem(userKey)) || [];
 }
 
 /**
- * Checks if today's date is already checked in
+ * Main Check-In Action handler (Account-specific)
  */
-function isTodayCheckedIn() {
-  const todayStr = formatDateKey(new Date());
-  return calendarState.checkInDates.includes(todayStr);
-}
-
-/**
- * Main Check-In Action handler
- */
-function performCheckIn() {
+async function performCheckIn() {
   const todayStr = formatDateKey(new Date());
   if (!calendarState.checkInDates.includes(todayStr)) {
     calendarState.checkInDates.push(todayStr);
     
-    // Reward user (Backend Hook: update database)
+    // Reward user
     playerData.coins += 50; 
     
-    // Increment streak numerically if formatted like "2d"
+    // Increment streak numerically
     let currentStreakNum = parseInt(playerData.streakDays) || 0;
     currentStreakNum += 1;
     playerData.streakDays = `${currentStreakNum}d`;
 
-    // Sync global dashboard state
+    // 1. SAVE LOCALLY USING UNIQUE USERNAME KEY
+    const userKey = `checkInDates_${playerData.name}`;
+    const coinKey = `coins_${playerData.name}`;
+    const streakKey = `streak_${playerData.name}`;
+
+    localStorage.setItem(userKey, JSON.stringify(calendarState.checkInDates));
+    localStorage.setItem(coinKey, playerData.coins);
+    localStorage.setItem(streakKey, playerData.streakDays);
+
+    // Sync global dashboard state & Re-render UI
     updateDashboardState();
-    
-    // Re-render calendar UI views
     renderMiniCalendar();
     renderFullCalendar();
+
+    // 2. SAVE TO BACKEND
+    const token = sessionStorage.getItem("token");
+    if (token) {
+      try {
+        await fetch("http://127.0.0.1:5000/api/user/checkin", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ 
+            date: todayStr, 
+            coins: playerData.coins, 
+            streak: currentStreakNum 
+          })
+        });
+      } catch (err) {
+        console.warn("Backend check-in sync skipped or failed.", err);
+      }
+    }
   }
 }
 
@@ -787,7 +837,6 @@ function renderMiniCalendar() {
   const year = today.getFullYear();
   const month = today.getMonth();
   
-  // Get days count for current month
   const totalDays = new Date(year, month + 1, 0).getDate();
   const monthName = today.toLocaleString('default', { month: 'short' }).toUpperCase();
 
@@ -797,7 +846,6 @@ function renderMiniCalendar() {
     const isChecked = calendarState.checkInDates.includes(dateKey);
     const isToday = d === today.getDate();
 
-    // Default: Cream fill | Checked: Green fill (#788D55)
     const bgClass = isChecked ? "bg-[#788D55] text-[#FEF4E0]" : "bg-[#FEF4E0] text-[#3D2013]";
     const borderClass = isToday ? "border-[#A53914] border-[2px]" : "border-[#482A1D]/30 border";
 
@@ -809,16 +857,11 @@ function renderMiniCalendar() {
   }
 
   container.innerHTML = `
-    <!-- Mini Grid Display (Top Area) -->
     <div class="grid grid-cols-7 gap-1 overflow-y-auto pr-1 flex-1">
       ${gridsHTML}
     </div>
-
-    <!-- Bottom Month Label & Text Button Row -->
     <div class="flex items-center justify-between pt-2 mt-1 border-t border-[#482A1D]/20 shrink-0">
       <span class="font-pressstart text-xs text-[#3D2013]">${monthName} ${year}</span>
-      
-      <!-- VIEW FULL BUTTON (Text & Icon Only) -->
       <button onclick="openModal('full-calendar-modal')" class="font-pressstart text-[9px] text-[#E87338] hover:text-[#A53914] flex items-center gap-1.5 transition-colors cursor-pointer p-0.5">
         <span>VIEW FULL</span>
         <svg class="w-3 h-3 text-current" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -830,7 +873,7 @@ function renderMiniCalendar() {
 }
 
 /**
- * Render Full Calendar view (Inside centered modal)
+ * Render Full Calendar view (Inside centered modal) - Fully patched with grid builder
  */
 function renderFullCalendar() {
   const container = document.getElementById("full-calendar-grid");
@@ -840,14 +883,11 @@ function renderFullCalendar() {
   const viewYear = calendarState.viewDate.getFullYear();
   const viewMonth = calendarState.viewDate.getMonth();
 
-  // Set Header Title
   const monthName = calendarState.viewDate.toLocaleString('default', { month: 'long' }).toUpperCase();
   monthHeader.textContent = `${monthName} ${viewYear}`;
 
-  // First day offset (0 = Sun, 1 = Mon...)
   const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay();
   const totalDays = new Date(viewYear, viewMonth + 1, 0).getDate();
-
   const todayStr = formatDateKey(new Date());
 
   let daysHTML = '';
@@ -857,7 +897,7 @@ function renderFullCalendar() {
     daysHTML += `<div class="h-9 sm:h-10 bg-transparent"></div>`;
   }
 
-  // Day tiles
+  // Day tiles loop
   for (let d = 1; d <= totalDays; d++) {
     const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const isChecked = calendarState.checkInDates.includes(dateKey);
@@ -892,7 +932,6 @@ function renderFullCalendar() {
     }
   }
 }
-
 /**
  * Calendar Navigation (Previous / Next Month)
  */
@@ -903,6 +942,7 @@ function changeCalendarMonth(offset) {
 
 // Ensure Calendars initialize on load
 document.addEventListener("DOMContentLoaded", () => {
+  loadPlayerCalendarData();
   renderMiniCalendar();
   renderFullCalendar();
 });
@@ -1000,24 +1040,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // ==========================================
-// FRIENDS LIST & CHAT SYSTEM LOGIC
+// FRIENDS LIST & CHAT SYSTEM LOGIC (DATABASE CONNECTED)
 // ==========================================
 
-// Mock database users for search test
-const knownUsersDatabase = [
-  { id: 101, name: "KITSU_MASTER", level: 12, isOnline: true, avatarUrl: "" },
-  { id: 102, name: "PIXEL_SAMURAI", level: 8, isOnline: false, avatarUrl: "" },
-  { id: 103, name: "NEON_STUDY", level: 15, isOnline: true, avatarUrl: "" }
-];
-
-// Current Friends list state
-let friendsList = [
-  { id: 1, name: "PANDA_BEAR", level: 5, isOnline: true, avatarUrl: "" },
-  { id: 2, name: "OTTER_LOVER", level: 14, isOnline: true, avatarUrl: "" },
-  { id: 3, name: "COFFEE_GURU", level: 9, isOnline: true, avatarUrl: "" },
-  { id: 4, name: "NIGHT_OWL", level: 21, isOnline: false, avatarUrl: "" },
-  { id: 5, name: "RETRO_KID", level: 3, isOnline: false, avatarUrl: "" }
-];
+// Current Friends list state loaded from database
+let friendsList = [];
 
 // Active chat partner state
 let activeChatFriendId = null;
@@ -1025,6 +1052,35 @@ let friendChatHistory = {}; // Stores messages key-value: { friendId: [ {sender,
 
 // Active open context cloud menu ID
 let openMenuFriendId = null;
+
+// Auto-sync interval reference for live chat polling
+let chatAutoSyncInterval = null;
+
+/**
+ * Fetch real friends list from the Flask database backend
+ */
+async function fetchFriendsList() {
+  const token = sessionStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const response = await fetch("http://127.0.0.1:5000/api/friends", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      friendsList = data.friends || [];
+      renderFriendsList();
+    }
+  } catch (err) {
+    console.error("Failed to load friends from database:", err);
+  }
+}
 
 /**
  * Render all friends into Online and Offline sections
@@ -1044,9 +1100,13 @@ function renderFriendsList() {
   if (onlineBadge) onlineBadge.textContent = onlineFriends.length;
   if (offlineBadge) offlineBadge.textContent = offlineFriends.length;
 
-  // Sync state header/badge
-  playerData.friendsCount = onlineFriends.length;
-  updateDashboardState();
+  // Sync state header/badge if playerData exists
+  if (typeof playerData !== 'undefined') {
+    playerData.friendsCount = onlineFriends.length;
+    if (typeof updateDashboardState === 'function') {
+      updateDashboardState();
+    }
+  }
 
   // Render function helper
   const generateFriendCardHTML = (friend) => `
@@ -1153,22 +1213,32 @@ document.addEventListener("click", () => {
  * Handles clicking a friend card container directly
  */
 function handleFriendCardClick(event, friendId) {
-  // Prevent trigger if clicking three dots or dropdown items
   if (event.target.closest("button")) return;
   openFriendChatModal(event, friendId);
 }
 
 /**
- * Remove/Unfriend pipeline
+ * Remove/Unfriend pipeline using real database API
  */
-function removeFriend(event, friendId) {
+async function removeFriend(event, friendId) {
   event.stopPropagation();
-  friendsList = friendsList.filter(f => f.id !== friendId);
-  
-  if (openMenuFriendId === friendId) openMenuFriendId = null;
-  
-  renderFriendsList();
-  showFriendsToast("Friend removed", false);
+  const token = sessionStorage.getItem("token");
+
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/api/friends/remove/${friendId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      friendsList = friendsList.filter(f => f.id !== friendId);
+      if (openMenuFriendId === friendId) openMenuFriendId = null;
+      renderFriendsList();
+      showFriendsToast("Friend removed", false);
+    }
+  } catch (err) {
+    console.error("Failed to remove friend:", err);
+  }
 }
 
 /**
@@ -1194,40 +1264,47 @@ function hideFriendsToast() {
 }
 
 /**
- * Friend Search / Add pipeline
+ * Friend Search / Add pipeline using real database API
  */
-function handleAddFriendSearch() {
+async function handleAddFriendSearch() {
   const input = document.getElementById("friend-search-input");
   if (!input) return;
 
-  const query = input.value.trim().toUpperCase();
-  if (!query) return;
+  const usernameQuery = input.value.trim();
+  if (!usernameQuery) return;
 
-  // Check if already friends
-  const alreadyFriend = friendsList.find(f => f.name.toUpperCase() === query);
-  if (alreadyFriend) {
-    showFriendsToast(`${query} is already your friend!`, false);
-    input.value = "";
-    return;
-  }
+  const token = sessionStorage.getItem("token");
 
-  // Check database
-  const foundUser = knownUsersDatabase.find(u => u.name.toUpperCase() === query);
-  if (foundUser) {
-    friendsList.push({ ...foundUser, id: Date.now() });
-    renderFriendsList();
-    showFriendsToast(`${foundUser.name} added successfully!`, true);
-  } else {
-    showFriendsToast("User doesn't exist", false);
+  try {
+    const response = await fetch("http://127.0.0.1:5000/api/friends/add", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ username: usernameQuery })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      showFriendsToast(data.message, true);
+      input.value = "";
+      fetchFriendsList(); // Refresh list from database
+    } else {
+      showFriendsToast(data.error || "User doesn't exist", false);
+    }
+  } catch (err) {
+    console.error("Error adding friend:", err);
+    showFriendsToast("Server error adding friend", false);
   }
 
   input.value = "";
 }
 
 /**
- * CHAT MODAL LOGIC
+ * CHAT MODAL LOGIC WITH DATABASE FETCHING
  */
-function openFriendChatModal(event, friendId) {
+async function openFriendChatModal(event, friendId) {
   if (event) event.stopPropagation();
 
   const friend = friendsList.find(f => f.id === friendId);
@@ -1246,11 +1323,21 @@ function openFriendChatModal(event, friendId) {
   }
   if (fallbackEl) fallbackEl.textContent = friend.name.charAt(0);
 
-  // Initialize messages array if empty
-  if (!friendChatHistory[friendId]) {
-    friendChatHistory[friendId] = [
-      { sender: friend.name, text: `Hey! Let's study together today!` }
-    ];
+  // Fetch real chat history from database backend
+  const token = sessionStorage.getItem("token");
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/api/chat/${friendId}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      friendChatHistory[friendId] = data.messages.map(m => ({
+        sender: m.sender_id === friendId ? friend.name : "me",
+        text: m.text
+      }));
+    }
+  } catch (err) {
+    console.error("Failed to load chat history:", err);
   }
 
   renderFriendChatMessages();
@@ -1262,6 +1349,39 @@ function openFriendChatModal(event, friendId) {
   }
 
   openModal("friend-chat-modal");
+
+  // Clear any existing background poll interval
+  if (chatAutoSyncInterval) clearInterval(chatAutoSyncInterval);
+
+  // Start real-time background polling to automatically fetch incoming messages every 2 seconds
+  chatAutoSyncInterval = setInterval(async () => {
+    if (!activeChatFriendId) return;
+
+    try {
+      const pollResponse = await fetch(`http://127.0.0.1:5000/api/chat/${activeChatFriendId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (pollResponse.ok) {
+        const pollData = await pollResponse.json();
+        const activeFriend = friendsList.find(f => f.id === activeChatFriendId);
+        const friendName = activeFriend ? activeFriend.name : "Friend";
+
+        const newHistory = pollData.messages.map(m => ({
+          sender: m.sender_id === activeChatFriendId ? friendName : "me",
+          text: m.text
+        }));
+
+        // Update view only if message length changes to keep UI smooth
+        const oldLength = (friendChatHistory[activeChatFriendId] || []).length;
+        if (newHistory.length !== oldLength) {
+          friendChatHistory[activeChatFriendId] = newHistory;
+          renderFriendChatMessages();
+        }
+      }
+    } catch (pollErr) {
+      console.error("Auto-sync chat error:", pollErr);
+    }
+  }, 2000);
 }
 
 function renderFriendChatMessages() {
@@ -1282,25 +1402,62 @@ function renderFriendChatMessages() {
   container.scrollTop = container.scrollHeight;
 }
 
-function sendFriendChatMessage() {
+/**
+ * Send chat message and store to database backend
+ */
+async function sendFriendChatMessage() {
   const input = document.getElementById("friend-chat-input");
   if (!input || !activeChatFriendId) return;
   
   const text = input.value.trim();
   if (!text) return;
 
-  if (!friendChatHistory[activeChatFriendId]) {
-    friendChatHistory[activeChatFriendId] = [];
-  }
+  const token = sessionStorage.getItem("token");
 
-  friendChatHistory[activeChatFriendId].push({ sender: "me", text });
-  input.value = "";
-  renderFriendChatMessages();
+  try {
+    const response = await fetch("http://127.0.0.1:5000/api/chat/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ receiver_id: activeChatFriendId, text: text })
+    });
+
+    if (response.ok) {
+      if (!friendChatHistory[activeChatFriendId]) {
+        friendChatHistory[activeChatFriendId] = [];
+      }
+      friendChatHistory[activeChatFriendId].push({ sender: "me", text });
+      input.value = "";
+      renderFriendChatMessages();
+    }
+  } catch (err) {
+    console.error("Failed to send message:", err);
+  }
 }
 
-// Ensure friends list renders on initial load
+// Fetch friends list from database on initial load
 document.addEventListener("DOMContentLoaded", () => {
-  renderFriendsList();
+  fetchFriendsList();
+
+  // Background sync for friends list status every 5 seconds
+  setInterval(() => {
+    const token = sessionStorage.getItem("token");
+    if (token) {
+      fetch("http://127.0.0.1:5000/api/friends", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.friends) {
+          friendsList = data.friends;
+          renderFriendsList();
+        }
+      })
+      .catch(() => {});
+    }
+  }, 5000);
 });
 
 // ==========================================
@@ -1308,10 +1465,16 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 const baseCloseModal = window.closeModal;
 window.closeModal = function(modalId) {
-  if (modalId === 'friends-modal') {
-    // Automatically close friend chat modal if Friends list is closed
-    const chatModal = document.getElementById('friend-chat-modal');
-    if (chatModal) chatModal.classList.add('hidden');
+  if (modalId === 'friends-modal' || modalId === 'friend-chat-modal') {
+    // Clear chat polling when chat modal closes
+    if (chatAutoSyncInterval) {
+      clearInterval(chatAutoSyncInterval);
+      chatAutoSyncInterval = null;
+    }
+    if (modalId === 'friends-modal') {
+      const chatModal = document.getElementById('friend-chat-modal');
+      if (chatModal) chatModal.classList.add('hidden');
+    }
   }
   if (typeof baseCloseModal === 'function') {
     baseCloseModal(modalId);
@@ -1389,6 +1552,79 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.style.userSelect = "";
     }
   });
+});
+
+// ==========================================
+// GLOBAL BACKGROUND CHAT LISTENER (AUTO-POPUP CHAT)
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Mag-check ng mga bagong mensahe sa lahat ng kaibigan tuwing 3 segundo kahit hindi nakabukas ang chat box
+  setInterval(async () => {
+    const token = sessionStorage.getItem("token");
+    if (!token || typeof friendsList === 'undefined' || friendsList.length === 0) return;
+
+    for (const friend of friendsList) {
+      try {
+        const response = await fetch(`http://127.0.0.1:5000/api/chat/${friend.id}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const messages = data.messages || [];
+          if (messages.length === 0) continue;
+
+          const lastMessage = messages[messages.length - 1];
+          const currentUser = JSON.parse(sessionStorage.getItem("current_user") || "{}");
+
+          // Kung ang huling nag-send ay ang kaibigan (hindi ikaw) at wala pa sa local history natin
+          const currentHistory = friendChatHistory[friend.id] || [];
+          const isFromFriend = String(lastMessage.sender_id) === String(friend.id);
+
+          if (isFromFriend && messages.length > currentHistory.length) {
+            // I-update ang history
+            friendChatHistory[friend.id] = messages.map(m => ({
+              sender: m.sender_id === friend.id ? friend.name : "me",
+              text: m.text
+            }));
+
+            // KUSA NITONG ISSYNC O BUBUBUKSAN ANG CHAT MODAL PARA LUMITAW AGAD SA SCREEN!
+            const chatModal = document.getElementById("friend-chat-modal");
+            const isChatOpen = chatModal && !chatModal.classList.contains("hidden");
+
+            if (isChatOpen && activeChatFriendId === friend.id) {
+              // Kung nakabukas na ang chat nila, i-render lang ang bagong mensahe
+              renderFriendChatMessages();
+            } else {
+              // Kung sarado ang chat box, KUSA NITONG IISCREEN-POP UP ANG CHAT BOX PARA MAKITA AGAD
+              // Ginagamit nito ang iyong existing function para buksan ang chat box nila
+              if (typeof openFriendChatModal === 'function') {
+                // Pansamantalang i-bypass ang event requirement para kusang lumitaw
+                activeChatFriendId = friend.id;
+                
+                const usernameEl = document.getElementById("chat-modal-username");
+                const statusEl = document.getElementById("chat-modal-status");
+                const fallbackEl = document.getElementById("chat-modal-avatar-fallback");
+                
+                if (usernameEl) usernameEl.textContent = friend.name;
+                if (statusEl) {
+                  statusEl.textContent = friend.isOnline ? "Online" : "Offline";
+                  statusEl.className = `font-pixel text-sm leading-none ${friend.isOnline ? 'text-[#788D55]' : 'text-[#3D2013]/50'}`;
+                }
+                if (fallbackEl) fallbackEl.textContent = friend.name.charAt(0);
+
+                renderFriendChatMessages();
+                if (chatModal) chatModal.classList.remove("hidden");
+              }
+            }
+          }
+        }
+      } catch (err) {
+        // Silent catch para hindi makaistorbo sa console kung nag-poll
+      }
+    }
+  }, 3000);
 });
 
 // ==========================================
@@ -1738,4 +1974,103 @@ function openLeaderboardModal() {
 
 function closeLeaderboardModal() {
   closeModal("leaderboard-modal");
+}
+
+/**
+ * Utility function to format a Date object into 'YYYY-MM-DD'
+ */
+function formatDateKey(date) {
+  const d = new Date(date);
+  let month = '' + (d.getMonth() + 1);
+  let day = '' + d.getDate();
+  const year = d.getFullYear();
+
+  if (month.length < 2) month = '0' + month;
+  if (day.length < 2) day = '0' + day;
+
+  return [year, month, day].join('-');
+}
+
+
+// ==========================================
+// DAILY STREAK CALENDAR AUTO-POPUP
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  // Delay slightly to let the rest of the UI and avatars render first
+  setTimeout(() => {
+    // Rely on the existing formatDateKey function you already built
+    const todayStr = formatDateKey(new Date());
+    const lastVisit = localStorage.getItem("lastStudyCircleVisit");
+    
+    // If the user hasn't visited yet today, pop up the calendar
+    if (lastVisit !== todayStr) {
+      localStorage.setItem("lastStudyCircleVisit", todayStr);
+      openModal("full-calendar-modal");
+    }
+  }, 800); 
+});
+
+
+function renderNotifications() {
+  // Subukan nating ilagay o hanapin ang kahit anong container sa page mo
+  let container = document.getElementById("notifications-container");
+  
+  // Kung wala pang container sa HTML mo, gawa tayo ng automatic pop-up o ilagay sa itaas ng body
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "notifications-container";
+    container.style.position = "fixed";
+    container.style.top = "20px";
+    container.style.right = "20px";
+    container.style.zIndex = "9999";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "10px";
+    document.body.appendChild(container);
+  }
+
+  // Kunin LAHAT ng imbitasyon sa localStorage nang walang filter muna para sigurado
+  const notifications = JSON.parse(localStorage.getItem("userNotifications") || "[]");
+  
+  if (notifications.length === 0) {
+    return; // Huwag na munang magpakita ng 'No new notifications' para hindi makaistorbo sa UI
+  }
+
+  container.innerHTML = notifications.map(notif => `
+    <div class="flex flex-col gap-2 p-3 bg-[#FEF4E0] border-[3px] border-[#3D2013] shadow-lg" style="min-width: 250px;">
+      <p class="font-pressstart text-[8px] text-[#3D2013]">${notif.message}</p>
+      <div class="flex items-center justify-between">
+        <span class="font-pressstart text-[7px] text-[#3D2013]/65">${notif.timestamp}</span>
+        <button onclick="acceptRoomInvite('${notif.roomCode}', '${notif.id}')" 
+                class="bg-[#FD923E] text-[#3D2013] font-pressstart text-[8px] px-3 py-1 border-[2px] border-[#3D2013] cursor-pointer hover:brightness-105">
+          Accept & Join
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function acceptRoomInvite(roomCode, notificationId) {
+  // 1. Tanggalin muna ang notification sa localStorage gamit ang ID nito
+  let allNotifications = JSON.parse(localStorage.getItem("userNotifications") || "[]");
+  allNotifications = allNotifications.filter(notif => notif.id !== notificationId);
+  localStorage.setItem("userNotifications", JSON.stringify(allNotifications));
+
+  // 2. I-save ang current joined room sa session
+  sessionStorage.setItem("currentJoinedRoom", roomCode);
+  sessionStorage.setItem("activeRoomId", roomCode);
+
+  // 3. I-refresh o i-re-render ang notifications para mawala na agad sa screen ang na-click na box
+  if (typeof renderNotifications === 'function') {
+    renderNotifications();
+  }
+
+  alert(`Successfully joined room ${roomCode}! Entering room...`);
+
+  // 4. Pumasok na sa room gamit ang mismong enterRoom function ng system mo
+  if (typeof enterRoom === 'function') {
+    enterRoom(roomCode);
+  } else {
+    window.location.href = `generated-homepage.html?room=${roomCode}`;
+  }
 }
