@@ -9,9 +9,383 @@ let currentActiveTool = ''; // 'Pre-quiz', 'Post-quiz', 'Flashcards', 'Notes'
 let currentGeneratedItem = null;
 let hasActiveToolChanged = false; // Tracks whether modifications occurred in current tool session
 
+const roomState = {
+  mode: 'structured', // 'hangout' | 'structured'
+  role: 'host', // 'host' | 'player'
+  isQuizStarted: false,
+  playersReady: 4,
+  totalPlayers: 5,
+  isPlayerReady: false
+};
+
+/**
+ * Safely updates the user's role in roomState, updates the URL,
+ * clamps ready counts, and re-renders dependent UI elements.
+ * 
+ * @param {'host' | 'player'} newRole 
+ * @param {Object} [options]
+ * @param {boolean} [options.broadcast=true] Whether to notify other tabs/clients
+ */
+function setRole(newRole, options = { broadcast: true }) {
+  // 1. Validate role input
+  if (newRole !== 'host' && newRole !== 'player') {
+    console.warn(`[setRole] Invalid role provided: "${newRole}". Must be 'host' or 'player'.`);
+    return;
+  }
+
+  // 2. Prevent redundant work if role hasn't changed
+  if (roomState.role === newRole) return;
+
+  const previousRole = roomState.role;
+  roomState.role = newRole;
+
+  // 3. Keep playersReady within valid bounds [0, totalPlayers]
+  roomState.playersReady = getClampedReadyCount(roomState.playersReady);
+
+  // 4. Synchronize URL query parameter without reloading the page
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set('role', newRole);
+    window.history.replaceState(null, '', url.toString());
+  } catch (err) {
+    console.error('[setRole] Failed to sync URL state:', err);
+  }
+
+  // 5. Update UI controls depending on host vs. player permissions
+  renderRoleDependentUI(newRole);
+
+  // 6. Broadcast state change if requested
+  // Note: Only allow broadcast if new role is host OR if broadcasting host-relinquishment
+  if (options.broadcast && roomStateChannel) {
+    roomStateChannel.postMessage({
+      type: 'ROLE_CHANGED',
+      previousRole,
+      role: roomState.role,
+      playersReady: roomState.playersReady,
+      totalPlayers: roomState.totalPlayers,
+      mode: roomState.mode,
+      isQuizStarted: roomState.isQuizStarted
+    });
+  }
+}
+
+/**
+ * Updates UI elements based on host/player control permissions.
+ * @param {'host' | 'player'} role 
+ */
+function renderRoleDependentUI(role) {
+  const isHost = role === 'host';
+
+  // Toggle host-only controls visibility
+  const hostElements = document.querySelectorAll('[data-host-only]');
+  hostElements.forEach((el) => {
+    el.classList.toggle('hidden', !isHost);
+    if ('disabled' in el) {
+      el.disabled = !isHost;
+    }
+  });
+
+  // Toggle player-only controls visibility
+  const playerElements = document.querySelectorAll('[data-player-only]');
+  playerElements.forEach((el) => {
+    el.classList.toggle('hidden', isHost);
+  });
+
+  // Re-render core room state views
+  if (typeof renderRoomStateDependents === 'function') {
+    renderRoomStateDependents();
+  }
+}
+
+const ROOM_STATE_CHANNEL = 'studycircle_room_state_channel';
+const roomStateChannel = typeof BroadcastChannel !== 'undefined'
+  ? new BroadcastChannel(ROOM_STATE_CHANNEL)
+  : null;
+
+function isStructuredMode() {
+  return roomState.mode === 'structured';
+}
+
+function isStructuredHost() {
+  return isStructuredMode() && roomState.role === 'host';
+}
+
+function isStructuredPlayer() {
+  return isStructuredMode() && roomState.role === 'player';
+}
+
+function isQuizTool(toolName = currentActiveTool) {
+  return toolName === 'Pre-quiz' || toolName === 'Post-quiz';
+}
+
+function getClampedReadyCount(value = roomState.playersReady) {
+  const num = Number(value);
+  const validNum = Number.isFinite(num) ? num : 0;
+  return Math.max(0, Math.min(roomState.totalPlayers, validNum));
+}
+
+function renderRoomStateDependents() {
+  renderToolsColumnForRoomState();
+
+  if (isStructuredHost() && isQuizTool() && !roomState.isQuizStarted) {
+    renderStructuredHostLobby();
+  }
+}
+
+function updateRoomState(patch = {}, options = {}) {
+  const shouldBroadcast = options.broadcast !== false;
+
+  if (patch.mode === 'hangout' || patch.mode === 'structured') {
+    roomState.mode = patch.mode;
+  }
+  if (patch.role === 'host' || patch.role === 'player') {
+    roomState.role = patch.role;
+  }
+  if (typeof patch.isQuizStarted === 'boolean') {
+    roomState.isQuizStarted = patch.isQuizStarted;
+  }
+  if (typeof patch.isPlayerReady === 'boolean') {
+    roomState.isPlayerReady = patch.isPlayerReady;
+  }
+
+  const nextTotalPlayers = Number(patch.totalPlayers);
+  if (Number.isFinite(nextTotalPlayers) && nextTotalPlayers > 0) {
+    roomState.totalPlayers = nextTotalPlayers;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch, 'playersReady')) {
+    roomState.playersReady = getClampedReadyCount(patch.playersReady);
+  } else {
+    roomState.playersReady = getClampedReadyCount();
+  }
+
+  renderRoomStateDependents();
+
+  if (shouldBroadcast) {
+    broadcastRoomState();
+  }
+}
+
+function setStructuredReadyStatus(playersReady, totalPlayers = roomState.totalPlayers) {
+  updateRoomState({ playersReady, totalPlayers });
+}
+
+function hydrateRoomStateFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('mode');
+  const role = params.get('role');
+  const readyParam = params.get('playersReady');
+  const totalParam = params.get('totalPlayers');
+
+  if (mode === 'hangout' || mode === 'structured') {
+    roomState.mode = mode;
+  }
+  if (role === 'host' || role === 'player') {
+    roomState.role = role;
+  }
+  
+  if (totalParam !== null) {
+    const total = Number(totalParam);
+    if (Number.isFinite(total) && total > 0) {
+      roomState.totalPlayers = total;
+    }
+  }
+
+  if (readyParam !== null) {
+    const ready = Number(readyParam);
+    if (Number.isFinite(ready)) {
+      roomState.playersReady = getClampedReadyCount(ready);
+    }
+  }
+}
+
+function getSharedRoomStatePatch() {
+  return {
+    mode: roomState.mode,
+    isQuizStarted: roomState.isQuizStarted,
+    playersReady: getClampedReadyCount(),
+    totalPlayers: roomState.totalPlayers
+  };
+}
+
+function broadcastRoomState() {
+  if (roomStateChannel) {
+    roomStateChannel.postMessage(getSharedRoomStatePatch());
+  }
+}
+
+if (roomStateChannel) {
+  roomStateChannel.onmessage = (event) => {
+    if (!event.data || typeof event.data !== 'object') return;
+
+    const patch = {};
+
+    if (event.data.mode === 'hangout' || event.data.mode === 'structured') {
+      patch.mode = event.data.mode;
+    }
+    if (typeof event.data.isQuizStarted === 'boolean') {
+      patch.isQuizStarted = event.data.isQuizStarted;
+    }
+    
+    const incomingTotal = Number(event.data.totalPlayers);
+    if (Number.isFinite(incomingTotal) && incomingTotal > 0) {
+      patch.totalPlayers = incomingTotal;
+    }
+
+    const incomingReady = Number(event.data.playersReady);
+    if (Number.isFinite(incomingReady)) {
+      patch.playersReady = incomingReady;
+    }
+
+    updateRoomState(patch, { broadcast: false });
+  };
+}
+
+function initializeRoomState() {
+  hydrateRoomStateFromUrl();
+  // Sync view without mutating roomState.playersReady default value
+  renderRoomStateDependents();
+}
+
+function renderToolsColumnForRoomState() {
+  const titleElem = document.getElementById('tools-header-title');
+  const mainMenu = document.getElementById('tools-main-menu');
+  const formView = document.getElementById('tools-form-view');
+  const playerView = document.getElementById('structured-player-view');
+
+  if (!mainMenu || !formView || !playerView) return;
+
+  if (isStructuredPlayer()) {
+    mainMenu.classList.add('hidden');
+    formView.classList.add('hidden');
+    playerView.classList.remove('hidden');
+    if (titleElem) titleElem.textContent = roomState.isQuizStarted ? 'Live Quiz' : 'Structured Quiz';
+    renderStructuredPlayerView();
+    return;
+  }
+
+  playerView.classList.add('hidden');
+
+  if (!currentActiveTool && formView.classList.contains('hidden')) {
+    mainMenu.classList.remove('hidden');
+    if (titleElem) titleElem.textContent = 'Tools';
+  }
+}
+
+function renderStructuredHostLobby(container = document.getElementById('structured-lobby-container')) {
+  if (!container) return;
+
+  const readyCount = getClampedReadyCount();
+  const waitingCount = Math.max(0, roomState.totalPlayers - readyCount);
+  const canStart = readyCount >= roomState.totalPlayers;
+
+  // Determine button label based on current active quiz type
+  const quizTypeLabel = isQuizTool(currentActiveTool) ? currentActiveTool : 'Quiz';
+  const buttonText = `Start ${quizTypeLabel}`;
+
+  container.innerHTML = `
+    <div class="bg-[#FFF8EC] border-2 border-[#3D2013] rounded-xl p-4 flex flex-col gap-4 shadow-sm">
+      <div class="flex flex-col gap-1 text-center">
+        <h3 class="font-pressstart text-[10px] text-[#3D2013] leading-relaxed">${quizTypeLabel} Lobby</h3>
+        <p class="font-pixel text-sm text-[#3D2013]/70">Players are joining and marking themselves ready.</p>
+      </div>
+
+      <div class="bg-[#FEF4E0] border-2 border-[#3D2013]/20 rounded-xl p-4 text-center">
+        <p class="font-pressstart text-xs text-[#3D2013]">${readyCount}/${roomState.totalPlayers} Players Ready</p>
+        <p class="font-pixel text-xs text-[#3D2013]/60 mt-1">${waitingCount === 0 ? 'Everyone is ready.' : `${waitingCount} still waiting.`}</p>
+      </div>
+
+      <button
+        type="button"
+        onclick="startStructuredQuiz()"
+        ${canStart ? '' : 'disabled'}
+        class="w-full bg-[#788D55] text-white font-pressstart text-xs py-3 rounded-xl border-2 border-[#3D2013] transition-all shadow-sm ${canStart ? 'hover:bg-[#5B6D3F] active:scale-[0.98] cursor-pointer' : 'opacity-50 cursor-not-allowed'}">
+        ${buttonText}
+      </button>
+    </div>
+  `;
+}
+
+function showStructuredHostLobby() {
+  const step1 = document.getElementById('step-1-source-select');
+  const lobby = document.getElementById('structured-lobby-container');
+  const step2 = document.getElementById('step-2-generated-container');
+
+  if (step1) step1.classList.add('hidden');
+  if (step2) step2.classList.add('hidden');
+  if (lobby) lobby.classList.remove('hidden');
+
+  renderStructuredHostLobby(lobby);
+}
+
+function renderStructuredPlayerView() {
+  const container = document.getElementById('structured-player-view');
+  if (!container) return;
+
+  if (roomState.isQuizStarted) {
+    if (!quizState.activeQuiz) {
+      currentActiveTool = currentActiveTool || 'Pre-quiz';
+      quizState.activeQuiz = JSON.parse(JSON.stringify(mockQuizData[currentActiveTool] || mockQuizData['Pre-quiz']));
+      quizState.currentQuestionIndex = 0;
+      quizState.userAnswers = {};
+      quizState.isCompleted = false;
+      quizState.isReviewing = false;
+    }
+
+    container.innerHTML = `<div id="structured-player-quiz-content" class="flex-1 flex flex-col gap-3"></div>`;
+    renderQuizView(document.getElementById('structured-player-quiz-content'));
+    return;
+  }
+
+  const readyLabel = roomState.isPlayerReady ? 'Ready' : "I'm Ready";
+  const readyCount = getClampedReadyCount();
+
+  container.innerHTML = `
+    <div class="flex-1 flex flex-col justify-center gap-4">
+      <div class="bg-[#FFF8EC] border-2 border-[#3D2013] rounded-xl p-4 flex flex-col gap-3 text-center shadow-sm">
+        <h3 class="font-pressstart text-[10px] text-[#3D2013] leading-relaxed">Waiting for the host to start</h3>
+        <p class="font-pixel text-sm text-[#3D2013]/70">${readyCount}/${roomState.totalPlayers} Players Ready</p>
+        <button
+          type="button"
+          onclick="toggleStructuredPlayerReady()"
+          class="w-full ${roomState.isPlayerReady ? 'bg-[#788D55]' : 'bg-[#E87339]'} text-white font-pressstart text-xs py-3 rounded-xl border-2 border-[#3D2013] hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer shadow-sm">
+          ${readyLabel}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleStructuredPlayerReady() {
+  const nextPlayerReady = !roomState.isPlayerReady;
+  updateRoomState({
+    isPlayerReady: nextPlayerReady,
+    playersReady: roomState.playersReady + (nextPlayerReady ? 1 : -1)
+  });
+}
+
+function startStructuredQuiz() {
+  if (!isStructuredHost()) return;
+
+  updateRoomState({ isQuizStarted: true });
+  hasActiveToolChanged = true;
+
+  const lobby = document.getElementById('structured-lobby-container');
+  const step2 = document.getElementById('step-2-generated-container');
+  if (lobby) lobby.classList.add('hidden');
+  if (step2) step2.classList.remove('hidden');
+
+  if (currentGeneratedItem) {
+    currentGeneratedItem.isQuizStarted = true;
+  }
+
+  renderQuizView();
+}
+
 // Initial Setup on DOM Load
 document.addEventListener('DOMContentLoaded', () => {
   renderUploadedFiles();
+  initializeRoomState();
 });
 
 // Navigation back handler for the close button
@@ -365,6 +739,10 @@ function handleStep1Next() {
     return;
   }
 
+  if (isStructuredHost() && isQuizTool(currentActiveTool)) {
+    updateRoomState({ isQuizStarted: false });
+  }
+
   // 1. Instantly generate & inflate the mock content state based on the current tool
   generateMockToolContent(currentActiveTool);
   
@@ -388,9 +766,14 @@ function handleStep1Next() {
     renderGeneratedItemsList();
   }
 
-  // 5. Hide Step 1, Show Step 2
-  document.getElementById('step-1-source-select').classList.add('hidden');
-  document.getElementById('step-2-generated-container').classList.remove('hidden');
+  // 5. Hide Step 1, then either show the structured lobby or generated content
+  if (isStructuredHost() && isQuizTool(currentActiveTool)) {
+    showStructuredHostLobby();
+  } else {
+    document.getElementById('step-1-source-select').classList.add('hidden');
+    document.getElementById('structured-lobby-container').classList.add('hidden');
+    document.getElementById('step-2-generated-container').classList.remove('hidden');
+  }
 }
 
 // Reset Back to Tools Main View
@@ -401,10 +784,13 @@ function resetToolsView() {
   // Reset form views
   document.getElementById('tools-form-view').classList.add('hidden');
   document.getElementById('step-1-source-select').classList.remove('hidden');
+  document.getElementById('structured-lobby-container').classList.add('hidden');
   document.getElementById('step-2-generated-container').classList.add('hidden');
   document.getElementById('tools-main-menu').classList.remove('hidden');
 
+  currentActiveTool = '';
   hasActiveToolChanged = false; // Reset modification flag
+  renderToolsColumnForRoomState();
 }
 
 // --- MOCK DATA FOR QUIZZES ---
@@ -920,6 +1306,25 @@ function renderQuizView(container = document.getElementById('mock-output-content
 
   const quiz = quizState.activeQuiz;
 
+  if (isStructuredMode() && isQuizTool(quiz.type) && !roomState.isQuizStarted && !quizState.isCompleted && !quizState.isReviewing) {
+    if (isStructuredHost()) {
+      renderStructuredHostLobby(container);
+    } else {
+      container.innerHTML = `
+        <div class="bg-[#FFF8EC] border-2 border-[#3D2013] rounded-xl p-4 text-center shadow-sm">
+          <h3 class="font-pressstart text-[10px] text-[#3D2013] leading-relaxed">Waiting for the host to start</h3>
+          <button
+            type="button"
+            onclick="toggleStructuredPlayerReady()"
+            class="mt-4 w-full ${roomState.isPlayerReady ? 'bg-[#788D55]' : 'bg-[#E87339]'} text-white font-pressstart text-xs py-3 rounded-xl border-2 border-[#3D2013] hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer shadow-sm">
+            ${roomState.isPlayerReady ? 'Ready' : "I'm Ready"}
+          </button>
+        </div>
+      `;
+    }
+    return;
+  }
+
   if (quizState.isReviewing) {
     renderQuizReview(container);
     return;
@@ -1182,9 +1587,11 @@ function renderQuizReview(container) {
 // --- 3. Check Flashcard changes when navigating back ---
 function handleBackToTools() {
   const step2Container = document.getElementById('step-2-generated-container');
+  const lobbyContainer = document.getElementById('structured-lobby-container');
   const isStep2Active = step2Container && !step2Container.classList.contains('hidden');
+  const isLobbyActive = lobbyContainer && !lobbyContainer.classList.contains('hidden');
 
-  if (isStep2Active) {
+  if (isStep2Active || isLobbyActive) {
     let hasChanges = hasActiveToolChanged;
 
     // Check Quiz state changes if not caught by flag

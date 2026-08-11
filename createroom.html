@@ -304,21 +304,122 @@
 
         </div>
 
-        <!-- STEP 3: CHECKLIST -->
-        <div id="step-form-3" class="step-form-panel hidden flex flex-col gap-4 sm:gap-5">
-          <h2 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">Shared Checklist</h2>
+<!-- STEP 3: CHECKLIST & ROOM MODE -->
+<div id="step-form-3" class="step-form-panel hidden flex flex-col gap-4 sm:gap-5">
+  <h2 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">Checklist & Room Mode</h2>
 
-          <!-- CHECKLIST CONTAINER (DYNAMICALLY POPULATED) -->
-          <div id="tasks-list-container" class="flex flex-col gap-2.5 max-h-[370px] overflow-y-auto pr-1">
-            <!-- Dynamic task items will be rendered here via JS -->
-          </div>
+  <!-- MODE SELECTION CARDS -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+    
+    <!-- OPTION 1: STRUCTURED FOCUS -->
+    <div id="card-mode-structured" onclick="selectChecklistMode('structured')"
+         class="flex flex-col gap-2 p-3 sm:p-4 bg-[#FD923E] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer transition-all duration-150 select-none">
+      <div class="flex items-center justify-between w-full">
+        <span class="font-pressstart text-[10px] sm:text-[11px] uppercase">Structured Focus</span>
+        <svg class="w-5 h-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+      </div>
+      <p class="font-pressstart text-[8px] sm:text-[8.5px] leading-relaxed opacity-90">
+        Shared tasks are pre-set now and followed together by all players during the session.
+      </p>
+    </div>
 
-          <!-- ADD TASK BUTTON -->
-          <button type="button" onclick="addDraftTaskRow()" 
-                  class="self-start w-auto bg-[#97B591] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none px-4 py-2 font-pressstart text-[8px] sm:text-[9px] cursor-pointer transition-all duration-150 flat-retro-shadow-hover flex items-center justify-center gap-1.5">
-            <span>+ Add Task</span>
-          </button>
+    <!-- OPTION 2: HANGOUT MODE -->
+    <div id="card-mode-hangout" onclick="selectChecklistMode('hangout')"
+         class="flex flex-col gap-2 p-3 sm:p-4 bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer flat-retro-shadow-hover transition-all duration-150 select-none">
+      <div class="flex items-center justify-between w-full">
+        <span class="font-pressstart text-[10px] sm:text-[11px] uppercase">Hangout</span>
+        <svg class="w-5 h-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+      </div>
+      <p class="font-pressstart text-[8px] sm:text-[8.5px] leading-relaxed opacity-90">
+        Casual room setup. Checklist setup is optional now and can be managed freely inside the room.
+      </p>
+    </div>
+
+  </div>
+
+<!-- PDF UPLOAD SECTION (For Quiz Generation) -->
+  <div id="pdf-upload-container" class="flex flex-col gap-2">
+    <label for="room-pdf-upload" class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">
+      Upload Material (PDF for Quiz Generation) <span class="text-[#D9383A]">*</span>
+    </label>
+    
+    <div class="relative w-full">
+      <!-- Hidden File Input -->
+      <input type="file" id="room-pdf-upload" accept=".pdf,application/pdf" onchange="handlePdfUpload(this)" class="hidden" />
+
+      <!-- STATE 1: INITIAL SELECT FILE STATE -->
+      <div id="pdf-upload-initial">
+        <label for="room-pdf-upload" id="pdf-upload-label" 
+               class="w-full bg-[#FAE9CE] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none p-3 font-pressstart text-[8px] sm:text-[9px] cursor-pointer flex items-center justify-between hover:bg-[#FEF4E0] transition-colors">
+          <span class="truncate opacity-70">Choose a PDF file...</span>
+          <span class="bg-[#FD923E] text-[#3D2013] px-2 py-1 border-[2px] border-[#3D2013] shrink-0 ml-2">Browse</span>
+        </label>
+      </div>
+
+      <!-- STATE 2: UPLOADING PROGRESS BAR STATE -->
+      <div id="pdf-upload-progress" class="hidden bg-[#FAE9CE] border-[2px] sm:border-[3px] border-[#3D2013] p-3 flex flex-col gap-2">
+        <div class="flex items-center justify-between font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]">
+          <span>Uploading PDF...</span>
+          <span id="pdf-progress-percent">0%</span>
         </div>
+        <!-- Outer Track -->
+        <div class="w-full h-3 bg-[#FEF4E0] border-[2px] border-[#3D2013] overflow-hidden p-[1px]">
+          <!-- Animated Fill Bar -->
+          <div id="pdf-progress-bar-inner" class="h-full bg-[#FD923E] w-0 transition-all duration-150"></div>
+        </div>
+      </div>
+
+      <!-- STATE 3: FILE UPLOADED STATE WITH FILE SIZE & REMOVE BUTTON -->
+      <div id="pdf-upload-details" class="hidden bg-[#FAE9CE] border-[2px] sm:border-[3px] border-[#3D2013] p-2.5 sm:p-3 flex items-center justify-between gap-2">
+        <div class="flex flex-col gap-1 min-w-0 flex-1">
+          <div class="flex items-center gap-1.5">
+            <!-- PDF Document Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-[#3D2013] shrink-0">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+            <span id="pdf-file-name" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] truncate">document.pdf</span>
+          </div>
+          <!-- File Size Badge -->
+          <span id="pdf-file-size" class="font-pressstart text-[7px] sm:text-[8px] text-[#3D2013]/70 pl-5">0 KB</span>
+        </div>
+
+        <!-- Clear / Remove PDF Button -->
+        <button type="button" onclick="removePdfFile()" title="Remove PDF"
+                class="w-7 h-7 bg-[#A53914] border-[2px] border-[#3D2013] flex items-center justify-center text-[#FEF4E0] font-pressstart text-[10px] hover:brightness-110 active:scale-90 cursor-pointer shrink-0">
+          ✕
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CHECKLIST SECTION -->
+  <div class="flex flex-col gap-2.5">
+    <label class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013]">
+      Shared Checklist Items
+    </label>
+
+    <!-- CHECKLIST CONTAINER (DYNAMICALLY POPULATED) -->
+    <div id="tasks-list-container" class="flex flex-col gap-2.5 max-h-[180px] overflow-y-auto pr-1">
+      <!-- Dynamic task items will be rendered here via JS -->
+    </div>
+
+    <!-- ADD TASK BUTTON -->
+    <button id="btn-add-task" type="button" onclick="addDraftTaskRow()" 
+            class="self-start w-auto bg-[#97B591] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none px-4 py-2 font-pressstart text-[8px] sm:text-[9px] cursor-pointer transition-all duration-150 flat-retro-shadow-hover flex items-center justify-center gap-1.5">
+      <span>+ Add Task</span>
+    </button>
+  </div>
+
+  <!-- STEP 3 VALIDATION ERROR TEXT -->
+  <span id="error-step-3" class="hidden font-pressstart text-[8px] sm:text-[9px] text-[#D9383A]">
+    * Structured Focus requires at least 1 task and a uploaded PDF file!
+  </span>
+</div>
 
         <!-- STEP 4: INVITE MEMBERS -->
         <div id="step-form-4" class="step-form-panel hidden flex flex-col gap-4 sm:gap-5">

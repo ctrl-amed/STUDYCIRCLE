@@ -2,6 +2,7 @@
  * Create Room Dynamic Step Form Controller
  */
 let currentStep = 1;
+let selectedChecklistMode = 'structured'; // Options: 'structured' | 'hangout'
 
 // Base step configuration
 const allSteps = [
@@ -28,7 +29,7 @@ function getActiveSteps() {
 }
 
 /**
- * Renders the step progress bars dynamically based on active steps count (4 or 5)
+ * Renders the step progress bars dynamically based on active steps count
  */
 function renderProgressBars() {
   const container = document.getElementById("session-bars-container");
@@ -52,8 +53,7 @@ function renderProgressBars() {
 function updateStepUI() {
   const activeSteps = getActiveSteps();
   const totalSteps = activeSteps.length;
-  
-  // Find current step position in active steps array
+
   let currentStepIndex = activeSteps.findIndex(s => s.stepId === currentStep);
   if (currentStepIndex === -1) {
     currentStep = activeSteps[0].stepId;
@@ -62,8 +62,7 @@ function updateStepUI() {
 
   const stepNumberText = document.getElementById("step-number-text");
   const stepTitleText = document.getElementById("step-title-text");
-
-  // Step counter text: "Step 1 of 4" or "Step 1 of 5"
+  
   if (stepNumberText) stepNumberText.textContent = `${currentStepIndex + 1} of ${totalSteps}`;
   if (stepTitleText) stepTitleText.textContent = activeSteps[currentStepIndex].title;
 
@@ -117,6 +116,157 @@ function updateStepUI() {
   }
 }
 
+// State for storing the selected PDF file and upload state
+let selectedPdfFile = null;
+let isPdfUploading = false;
+
+/**
+ * Formats bytes into human-readable KB or MB strings
+ */
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/**
+ * Handles PDF File Selection and UI updates
+ */
+function handlePdfUpload(inputEl) {
+  clearError('step-3');
+
+  if (inputEl.files && inputEl.files.length > 0) {
+    const file = inputEl.files[0];
+
+    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      selectedPdfFile = file;
+      simulatePdfUpload(file);
+    } else {
+      alert("Please upload a valid PDF file!");
+      inputEl.value = "";
+      removePdfFile();
+    }
+  }
+}
+/**
+ * Simulates uploading progress for the PDF file
+ */
+function simulatePdfUpload(file) {
+  isPdfUploading = true;
+
+  const initialArea = document.getElementById('pdf-upload-initial');
+  const progressArea = document.getElementById('pdf-upload-progress');
+  const detailsArea = document.getElementById('pdf-upload-details');
+  const progressBarInner = document.getElementById('pdf-progress-bar-inner');
+  const progressPercentText = document.getElementById('pdf-progress-percent');
+
+  // Show progress section
+  if (initialArea) initialArea.classList.add('hidden');
+  if (detailsArea) detailsArea.classList.add('hidden');
+  if (progressArea) progressArea.classList.remove('hidden');
+
+  let progress = 0;
+  if (progressBarInner) progressBarInner.style.width = '0%';
+  if (progressPercentText) progressPercentText.textContent = '0%';
+
+  const interval = setInterval(() => {
+    progress += Math.floor(Math.random() * 20) + 10;
+    if (progress > 100) progress = 100;
+
+    if (progressBarInner) progressBarInner.style.width = `${progress}%`;
+    if (progressPercentText) progressPercentText.textContent = `${progress}%`;
+
+    if (progress >= 100) {
+      clearInterval(interval);
+      isPdfUploading = false;
+
+      // Display file details on completion
+      setTimeout(() => {
+        if (progressArea) progressArea.classList.add('hidden');
+        if (detailsArea) detailsArea.classList.remove('hidden');
+
+        const fileNameDisplay = document.getElementById('pdf-file-name');
+        const fileSizeDisplay = document.getElementById('pdf-file-size');
+
+        if (fileNameDisplay) fileNameDisplay.textContent = file.name;
+        if (fileSizeDisplay) fileSizeDisplay.textContent = formatFileSize(file.size);
+      }, 300);
+    }
+  }, 120);
+}
+/**
+ * Removes the current uploaded PDF and resets the input UI
+ */
+function removePdfFile() {
+  selectedPdfFile = null;
+  isPdfUploading = false;
+
+  const fileInput = document.getElementById('room-pdf-upload');
+  if (fileInput) fileInput.value = '';
+
+  const initialArea = document.getElementById('pdf-upload-initial');
+  const progressArea = document.getElementById('pdf-upload-progress');
+  const detailsArea = document.getElementById('pdf-upload-details');
+
+  if (initialArea) initialArea.classList.remove('hidden');
+  if (progressArea) progressArea.classList.add('hidden');
+  if (detailsArea) detailsArea.classList.add('hidden');
+}
+/**
+ * Update Checklist Mode Toggle UI to show/hide PDF Section
+ */
+function selectChecklistMode(mode) {
+  selectedChecklistMode = mode;
+  clearError('step-3');
+
+  const cardStructured = document.getElementById("card-mode-structured");
+  const cardHangout = document.getElementById("card-mode-hangout");
+  const addTaskBtn = document.getElementById("btn-add-task");
+  const pdfUploadContainer = document.getElementById("pdf-upload-container");
+
+  if (mode === 'structured') {
+    if (cardStructured) {
+      cardStructured.className = "flex flex-col gap-2 p-3 sm:p-4 bg-[#FD923E] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer transition-all duration-150 select-none";
+    }
+    if (cardHangout) {
+      cardHangout.className = "flex flex-col gap-2 p-3 sm:p-4 bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer flat-retro-shadow-hover transition-all duration-150 select-none";
+    }
+
+    if (addTaskBtn) {
+      addTaskBtn.removeAttribute("disabled");
+      addTaskBtn.className = "self-start w-auto bg-[#97B591] text-[#3D2013] border-[2px] sm:border-[3px] border-[#3D2013] !rounded-none px-4 py-2 font-pressstart text-[8px] sm:text-[9px] cursor-pointer transition-all duration-150 flat-retro-shadow-hover flex items-center justify-center gap-1.5";
+    }
+
+    // Show PDF container for Structured Focus
+    if (pdfUploadContainer) {
+      pdfUploadContainer.classList.remove("hidden");
+    }
+  } else {
+    if (cardHangout) {
+      cardHangout.className = "flex flex-col gap-2 p-3 sm:p-4 bg-[#FD923E] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer transition-all duration-150 select-none";
+    }
+    if (cardStructured) {
+      cardStructured.className = "flex flex-col gap-2 p-3 sm:p-4 bg-[#FAE9CE] text-[#3D2013] border-[3px] border-[#3D2013] !rounded-none cursor-pointer flat-retro-shadow-hover transition-all duration-150 select-none";
+    }
+
+    if (addTaskBtn) {
+      addTaskBtn.setAttribute("disabled", "true");
+      addTaskBtn.className = "self-start w-auto bg-[#A3A3A3] text-[#3D2013]/50 border-[2px] sm:border-[3px] border-[#3D2013]/40 !rounded-none px-4 py-2 font-pressstart text-[8px] sm:text-[9px] cursor-not-allowed opacity-60 flex items-center justify-center gap-1.5";
+    }
+
+    // Hide PDF container for Hangout mode
+    if (pdfUploadContainer) {
+      pdfUploadContainer.classList.add("hidden");
+    }
+  }
+
+  renderDraftTasks();
+}
+
+
+
 /**
  * Validates current step input requirements before proceeding
  */
@@ -130,25 +280,21 @@ function validateStep(step) {
     const roomSessionsSelect = document.getElementById('room-sessions');
     const customSessionsInput = document.getElementById('custom-sessions-input');
 
-    // Check Room Name
     if (!roomNameInput || roomNameInput.value.trim() === '') {
       showError('room-name');
       isValid = false;
     }
 
-    // Check Room Topic
     if (!roomTopicInput || roomTopicInput.value.trim() === '') {
       showError('room-topic');
       isValid = false;
     }
 
-    // Check Max Players
     if (!roomPlayersSelect || roomPlayersSelect.value === '' || Number(roomPlayersSelect.value) < 1 || Number(roomPlayersSelect.value) > 6) {
       showError('room-players');
       isValid = false;
     }
 
-    // Check Room Sessions
     if (!roomSessionsSelect || roomSessionsSelect.value === '') {
       showError('room-sessions');
       isValid = false;
@@ -160,6 +306,23 @@ function validateStep(step) {
     }
 
     return isValid;
+  }
+
+  // Step 3 Validation: Require active file and complete upload
+  if (step === 3) {
+    if (selectedChecklistMode === 'structured') {
+      const validTasks = draftTasks.filter(t => t.trim() !== "");
+      
+      if (isPdfUploading) {
+        alert("Please wait until the PDF finishes uploading!");
+        return false;
+      }
+
+      if (validTasks.length === 0 || !selectedPdfFile) {
+        showError('step-3');
+        return false;
+      }
+    }
   }
 
   return true;
@@ -270,9 +433,13 @@ function submitCreateRoom() {
   });
 
   const validTasks = draftTasks.filter(t => t.trim() !== "");
-  const checklist = validTasks.length > 0
-    ? validTasks.map(task => ({ title: task, status: "inprogress" }))
-    : [{ title: "Initial Study Focus", status: "inprogress" }];
+  let checklist = [];
+
+  if (selectedChecklistMode === "structured") {
+    checklist = validTasks.length > 0
+      ? validTasks.map(task => ({ title: task, status: "inprogress" }))
+      : [{ title: "Initial Study Focus", status: "inprogress" }];
+  }
 
   const customConfig = JSON.parse(localStorage.getItem("user_furniture_config") || '{"room":"ROOM1"}');
 
@@ -282,12 +449,13 @@ function submitCreateRoom() {
     name: roomName,
     topic: roomTopic,
     host: "You",
-    players: roomPlayers,      // <-- Fixed: Now dynamically uses selected room players
-    maxPlayers: roomPlayers,   // <-- Updated to match selected capacity
+    players: roomPlayers,
+    maxPlayers: roomPlayers,
     dateCreated: formattedDate,
     progressPercent: 0,
     visibility: selectedPrivacy || "public",
     technique: technique,
+    roomMode: selectedChecklistMode,
     checklist: checklist,
     roomConfig: customConfig
   };
@@ -298,11 +466,9 @@ function submitCreateRoom() {
   localStorage.setItem("userCreatedRooms", JSON.stringify(existingRooms));
 
   // 4. Redirect
-  window.location.href = "generated-homepage.html";
+  window.location.href = "kitsuai.html";
 }
-/**
- * Header Close (X) button navigation handler
- */
+
 function goBack() {
   if (document.referrer && document.referrer.includes(window.location.host)) {
     window.history.back();
@@ -364,6 +530,15 @@ function renderDraftTasks() {
   const container = document.getElementById("tasks-list-container");
   if (!container) return;
 
+  if (selectedChecklistMode === 'hangout') {
+    container.innerHTML = `
+      <p class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]/60 italic py-2">
+        Hangout Mode active. Checklist is optional and can be managed inside the room.
+      </p>
+    `;
+    return;
+  }
+
   if (draftTasks.length === 0) {
     container.innerHTML = `
       <p class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013]/60 italic py-2">
@@ -378,6 +553,7 @@ function renderDraftTasks() {
       <input type="text" 
              value="${taskText.replace(/"/g, '&quot;')}" 
              onchange="updateDraftTaskRow(${index}, this.value)"
+             oninput="clearError('step-3')"
              placeholder="Enter task item..." 
              class="flex-1 bg-[#FAE9CE] text-[#3D2013] border-[2px] border-[#3D2013] !rounded-none p-2 font-pressstart text-[8px] sm:text-[9px] focus:outline-none focus:bg-[#FEF4E0] placeholder-[#3D2013]/40 transition-colors">
       
@@ -391,6 +567,9 @@ function renderDraftTasks() {
 }
 
 function addDraftTaskRow() {
+  if (selectedChecklistMode === 'hangout') return;
+
+  clearError('step-3');
   draftTasks.push("");
   renderDraftTasks();
 
@@ -568,8 +747,9 @@ function renderReviewSummary() {
   const inviteCode = document.getElementById("invite-code-display")?.textContent.trim() || "K7P9-X2M4";
   const privacyText = selectedPrivacy === "public" ? "Public" : `Private (${inviteCode})`;
 
+  const modeText = selectedChecklistMode === 'structured' ? "Structured Focus" : "Hangout";
   const validTasks = draftTasks.filter(t => t.trim() !== "");
-  const tasksText = `${validTasks.length} Task(s)`;
+  const tasksText = selectedChecklistMode === 'structured' ? `${validTasks.length} Task(s)` : "Flexible (In-room)";
 
   const invitedCount = friendsList.filter(f => f.invited).length;
   const maxPlayers = playersSelect ? parseInt(playersSelect.value, 10) : 1;
@@ -582,6 +762,7 @@ function renderReviewSummary() {
     { label: "Technique", value: roomTechnique },
     { label: "Sessions", value: sessionsText },
     { label: "Privacy", value: privacyText },
+    { label: "Mode", value: modeText },
     { label: "Tasks", value: tasksText },
     { label: "Invited", value: invitedText }
   ];
