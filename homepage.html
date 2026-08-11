@@ -1115,11 +1115,17 @@
       <!-- CHAT MESSAGES CONTAINER -->
       <div id="sparkle-chat-container" class="relative flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 scroll-smooth">
         
-        <div class="self-start max-w-[85%] bg-[#DCDDC9] border-[2px] border-[#482A1D] p-2.5 shadow-[2px_2px_0px_#482A1D]">
-          <p class="font-pixel text-lg leading-snug text-[#3D2013]">
-            Konnichiwa! I am KitsuAI. How can I assist with your studies today?
-          </p>
-        </div>
+        <!-- Dito na ilalagay ng JavaScript ang history o default greeting -->
+
+        <button id="sparkle-scroll-btn" onclick="scrollToBottomSparkleChat()" 
+                class="hidden absolute bottom-2 right-2 w-7 h-7 bg-[#FD923E] border-[2px] border-[#482A1D] text-[#FEF4E0] flex items-center justify-center shadow-[2px_2px_0px_#482A1D] hover:scale-105 active:scale-95 transition-all cursor-pointer z-10"
+                title="Scroll to latest message">
+          <svg class="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+      </div>
 
         <button id="sparkle-scroll-btn" onclick="scrollToBottomSparkleChat()" 
                 class="hidden absolute bottom-2 right-2 w-7 h-7 bg-[#FD923E] border-[2px] border-[#482A1D] text-[#FEF4E0] flex items-center justify-center shadow-[2px_2px_0px_#482A1D] hover:scale-105 active:scale-95 transition-all cursor-pointer z-10"
@@ -1312,6 +1318,9 @@
   <!-- Centralized Avatar Web Component Script -->
 <script src="avatar-system.js"></script>
 <script src="furniture-system.js"></script>
+<script src="analyticsLogic.js"></script>
+
+<script src="analytics-modal.js"></script>
 
   <!-- JS SCRIPT -->
   <script src="homepage.js"></script>

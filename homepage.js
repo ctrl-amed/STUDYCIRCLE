@@ -15,7 +15,7 @@ let playerData = {
   name: "ACORN_HERO",
   level: 1,
   currentXP: 0,
-  maxXP: 10000,
+  maxXP: 2550,
   avatarUrl: "",       // User avatar URL
   coins: 0,            // Total coins earned
   friendsCount: 0,     // Active/Online friends count
@@ -49,7 +49,7 @@ async function loadUserData() {
     playerData.name = userData.username || "ACORN_HERO";
     playerData.level = userData.level || 1;
     playerData.currentXP = userData.currentXP || 0;
-    playerData.maxXP = userData.maxXP || 10000;
+    playerData.maxXP = userData.maxXP || 2550;
     playerData.avatarUrl = userData.avatarUrl || "";
 
     // Sync from Backend, fallback to Account-Specific LocalStorage
@@ -429,8 +429,10 @@ document.addEventListener("DOMContentLoaded", () => {
 // STUDY TIMER SYSTEM LOGIC
 // ==========================================
 
+let sessionStartTime = null; // Mag-i-store ng timestamp kung kailan pinindot ang START
+
 const TECHNIQUES = {
-  pomodoro: { name: "Pomodoro", study: 1 * 60, break: 5 * 60 },
+  pomodoro: { name: "Pomodoro", study: 1 * 60, break: 1 * 60 },
   "5217": { name: "52-17", study: 52 * 60, break: 17 * 60 },
   "90min": { name: "90 Min", study: 90 * 60, break: 20 * 60 }
 };
@@ -681,6 +683,12 @@ function toggleTimer() {
 
 function startTimer() {
   if (!timerState.selectedTechnique || timerState.isRunning) return;
+  
+  // Kung ito ang simula ng unang session, i-record ang timestamp
+  if (!sessionStartTime && timerState.currentSession === 1 && !timerState.isBreak) {
+    sessionStartTime = Date.now();
+  }
+
   timerState.isRunning = true;
   timerState.timerInterval = setInterval(() => {
     if (timerState.secondsLeft > 0) {
@@ -730,10 +738,15 @@ function handleTimerCompletion() {
       timerState.secondsLeft = tech.study;
     } else {
       // Completed All Sessions!
-      alert("Great job! All study sessions completed.");
+      
+      // I-trigger ang function na magkokompyut at magpapadala ng data sa backend / database
+      finalizeAndSaveSession();
+      
+      // Reset state
       timerState.currentSession = 1;
       timerState.totalSeconds = tech.study;
       timerState.secondsLeft = tech.study;
+      sessionStartTime = null; // I-reset para sa susunod na session
     }
   }
 
@@ -756,10 +769,120 @@ document.addEventListener("DOMContentLoaded", () => {
   renderTimerUI();
 });
 
-// ==========================================
+
+async function finalizeAndSaveSession() {
+  const sessionEndTime = Date.now();
+  
+  // 1. Kunin ang oras ng pagsisimula (siguraduhing may variable kang 'sessionStartTime' kapag nag-uumpisa ang timer)
+  const sessionStart = (typeof sessionStartTime !== 'undefined' && sessionStartTime) 
+    ? sessionStartTime 
+    : sessionEndTime - (45 * 60000); // Fallback kung sakaling walang start time
+
+  // 2. Kunin ang tasks mula sa checklist
+  const totalTasks = (typeof checklistData !== 'undefined' && checklistData.length > 0) ? checklistData.length : 3;
+  const completedTasks = (typeof checklistData !== 'undefined' && checklistData.length > 0) 
+    ? checklistData.filter(t => t.completed).length 
+    : 3;
+
+  // 3. Kunin ang Pre-Test at Post-Test scores mula kay Kitsu AI
+  const testScores = (typeof retrieveAndClearTestScores === 'function') 
+    ? retrieveAndClearTestScores() 
+    : { preTest: 60, postTest: 90 };
+  
+  const preTestScore = testScores.preTest ?? 60;
+  const postTestScore = testScores.postTest ?? 90;
+
+  // 4. Kunin ang user streak mula sa sessionStorage
+  const currentUserData = JSON.parse(sessionStorage.getItem("current_user") || "{}");
+  const userStreak = currentUserData.streakDays || 7; 
+
+  // 5. PATAKBURIN ANG ANALYTICS LOGIC ENGINE (Dito kinukuha ang tunay na XP, Coins, Duration, at Improvement)
+  const sessionInput = {
+    startTime: sessionStart,
+    endTime: sessionEndTime,
+    completedTasks: completedTasks,
+    totalTasks: totalTasks,
+    preTestScore: preTestScore,
+    postTestScore: postTestScore,
+    userStreak: userStreak
+  };
+
+  const computedResults = processSessionResults(sessionInput);
+
+  // 6. I-SEND ANG MGA DATOS SA BACKEND PARA MA-SAVE SA DATABASE
+  const token = sessionStorage.getItem("token");
+  try {
+    const response = await fetch("http://127.0.0.1:5000/api/session/complete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        durationMinutes: Math.round((sessionEndTime - sessionStart) / 60000),
+        completedTasks,
+        totalTasks,
+        preTestScore,
+        postTestScore,
+        improvement: postTestScore - preTestScore,
+        earnedXp: computedResults.rewards.xpEarned,
+        earnedCoins: computedResults.rewards.coinsEarned
+      })
+    });
+
+    if (response.ok) {
+      const dbResult = await response.json();
+      console.log("Session successfully saved to database!", dbResult);
+    }
+  } catch (err) {
+    console.error("Failed to save session to backend:", err);
+  }
+
+  // 7. BUUIN ANG PAYLOAD PARA SA MODAL UI GAMIT ANG MGA TUNAY NA DATOS
+  const realModalPayload = {
+    sessionType: "structured",
+    duration: computedResults.analytics.duration, // Halimbawa: "45m" o "1hr 15m"
+    completedTasks: completedTasks,
+    totalTasks: totalTasks,
+    avgScore: postTestScore,
+    user: {
+      avatar: currentUserData.avatar_url || "https://api.dicebear.com/7.x/pixel-art/svg?seed=Angela",
+      preTest: preTestScore,
+      postTest: postTestScore,
+      improvement: postTestScore - preTestScore
+    },
+    rewards: {
+      level: currentUserData.level || 5,
+      xpEarned: computedResults.rewards.xpEarned,
+      coinsEarned: computedResults.rewards.coinsEarned,
+      currentXp: currentUserData.currentXp || computedResults.rewards.xpEarned,
+      nextLevelXp: currentUserData.nextLevelXp || 100,
+      xpBreakdown: [
+        { label: `Completed ${completedTasks} tasks`, value: computedResults.rewards.xpBreakdown.completedTasksXp },
+        { label: `Focus time: ${computedResults.analytics.duration}`, value: computedResults.rewards.xpBreakdown.focusTimeXp },
+        { label: "Completed study session", value: computedResults.rewards.xpBreakdown.sessionBonusXp }
+      ],
+      coinsBreakdown: [
+        { label: `Completed ${completedTasks} tasks`, value: computedResults.rewards.coinsBreakdown.completedTasksCoins },
+        { label: `Focus time: ${computedResults.analytics.duration}`, value: computedResults.rewards.coinsBreakdown.focusTimeCoins },
+        { label: "Session completion bonus", value: computedResults.rewards.coinsBreakdown.sessionBonusCoins }
+      ]
+    }
+  };
+
+  // 8. BUBUKSAN NA NG KUSA ANG MODAL AT IPAPAKITA ANG REAL DATA SA USER!
+  if (typeof showSessionAnalytics === 'function') {
+    showSessionAnalytics(realModalPayload);
+  } else {
+    console.error("showSessionAnalytics is not defined. Make sure analytics-modal.js is loaded.");
+  }
+}
+
+/// ==========================================
 // STUDY CALENDAR SYSTEM LOGIC
 // ==========================================
 
+let isTodayCheckedIn = false;
 const calendarState = {
   viewDate: new Date(), 
   checkInDates: [] // Will be loaded dynamically per user
@@ -769,8 +892,30 @@ const calendarState = {
  * Loads check-in dates specific to the currently logged-in player
  */
 function loadPlayerCalendarData() {
+  if (!playerData || !playerData.name) return;
+
   const userKey = `checkInDates_${playerData.name}`;
   calendarState.checkInDates = JSON.parse(localStorage.getItem(userKey)) || [];
+
+  // Automatically check if the user needs to pop up the check-in modal on load
+  checkDailyCheckInAutoPopup();
+}
+
+/**
+ * Automatically checks if the user has already checked in today.
+ * If not, it automatically opens the full-calendar modal on startup.
+ */
+function checkDailyCheckInAutoPopup() {
+  const todayStr = formatDateKey(new Date());
+  const isCheckedToday = calendarState.checkInDates.includes(todayStr);
+
+  if (!isCheckedToday) {
+    setTimeout(() => {
+      if (typeof openModal === 'function') {
+        openModal('full-calendar-modal');
+      }
+    }, 300);
+  }
 }
 
 /**
@@ -780,11 +925,9 @@ async function performCheckIn() {
   const todayStr = formatDateKey(new Date());
   if (!calendarState.checkInDates.includes(todayStr)) {
     calendarState.checkInDates.push(todayStr);
+  
     
-    // Reward user
-    playerData.coins += 50; 
-    
-    // Increment streak numerically
+    // Increment streak numerically by 1
     let currentStreakNum = parseInt(playerData.streakDays) || 0;
     currentStreakNum += 1;
     playerData.streakDays = `${currentStreakNum}d`;
@@ -798,12 +941,19 @@ async function performCheckIn() {
     localStorage.setItem(coinKey, playerData.coins);
     localStorage.setItem(streakKey, playerData.streakDays);
 
-    // Sync global dashboard state & Re-render UI
+    // Directly update Streak and Coins UI elements on screen
+    const streakEl = document.getElementById("streak-display");
+    if (streakEl) streakEl.textContent = playerData.streakDays;
+
+    const coinsEl = document.getElementById("coins-display");
+    if (coinsEl) coinsEl.textContent = playerData.coins;
+
+    // Sync global dashboard state & Re-render UI components
     updateDashboardState();
     renderMiniCalendar();
     renderFullCalendar();
 
-    // 2. SAVE TO BACKEND
+    // 2. SAVE TO BACKEND DATABASE
     const token = sessionStorage.getItem("token");
     if (token) {
       try {
@@ -846,6 +996,7 @@ function renderMiniCalendar() {
     const isChecked = calendarState.checkInDates.includes(dateKey);
     const isToday = d === today.getDate();
 
+    // Highlights checked-in days with green background (#788D55)
     const bgClass = isChecked ? "bg-[#788D55] text-[#FEF4E0]" : "bg-[#FEF4E0] text-[#3D2013]";
     const borderClass = isToday ? "border-[#A53914] border-[2px]" : "border-[#482A1D]/30 border";
 
@@ -903,6 +1054,7 @@ function renderFullCalendar() {
     const isChecked = calendarState.checkInDates.includes(dateKey);
     const isToday = dateKey === todayStr;
 
+    // Highlights checked-in days with green background (#788D55)
     const bgStyle = isChecked 
       ? "bg-[#788D55] text-[#FEF4E0] border-[#3D2013]" 
       : "bg-[#FEF4E0] text-[#3D2013] border-[#3D2013]";
@@ -923,7 +1075,10 @@ function renderFullCalendar() {
   const checkInMsg = document.getElementById("calendar-checked-msg");
 
   if (checkInBtn && checkInMsg) {
-    if (isTodayCheckedIn()) {
+    // ✅ Direktang i-check kung kasama na ang todayStr sa checkInDates array
+    const isCheckedToday = calendarState.checkInDates.includes(todayStr);
+
+    if (isCheckedToday) {
       checkInBtn.classList.add("hidden");
       checkInMsg.classList.remove("hidden");
     } else {
@@ -932,6 +1087,7 @@ function renderFullCalendar() {
     }
   }
 }
+
 /**
  * Calendar Navigation (Previous / Next Month)
  */
@@ -948,13 +1104,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// KITSU AI SPARKLE CHAT LOGIC
+// KITSU AI SPARKLE CHAT LOGIC (Homepage Connected)
 // ==========================================
 
-/**
- * Handles sending a message, rendering user/AI boxes, and triggering response
- */
-function sendSparkleMessage() {
+async function sendSparkleMessage() {
   const input = document.getElementById("sparkle-chat-input");
   const container = document.getElementById("sparkle-chat-container");
   if (!input || !container) return;
@@ -972,22 +1125,51 @@ function sendSparkleMessage() {
   `;
   container.insertAdjacentHTML("beforeend", userMsgHTML);
 
-  // Clear input
+  // Clear input and scroll down
   input.value = "";
   scrollToBottomSparkleChat();
 
-  // 2. Simulate AI Response (Connect your backend API here)
-  setTimeout(() => {
+  // 2. Connect to the working backend route
+  const token = sessionStorage.getItem("token");
+
+  try {
+    const response = await fetch("http://127.0.0.1:5000/api/kitsu-ai/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await response.json();
+    
+    // 👉 Binasa natin ang 'response' at 'error' na galing sa parehong backend route mo
+    const aiReply = data.response || data.error || "Kitsu is resting right now! Try again later. 🐾";
+
+    // Render Kitsu AI Response Box (#DCDDC9 BG)
     const aiMsgHTML = `
       <div class="self-start max-w-[85%] bg-[#DCDDC9] border-[2px] border-[#482A1D] p-2.5 shadow-[2px_2px_0px_#482A1D]">
         <p class="font-pixel text-lg leading-snug text-[#3D2013] break-words">
-          I received: "${escapeHtml(text)}". Let's crush your study goals today!
+          ${escapeHtml(aiReply)}
         </p>
       </div>
     `;
     container.insertAdjacentHTML("beforeend", aiMsgHTML);
     scrollToBottomSparkleChat();
-  }, 600);
+
+  } catch (err) {
+    console.error("Kitsu AI chat error:", err);
+    const errorMsgHTML = `
+      <div class="self-start max-w-[85%] bg-[#DCDDC9] border-[2px] border-[#482A1D] p-2.5 shadow-[2px_2px_0px_#482A1D]">
+        <p class="font-pixel text-lg leading-snug text-[#3D2013] break-words">
+          Oops! Kitsu lost connection to the server. 🐾
+        </p>
+      </div>
+    `;
+    container.insertAdjacentHTML("beforeend", errorMsgHTML);
+    scrollToBottomSparkleChat();
+  }
 }
 
 /**
@@ -1009,7 +1191,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (container && scrollBtn) {
     container.addEventListener("scroll", () => {
-      // Reveal button if user scrolls up more than 60px from bottom
       const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
       if (distanceFromBottom > 60) {
         scrollBtn.classList.remove("hidden");
@@ -1019,7 +1200,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
 // ==========================================
 // KITSU AI SPARKLE CHAT RESIZE OBSERVER
 // ==========================================
@@ -1028,7 +1208,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (sparkleWindow && window.ResizeObserver) {
     const resizeObserver = new ResizeObserver(() => {
-      // Keep chat scrolled to bottom when window size changes
       scrollToBottomSparkleChat();
     });
 
@@ -1559,7 +1738,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Mag-check ng mga bagong mensahe sa lahat ng kaibigan tuwing 3 segundo kahit hindi nakabukas ang chat box
+  // Mag-check ng mga bagong mensahe sa lahat ng kaibigan tuwing 3 segundo
   setInterval(async () => {
     const token = sessionStorage.getItem("token");
     if (!token || typeof friendsList === 'undefined' || friendsList.length === 0) return;
@@ -1576,52 +1755,67 @@ document.addEventListener("DOMContentLoaded", () => {
           if (messages.length === 0) continue;
 
           const lastMessage = messages[messages.length - 1];
-          const currentUser = JSON.parse(sessionStorage.getItem("current_user") || "{}");
-
-          // Kung ang huling nag-send ay ang kaibigan (hindi ikaw) at wala pa sa local history natin
-          const currentHistory = friendChatHistory[friend.id] || [];
           const isFromFriend = String(lastMessage.sender_id) === String(friend.id);
 
-          if (isFromFriend && messages.length > currentHistory.length) {
-            // I-update ang history
+          // Gamitin ang sessionStorage para malaman ang huling bilang ng mensahe na nakita na
+          const storageKey = `last_msg_count_${friend.id}`;
+          const lastStoredCount = parseInt(sessionStorage.getItem(storageKey) || "-1", 10);
+
+          // 1. KUNG FIRST TIME PA LANG I-LOAD SA SESSION NA ITO:
+          // Itabi lang natin ang baseline count, HUWAG mag-popup para hindi mabulabog pagpunta ng homepage.
+          if (lastStoredCount === -1) {
+            sessionStorage.setItem(storageKey, messages.length);
+            friendChatHistory[friend.id] = messages.map(m => ({
+              sender: m.sender_id === friend.id ? friend.name : "me",
+              text: m.text
+            }));
+            continue;
+          }
+
+          // 2. KUNG MAY TUNAY NA BAGONG MENSAHE NA DUMATING (Nadagdagan ang bilang ng messages):
+          if (messages.length > lastStoredCount) {
+            // I-update ang stored count sa sessionStorage
+            sessionStorage.setItem(storageKey, messages.length);
+
+            // I-update ang chat history
             friendChatHistory[friend.id] = messages.map(m => ({
               sender: m.sender_id === friend.id ? friend.name : "me",
               text: m.text
             }));
 
-            // KUSA NITONG ISSYNC O BUBUBUKSAN ANG CHAT MODAL PARA LUMITAW AGAD SA SCREEN!
-            const chatModal = document.getElementById("friend-chat-modal");
-            const isChatOpen = chatModal && !chatModal.classList.contains("hidden");
+            // Kung galing sa kaibigan ang bagong mensahe, saka lang natin i-trigger ang POP-UP!
+            if (isFromFriend) {
+              const chatModal = document.getElementById("friend-chat-modal");
+              const isChatOpen = chatModal && !chatModal.classList.contains("hidden");
 
-            if (isChatOpen && activeChatFriendId === friend.id) {
-              // Kung nakabukas na ang chat nila, i-render lang ang bagong mensahe
-              renderFriendChatMessages();
-            } else {
-              // Kung sarado ang chat box, KUSA NITONG IISCREEN-POP UP ANG CHAT BOX PARA MAKITA AGAD
-              // Ginagamit nito ang iyong existing function para buksan ang chat box nila
-              if (typeof openFriendChatModal === 'function') {
-                // Pansamantalang i-bypass ang event requirement para kusang lumitaw
-                activeChatFriendId = friend.id;
-                
-                const usernameEl = document.getElementById("chat-modal-username");
-                const statusEl = document.getElementById("chat-modal-status");
-                const fallbackEl = document.getElementById("chat-modal-avatar-fallback");
-                
-                if (usernameEl) usernameEl.textContent = friend.name;
-                if (statusEl) {
-                  statusEl.textContent = friend.isOnline ? "Online" : "Offline";
-                  statusEl.className = `font-pixel text-sm leading-none ${friend.isOnline ? 'text-[#788D55]' : 'text-[#3D2013]/50'}`;
-                }
-                if (fallbackEl) fallbackEl.textContent = friend.name.charAt(0);
-
+              if (isChatOpen && activeChatFriendId === friend.id) {
+                // Kung nakabukas na ang chat nila, i-render lang ang bagong mensahe
                 renderFriendChatMessages();
-                if (chatModal) chatModal.classList.remove("hidden");
+              } else {
+                // Kung sarado, KUSA NITONG IISCREEN-POP UP ANG CHAT BOX
+                if (typeof openFriendChatModal === 'function') {
+                  activeChatFriendId = friend.id;
+                  
+                  const usernameEl = document.getElementById("chat-modal-username");
+                  const statusEl = document.getElementById("chat-modal-status");
+                  const fallbackEl = document.getElementById("chat-modal-avatar-fallback");
+                  
+                  if (usernameEl) usernameEl.textContent = friend.name;
+                  if (statusEl) {
+                    statusEl.textContent = friend.isOnline ? "Online" : "Offline";
+                    statusEl.className = `font-pixel text-sm leading-none ${friend.isOnline ? 'text-[#788D55]' : 'text-[#3D2013]/50'}`;
+                  }
+                  if (fallbackEl) fallbackEl.textContent = friend.name.charAt(0);
+
+                  renderFriendChatMessages();
+                  if (chatModal) chatModal.classList.remove("hidden");
+                }
               }
             }
           }
         }
       } catch (err) {
-        // Silent catch para hindi makaistorbo sa console kung nag-poll
+        // Silent catch para hindi magka-error sa console
       }
     }
   }, 3000);
@@ -2073,4 +2267,17 @@ function acceptRoomInvite(roomCode, notificationId) {
   } else {
     window.location.href = `generated-homepage.html?room=${roomCode}`;
   }
+}
+
+
+// --- KITSU AI SCORE RETRIEVAL FOR HOMEPAGE ---
+function retrieveAndClearTestScores() {
+  const preTest = parseFloat(localStorage.getItem('current_pre_test')) || 72; // Default fallback kung wala
+  const postTest = parseFloat(localStorage.getItem('current_post_test')) || 84; // Default fallback kung wala
+  
+  // Linisin na pagkatapos kunin
+  localStorage.removeItem('current_pre_test');
+  localStorage.removeItem('current_post_test');
+  
+  return { preTest, postTest };
 }

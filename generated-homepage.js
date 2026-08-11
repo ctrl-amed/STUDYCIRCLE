@@ -44,16 +44,17 @@ let currentRenderedPlayers = "";
 
 function getUrlRoomId() {
   const params = new URLSearchParams(window.location.search);
-  let roomId = params.get("room");
+  let roomId = params.get("room") || params.get("code");
+  
   if (roomId) {
     sessionStorage.setItem("activeRoomId", roomId);
   } else {
     roomId = sessionStorage.getItem("activeRoomId");
   }
+  
   return roomId || "";
 }
 
-// Ensure the system knows who the currently logged-in user is
 async function fetchCurrentUser() {
   try {
     const token = sessionStorage.getItem("token");
@@ -69,16 +70,22 @@ async function fetchCurrentUser() {
   }
 }
 
-// ==========================================
-// ROOM INFO, FURNITURE & REAL MULTIPLAYER SYNC
-// ==========================================
-
 async function fetchAndRenderRoomData() {
   const roomNameElem = document.getElementById("nav-room-name");
   const roomCodeElem = document.getElementById("nav-room-code");
   const targetRoomCode = getUrlRoomId();
 
   if (roomCodeElem) roomCodeElem.textContent = targetRoomCode || "------";
+  
+  try {
+    const storedRoom = JSON.parse(localStorage.getItem("currentActiveRoom") || "{}");
+    if (storedRoom && roomNameElem) {
+      activeRoomData = storedRoom;
+      const roomName = storedRoom.name || storedRoom.roomName || storedRoom.topic || "Study Room";
+      roomNameElem.textContent = roomName;
+    }
+  } catch(e) {}
+
   if (!targetRoomCode) return;
 
   try {
@@ -94,56 +101,25 @@ async function fetchAndRenderRoomData() {
     if (response.ok) {
       const data = await response.json();
       const rooms = data.rooms || [];
-      const currentRoom = rooms.find(r => (r.room_code || r.id) === targetRoomCode);
+      const currentRoom = rooms.find(r => {
+        const rCode = String(r.roomCode || r.room_code || r.id || "").trim();
+        return rCode.toUpperCase() === String(targetRoomCode).trim().toUpperCase();
+      });
 
       if (currentRoom) {
         activeRoomData = currentRoom; 
-        if (roomNameElem) roomNameElem.textContent = currentRoom.name || "Study Room";
         
-        // --- 1. SYNC ROOM FURNITURE ---
-        const roomElement = document.querySelector("custom-room"); 
-        if (roomElement && activeRoomData.room_config) {
-          let rConfig = activeRoomData.room_config;
-          while (typeof rConfig === 'string') {
-            try { rConfig = JSON.parse(rConfig); } catch(e) { break; }
-          }
-          if (typeof rConfig === 'object' && Object.keys(rConfig).length > 0) {
-            roomElement.setAttribute("config", JSON.stringify(rConfig));
-          }
-        }
-
-        // --- 2. SYNC LOCAL PLAYER HOST ICON ---
-        const localNameTag = document.getElementById("local-player-name");
-        if (localNameTag && currentUser.id) {
-          const isLocalHost = String(currentUser.id) === String(activeRoomData.host_id);
-          const cleanName = currentUser.username || currentUser.name || "STUDENT";
-          const hostSvg = `<svg class="w-2.5 h-2.5 inline-block mr-1 text-[#FFFFFF] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3L4 9v12h5v-7h6v7h5V9z"/></svg>`;
-          localNameTag.innerHTML = isLocalHost ? `${hostSvg}${cleanName}` : cleanName;
-        }
-
-        // --- 3. CHECK KICK STATUS FOR NON-HOST PLAYERS ---
-        const livePlayers = currentRoom.players_list || [];
-        const isHost = String(currentUser.id) === String(currentRoom.host_id);
+        const foundName = currentRoom.name || currentRoom.roomName || currentRoom.title || currentRoom.topic || "Study Room";
+        if (roomNameElem) roomNameElem.textContent = foundName;
         
-        if (!isHost && currentUser.id) {
-          const amIStillInRoom = livePlayers.some(p => String(p.id) === String(currentUser.id)) || 
-                                 String(currentRoom.host_id) === String(currentUser.id);
-          
-          if (!amIStillInRoom) {
-            alert("You have been kicked from the room by the host.");
-            window.location.href = "homepage.html";
-            return;
-          }
-        }
+        const foundCode = currentRoom.roomCode || currentRoom.room_code || currentRoom.id || targetRoomCode;
+        if (roomCodeElem) roomCodeElem.textContent = foundCode;
+        
+        localStorage.setItem("currentActiveRoom", JSON.stringify(currentRoom));
 
-        // --- 4. SYNC OTHER PLAYERS ---
-        const otherPlayers = livePlayers.filter(p => String(p.id) !== String(currentUser.id));
-        const livePlayersStr = JSON.stringify(otherPlayers);
-
-        if (currentRenderedPlayers !== livePlayersStr) {
-          currentRenderedPlayers = livePlayersStr;
-          renderRealPlayers(otherPlayers);
-        }
+        const livePlayers = currentRoom.players_list || currentRoom.players || [];
+        const otherPlayers = livePlayers.filter(p => String(p.id || p.userId || p.username) !== String(currentUser?.id || currentUser?.username));
+        renderRealPlayers(otherPlayers);
       }
     }
   } catch (err) {
@@ -185,17 +161,16 @@ function renderRealPlayers(playerList) {
     };
 
     try {
-      if (player.avatar_url) {
-        let parsed = player.avatar_url;
+      let rawAvatarData = player.avatar_url || player.avatarConfig || player.avatar || player.config;
+      if (rawAvatarData) {
+        let parsed = rawAvatarData;
         while (typeof parsed === 'string') { parsed = JSON.parse(parsed); }
         if (typeof parsed === 'object' && parsed !== null) { configObj = { ...configObj, ...parsed }; }
       }
-    } catch (e) { console.error("Error parsing avatar config", e); }
+    } catch (e) {}
 
-    const configString = JSON.stringify(configObj).replace(/"/g, '&quot;');
     const displayName = player.username || player.name || "STUDENT";
-
-    const isHost = activeRoomData && String(player.id) === String(activeRoomData.host_id);
+    const isHost = activeRoomData && String(player.id || player.userId) === String(activeRoomData.host_id || activeRoomData.hostId);
     const hostIcon = isHost 
       ? `<svg class="w-2.5 h-2.5 inline-block mr-1 text-[#FFFFFF] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3L4 9v12h5v-7h6v7h5V9z"/></svg>` 
       : "";
@@ -206,9 +181,19 @@ function renderRealPlayers(playerList) {
           ${hostIcon}${displayName}
         </span>
       </div>
-      <custom-avatar config="${configString}" state="idle" class="pointer-events-none"></custom-avatar>
     `;
 
+    const avatarElem = document.createElement("custom-avatar");
+    avatarElem.setAttribute("state", "idle");
+    avatarElem.className = "pointer-events-none";
+    
+    if (typeof avatarElem.setConfig === "function") {
+      avatarElem.setConfig(configObj);
+    } else {
+      avatarElem.setAttribute("config", JSON.stringify(configObj));
+    }
+
+    avatarWrapper.appendChild(avatarElem);
     container.appendChild(avatarWrapper);
   });
 }
@@ -267,19 +252,6 @@ function openRealPlayerModal(player) {
 async function kickRealPlayer(playerId) {
   if (!playerId) return;
 
-  const rawHostId = activeRoomData?.host_id || activeRoomData?.hostId || activeRoomData?.host || "";
-  const hostId = String(rawHostId);
-  const currentUserId = String(currentUser?.id || currentUser?.username || "");
-
-  const isHostById = (hostId === currentUserId);
-  const isHostByName = (String(activeRoomData?.host) === String(currentUser?.username || currentUser?.name));
-  const isHost = isHostById || isHostByName;
-
-  if (!isHost) {
-    alert("Only the room host is authorized to kick players.");
-    return;
-  }
-
   try {
     const token = sessionStorage.getItem("token");
     const targetRoomCode = getUrlRoomId();
@@ -295,14 +267,10 @@ async function kickRealPlayer(playerId) {
         player_id: playerId
       })
     });
-  } catch (err) {
-    console.warn("Failed to notify backend about kicked player:", err);
-  }
+  } catch (err) {}
 
   const playerElem = document.getElementById(`room-player-${playerId}`);
-  if (playerElem) {
-    playerElem.remove();
-  }
+  if (playerElem) playerElem.remove();
 
   closeModal("mock-player-modal");
   selectedRealPlayerId = null;
@@ -438,19 +406,19 @@ async function saveTaskChanges() {
       },
       body: JSON.stringify({ room_code: targetRoomCode, checklist: newTasks })
     });
-  } catch (err) {
-    console.warn("Failed to sync tasks to server:", err);
-  }
+  } catch (err) {}
 }
 
 // ==========================================
-// SYNCHRONIZED STUDY TIMER LOGIC
+// SYNCHRONIZED STUDY TIMER LOGIC (ROOM SHARED)
 // ==========================================
 
 let timerInterval = null;
-let timeLeft = 25 * 60; // Default 25 mins
+let timeLeft = 25 * 60;
 let isTimerRunning = false;
 let currentPhase = "FOCUS";
+let totalSessions = 3;
+let currentSession = 1;
 
 function initTimer() {
   const unselectedView = document.getElementById("timer-unselected-view");
@@ -459,30 +427,72 @@ function initTimer() {
   if (unselectedView) unselectedView.classList.add("hidden");
   if (activeView) activeView.classList.remove("hidden");
 
-  if (activeRoomData && activeRoomData.technique) {
-    const tech = String(activeRoomData.technique).toLowerCase();
-    if (tech.includes("52")) timeLeft = 52 * 60;
-    else if (tech.includes("90")) timeLeft = 90 * 60;
-    else timeLeft = 25 * 60;
-  } else {
-    timeLeft = 25 * 60;
+  const roomCode = getUrlRoomId();
+  let existingRoomTimer = null;
+  if (roomCode) {
+    try {
+      existingRoomTimer = JSON.parse(localStorage.getItem(`room_timer_${roomCode}`) || "null");
+    } catch(e) {}
   }
 
-  isTimerRunning = false;
+  let technique = "";
+  let roomSessions = 3;
+
+  let roomData = window.activeRoomData;
+  if (!roomData || Object.keys(roomData).length === 0) {
+    try {
+      roomData = JSON.parse(localStorage.getItem("currentActiveRoom") || "{}");
+    } catch(e) {}
+  }
+
+  if (roomData) {
+    technique = String(roomData.technique || roomData.room_config?.technique || "").toLowerCase();
+    roomSessions = parseInt(roomData.sessions || roomData.total_sessions || roomData.room_config?.sessions || 3, 10);
+  }
+
+  totalSessions = roomSessions;
+  const techniqueLabel = document.getElementById("technique-label-text");
+
+  if (existingRoomTimer && existingRoomTimer.timeLeft !== undefined) {
+    timeLeft = existingRoomTimer.timeLeft;
+    isTimerRunning = existingRoomTimer.isRunning;
+  } else {
+    if (technique.includes("52") || technique.includes("5217") || technique.includes("52-17") || technique.includes("52/12")) {
+      timeLeft = 52 * 60;
+      if (techniqueLabel) techniqueLabel.textContent = "52-12";
+    } else if (technique.includes("90")) {
+      timeLeft = 90 * 60;
+      if (techniqueLabel) techniqueLabel.textContent = "90-mins";
+    } else {
+      timeLeft = 25 * 60;
+      if (techniqueLabel) techniqueLabel.textContent = "Pomodoro";
+    }
+    isTimerRunning = false;
+  }
+
+  if (technique.includes("52") || technique.includes("5217") || technique.includes("52-17") || technique.includes("52/12")) {
+    if (techniqueLabel) techniqueLabel.textContent = "52-12";
+  } else if (technique.includes("90")) {
+    if (techniqueLabel) techniqueLabel.textContent = "90-mins";
+  } else {
+    if (techniqueLabel) techniqueLabel.textContent = "Pomodoro";
+  }
+
   updateTimerDisplay();
   
+  const sessionLabelText = document.getElementById("session-label-text");
+  if (sessionLabelText) {
+    sessionLabelText.textContent = `Session ${currentSession} of ${totalSessions}`;
+  }
+
   const toggleText = document.getElementById("timer-toggle-text");
-  if (toggleText) toggleText.textContent = "START";
+  if (toggleText) toggleText.textContent = isTimerRunning ? "PAUSE" : "START";
 
   const toggleIcon = document.getElementById("timer-toggle-icon");
   if (toggleIcon) {
-    toggleIcon.innerHTML = `<polygon points="5,3 19,12 5,21" />`;
-  }
-
-  // Kung HINDI host ang user, gawing medyo transparent o lagyan ng paalala ang button para sa kanila
-  const toggleBtn = document.getElementById("timer-toggle-btn");
-  if (toggleBtn && !checkIsHost()) {
-    toggleBtn.title = "Only the room host can control the timer.";
+    toggleIcon.innerHTML = isTimerRunning 
+      ? `<rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />`
+      : `<polygon points="5,3 19,12 5,21" />`;
   }
 }
 
@@ -490,6 +500,7 @@ function updateTimerDisplay() {
   const display = document.getElementById("timer-display");
   const miniDisplay = document.getElementById("mini-timer-display");
   const phaseLabel = document.getElementById("timer-phase-label");
+  const circleProgress = document.getElementById("timer-circle-progress");
 
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
@@ -498,126 +509,94 @@ function updateTimerDisplay() {
   if (display) display.textContent = timeString;
   if (miniDisplay) miniDisplay.textContent = timeString;
   if (phaseLabel) phaseLabel.textContent = currentPhase;
+
+  if (circleProgress) {
+    let totalTime = 25 * 60;
+    let roomData = window.activeRoomData;
+    if (!roomData) {
+      try { roomData = JSON.parse(localStorage.getItem("currentActiveRoom") || "{}"); } catch(e) {}
+    }
+    let technique = roomData ? String(roomData.technique || roomData.room_config?.technique || "pomodoro").toLowerCase() : "pomodoro";
+    
+    if (technique.includes("52") || technique.includes("5217") || technique.includes("52/12")) totalTime = 52 * 60;
+    else if (technique.includes("90")) totalTime = 90 * 60;
+
+    const circumference = 263.89;
+    const offset = circumference - (timeLeft / totalTime) * circumference;
+    circleProgress.style.strokeDashoffset = offset;
+  }
 }
 
-function checkIsHost() {
-  if (!activeRoomData) return true; // Default muna sa true habang naglo-load para hindi ma-lock agad
-  const rawHostId = activeRoomData?.host_id || activeRoomData?.hostId || activeRoomData?.host || "";
-  const hostId = String(rawHostId).trim();
-  const currentUserId = String(currentUser?.id || "").trim();
-  const currentUsername = String(currentUser?.username || currentUser?.name || "").trim();
-  const roomHostName = String(activeRoomData?.host || "").trim();
+window.toggleTimer = function toggleTimer() {
+  console.log("Global toggleTimer triggered! State:", isTimerRunning);
 
-  const isHostById = (hostId !== "" && currentUserId !== "" && hostId === currentUserId);
-  const isHostByName = (roomHostName !== "" && currentUsername !== "" && roomHostName.toLowerCase() === currentUsername.toLowerCase());
-  
-  // Kung wala pang na-fetch na host_id o user id, iberipika sa sessionStorage kung sakaling naroon
-  const storedUser = JSON.parse(sessionStorage.getItem("current_user") || "{}");
-  const storedUserId = String(storedUser.id || "").trim();
-  const isHostByStoredId = (hostId !== "" && storedUserId !== "" && hostId === storedUserId);
-
-  return isHostById || isHostByName || isHostByStoredId || !hostId;
-}
-
-function toggleTimer() {
-  console.log("toggleTimer is executing...");
-
-  // Pansamantalang huwag muna nating i-block kung host o hindi para lang umandar
-  // (O kaya naman ay pilitin nating maging true para sa testing)
   isTimerRunning = !isTimerRunning;
-  console.log("New isTimerRunning state:", isTimerRunning);
 
-  const roomCode = getUrlRoomId();
-  sessionStorage.setItem(`timer_state_${roomCode}`, JSON.stringify({
-    isRunning: isTimerRunning,
-    timeLeft: timeLeft,
-    timestamp: Date.now()
-  }));
-
-  // Direktang tawagin ang executeTimerAction
   const toggleText = document.getElementById("timer-toggle-text");
   const toggleIcon = document.getElementById("timer-toggle-icon");
+  const roomCode = getUrlRoomId();
 
   if (timerInterval) {
     clearInterval(timerInterval);
     timerInterval = null;
   }
+
+  const saveRoomTimerState = () => {
+    if (roomCode) {
+      localStorage.setItem(`room_timer_${roomCode}`, JSON.stringify({
+        isRunning: isTimerRunning,
+        timeLeft: timeLeft,
+        timestamp: Date.now()
+      }));
+    }
+  };
+
+  saveRoomTimerState();
 
   if (isTimerRunning) {
     if (toggleText) toggleText.textContent = "PAUSE";
     if (toggleIcon) {
       toggleIcon.innerHTML = `<rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />`;
     }
-    console.log("Interval started successfully!");
 
     timerInterval = setInterval(() => {
       if (timeLeft > 0) {
         timeLeft--;
-        console.log("Ticking! Oras ngayon:", timeLeft);
         updateTimerDisplay();
+        saveRoomTimerState();
       } else {
         clearInterval(timerInterval);
         timerInterval = null;
         isTimerRunning = false;
         if (toggleText) toggleText.textContent = "START";
-        alert("Session complete!");
+        if (toggleIcon) {
+          toggleIcon.innerHTML = `<polygon points="5,3 19,12 5,21" />`;
+        }
+        if (roomCode) {
+          localStorage.removeItem(`room_timer_${roomCode}`);
+        }
+        
+        // TAWAGIN ANG SESSION COMPLETION AT ANALYTICS MODALS DITO
+        handleSessionCompletion();
       }
     }, 1000);
+
   } else {
     if (toggleText) toggleText.textContent = "START";
     if (toggleIcon) {
       toggleIcon.innerHTML = `<polygon points="5,3 19,12 5,21" />`;
     }
-    console.log("Timer paused.");
-  }
-}
-
-function executeTimerAction() {
-  const toggleText = document.getElementById("timer-toggle-text");
-  
-  // Linisin ang lumang interval para hindi magpatong-patong
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
-
-  if (isTimerRunning) {
-    if (toggleText) toggleText.textContent = "PAUSE";
-    console.log("Timer is now running. Starting countdown interval...");
-
-    timerInterval = setInterval(() => {
-      if (timeLeft > 0) {
-        timeLeft--;
-        console.log("Remaining time (seconds):", timeLeft);
-        updateTimerDisplay();
-      } else {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        isTimerRunning = false;
-        if (toggleText) toggleText.textContent = "START";
-        alert("Session complete!");
-      }
-    }, 1000);
-  } else {
-    if (toggleText) toggleText.textContent = "START";
-    console.log("Timer paused.");
   }
 }
 
 function resetTimer() {
-  if (!checkIsHost()) {
-    alert("Only the room host can reset the timer!");
-    return;
-  }
-
   isTimerRunning = false;
-  if (timerInterval) clearInterval(timerInterval);
-  
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
   const roomCode = getUrlRoomId();
-  sessionStorage.removeItem(`timer_state_${roomCode}`);
-
-  const toggleText = document.getElementById("timer-toggle-text");
-  if (toggleText) toggleText.textContent = "START";
+  if (roomCode) localStorage.removeItem(`room_timer_${roomCode}`);
   initTimer();
 }
 
@@ -631,10 +610,16 @@ function saveTimerSettings() {
 }
 
 // ==========================================
-// SESSION ANALYTICS & DATABASE UPDATE LOGIC
+// SESSION ANALYTICS & INITIALIZATION
 // ==========================================
 
-async function recordSessionAnalytics() {
+async function handleSessionCompletion() {
+  const roomCode = getUrlRoomId();
+  if (roomCode) {
+    localStorage.removeItem(`room_timer_${roomCode}`);
+  }
+
+  let sessionData = {};
   try {
     const token = sessionStorage.getItem("token");
     const response = await fetch(`${API_BASE_URL}/finish-session`, {
@@ -642,18 +627,59 @@ async function recordSessionAnalytics() {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
-      }
+      },
+      body: JSON.stringify({ room_code: roomCode })
     });
 
     if (response.ok) {
-      console.log("Session analytics recorded and streak updated successfully!");
+      sessionData = await response.json();
+      console.log("Session saved successfully to database:", sessionData);
+      updateSessionRewardsUI(sessionData);
     }
   } catch (err) {
     console.error("Failed to record session analytics:", err);
   }
+
+  if (typeof openModal === 'function') {
+    openModal('session-complete-modal');
+  } else {
+    const modal = document.getElementById('session-complete-modal');
+    if (modal) modal.classList.remove('hidden');
+  }
 }
 
-// Hook initialization into main DOM load
+function updateSessionRewardsUI(data) {
+  const xpEarnedElem = document.getElementById("reward-xp-earned");
+  const coinsEarnedElem = document.getElementById("reward-coins-earned");
+  const userLevelElem = document.getElementById("reward-user-level");
+
+  if (xpEarnedElem && data.xp_earned) xpEarnedElem.textContent = `+${data.xp_earned} XP`;
+  if (coinsEarnedElem && data.coins_earned) coinsEarnedElem.textContent = `+${data.coins_earned}`;
+  if (userLevelElem && data.new_level) userLevelElem.textContent = data.new_level;
+}
+
+function transitionToRewardsModal() {
+  if (typeof closeModal === 'function') {
+    closeModal('session-complete-modal');
+    openModal('session-rewards-modal');
+  } else {
+    const completeModal = document.getElementById('session-complete-modal');
+    const rewardsModal = document.getElementById('session-rewards-modal');
+    if (completeModal) completeModal.classList.add('hidden');
+    if (rewardsModal) rewardsModal.classList.remove('hidden');
+  }
+}
+
+function finishAndCloseRewardsModal() {
+  if (typeof closeModal === 'function') {
+    closeModal('session-rewards-modal');
+  } else {
+    const rewardsModal = document.getElementById('session-rewards-modal');
+    if (rewardsModal) rewardsModal.classList.add('hidden');
+  }
+  resetTimer();
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   await fetchCurrentUser();
   await fetchAndRenderRoomData();
@@ -663,69 +689,61 @@ document.addEventListener("DOMContentLoaded", async () => {
     initTimer();
   }, 1000);
 
+  const toggleBtn = document.getElementById("timer-toggle-btn");
+  if (toggleBtn) {
+    toggleBtn.onclick = (e) => {
+      e.preventDefault();
+      window.toggleTimer();
+    };
+  }
+
   setInterval(fetchAndRenderRoomData, 3000);
 });
 
-// ==========================================
-// SINGLE UNIFIED REAL-TIME SYNC WATCHER
-// ==========================================
+// Real-time synchronization watcher
 setInterval(() => {
   const roomCode = getUrlRoomId();
   if (!roomCode) return;
 
-  const savedState = sessionStorage.getItem(`timer_state_${roomCode}`);
+  const savedState = localStorage.getItem(`room_timer_${roomCode}`);
   if (savedState) {
     try {
       const parsed = JSON.parse(savedState);
       
-      if (!checkIsHost()) {
+      if (parsed.timeLeft !== undefined) {
         timeLeft = parsed.timeLeft;
-        
-        if (isTimerRunning !== parsed.isRunning) {
-          isTimerRunning = parsed.isRunning;
-          if (isTimerRunning) {
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-              if (timeLeft > 0) timeLeft--;
-              updateTimerDisplay();
-            }, 1000);
-          } else {
-            if (timerInterval) clearInterval(timerInterval);
-          }
+      }
+      
+      if (isTimerRunning !== parsed.isRunning) {
+        isTimerRunning = parsed.isRunning;
+        if (isTimerRunning) {
+          if (timerInterval) clearInterval(timerInterval);
+          timerInterval = setInterval(() => {
+            if (timeLeft > 0) timeLeft--;
+            updateTimerDisplay();
+          }, 1000);
+        } else {
+          if (timerInterval) clearInterval(timerInterval);
         }
-        updateTimerDisplay();
+      }
+      
+      updateTimerDisplay();
 
-        const toggleText = document.getElementById("timer-toggle-text");
-        const toggleIcon = document.getElementById("timer-toggle-icon");
-        
-        if (toggleText) {
-          toggleText.textContent = isTimerRunning ? "PAUSE" : "START";
-        }
-        if (toggleIcon) {
-          toggleIcon.innerHTML = isTimerRunning 
-            ? `<rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />`
-            : `<polygon points="5,3 19,12 5,21" />`;
-        }
+      const toggleText = document.getElementById("timer-toggle-text");
+      const toggleIcon = document.getElementById("timer-toggle-icon");
+      
+      if (toggleText) {
+        toggleText.textContent = isTimerRunning ? "PAUSE" : "START";
+      }
+      if (toggleIcon) {
+        toggleIcon.innerHTML = isTimerRunning 
+          ? `<rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />`
+          : `<polygon points="5,3 19,12 5,21" />`;
       }
     } catch(e) {}
   }
-}, 1000);
+}, 300);
 
-// Direktang i-attach ang click listener sa button kasama ang Host Protection
-document.addEventListener("DOMContentLoaded", () => {
-  const toggleBtn = document.getElementById("timer-toggle-btn");
-  if (toggleBtn) {
-    toggleBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      console.log("Direct button click detected! Calling toggleTimer()...");
-      toggleTimer(); // Direktang tinatawag ang function
-    });
-  } else {
-    console.warn("Element #timer-toggle-btn not found during DOMContentLoaded!");
-  }
-});
-
-// I-override o i-hook ang pagbukas ng timer modal para siguradong naka-init
 function openTimerModal() {
   const modal = document.getElementById("timer-modal");
   if (modal) {

@@ -10,27 +10,9 @@ friendships = db.Table('friendships',
 
 class User(db.Model):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.Text, nullable=False)
-    is_admin = db.Column(db.Boolean, default=False, nullable=False)
-    name = db.Column(db.String(150), nullable=True)
-
-    # Dashboard & Profile Game Stats
-    level = db.Column(db.Integer, default=1)
-    current_xp = db.Column(db.Integer, default=0)
-    max_xp = db.Column(db.Integer, default=10000)
-    coins = db.Column(db.Integer, default=100)
-    streak_days = db.Column(db.Integer, default=0)
-    friends_count = db.Column(db.Integer, default=0)
-    avatar_url = db.Column(db.Text, nullable=True, default="")
-    room_url = db.Column(db.Text, nullable=True, default="")
-    badges = db.Column(db.Text, nullable=True, default="")
-    
-    # Inventory column correctly placed inside User model
-    inventory = db.Column(db.JSON, default=list)
     
     # Username is unique and required
     username = db.Column(
@@ -71,10 +53,14 @@ class User(db.Model):
     max_xp = db.Column(db.Integer, default=10000)
     coins = db.Column(db.Integer, default=100)
     streak_days = db.Column(db.Integer, default=0)
+    last_checkin_date = db.Column(db.Date, nullable=True)
     friends_count = db.Column(db.Integer, default=0)
     avatar_url = db.Column(db.Text, nullable=True, default="")
     room_url = db.Column(db.Text, nullable=True, default="")
     badges = db.Column(db.Text, nullable=True, default="")
+    
+    # Inventory column correctly placed inside User model
+    inventory = db.Column(db.JSON, default=list)
     
     # Detailed Game Stats
     total_study_hours = db.Column(db.Float, default=0.0)
@@ -138,6 +124,7 @@ class User(db.Model):
 
 class Message(db.Model):
     __tablename__ = "messages"
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -153,3 +140,24 @@ class Message(db.Model):
             "text": self.text,
             "created_at": self.created_at.isoformat()
         }
+
+
+class StudySession(db.Model):
+    __tablename__ = "study_sessions"
+    __table_args__ = {'extend_existing': True}
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    duration_minutes = db.Column(db.Integer, default=0)
+    completed_tasks = db.Column(db.Integer, default=0)
+    total_tasks = db.Column(db.Integer, default=0)
+    
+    pre_test_score = db.Column(db.Float, nullable=True, default=0.0)
+    post_test_score = db.Column(db.Float, nullable=True, default=0.0)
+    improvement = db.Column(db.Float, nullable=True, default=0.0)
+    
+    xp_earned = db.Column(db.Integer, default=0)
+    coins_earned = db.Column(db.Integer, default=0)
+    
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())

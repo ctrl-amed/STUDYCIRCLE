@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics Modal Test Playground</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+
+
+  <!-- INCLUDE ANALYTICS MODAL SCRIPT -->
+  <script src="analytics-modal.js"></script>
+</head>
+<body class="bg-[#3D2013] min-h-screen flex flex-col items-center justify-center gap-6 text-white p-4 font-pressstart">
+
+  <div class="text-center flex flex-col gap-2">
+    <h1 class="text-lg sm:text-2xl">External Webpage Simulation</h1>
+    <p class="text-xs text-[#FAE9CE]/70">Click a button below to trigger the analytics modal instantly.</p>
+  </div>
+  
+  <div class="flex flex-wrap justify-center gap-4 relative z-10">
+    <button onclick="showSessionAnalytics('solo')" class="bg-[#D96B27] px-5 py-3 rounded-xl border-[2px] border-[#FAE9CE] text-xs cursor-pointer hover:bg-[#c45a1c] transition-all active:translate-y-0.5">
+      Show Solo Analytics
+    </button>
+    <button onclick="showSessionAnalytics('group')" class="bg-[#6B8E62] px-5 py-3 rounded-xl border-[2px] border-[#FAE9CE] text-xs cursor-pointer hover:bg-[#587750] transition-all active:translate-y-0.5">
+      Show Group Analytics
+    </button>
+  </div>
+
+</body>
+</html>

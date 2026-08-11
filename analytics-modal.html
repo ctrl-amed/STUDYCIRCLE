@@ -1,0 +1,229 @@
+<!-- SESSION ANALYTICS MODAL CONTAINER -->
+<div id="analytics-modal-backdrop" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 text-[#3D2013] select-none hidden">
+  
+  <!-- MODAL MAIN CARD -->
+  <div class="relative w-full max-w-2xl bg-[#FAE9CE] border-[4px] border-[#3D2013] rounded-2xl p-6 flex flex-col gap-5 overflow-hidden">
+    
+    <!-- STEP 1: SESSION ANALYTICS -->
+    <div id="analytics-step-1" class="flex flex-col gap-4">
+      
+      <!-- HEADER -->
+      <div class="text-center flex flex-col gap-1">
+        <h2 class="font-pressstart text-xl sm:text-2xl font-black text-[#3D2013] uppercase tracking-wide">Session Complete!</h2>
+        <p id="analytics-subtitle" class="font-pixel text-sm sm:text-base text-[#3D2013]/80">
+          Great Job! Here's how your study session went.
+        </p>
+      </div>
+
+      <!-- TOP METRICS (3 CARDS) -->
+      <div class="grid grid-cols-3 gap-2 sm:gap-3">
+        <!-- Duration -->
+        <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-xl p-3 flex items-center gap-2 sm:gap-3 ">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#6B8E62] border-[2px] border-[#3D2013] flex items-center justify-center text-[#FEF4E0] shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </div>
+          <div class="flex flex-col truncate">
+            <span class="font-pixel text-xs text-[#3D2013]/60 uppercase">Duration</span>
+            <span id="metric-duration" class="font-pressstart text-[10px] sm:text-[13px]">45m</span>
+          </div>
+        </div>
+
+        <!-- Tasks Completed -->
+        <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-xl p-3 flex items-center gap-2 sm:gap-3 ">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#6B8E62] border-[2px] border-[#3D2013] flex items-center justify-center text-[#FEF4E0] shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <div class="flex flex-col truncate">
+            <span id="label-tasks-title" class="font-pixel text-xs text-[#3D2013]/60 uppercase">Completed Tasks</span>
+            <div class="flex items-baseline gap-1">
+              <span id="metric-tasks-count" class="font-pressstart text-[10px] sm:text-[13px]">3/3</span>
+              <span id="metric-tasks-percent" class="font-pixel text-[10px]  text-[#3D2013]/80">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Average Score -->
+        <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-xl p-3 flex items-center gap-2 sm:gap-3 ">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#6B8E62] border-[2px] border-[#3D2013] flex items-center justify-center text-[#FEF4E0] shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          </div>
+          <div class="flex flex-col truncate">
+            <span id="label-score-title" class="font-pixel text-xs text-[#3D2013]/60 uppercase">Average Score</span>
+            <span id="metric-avg-score" class="font-pressstart text-[10px] sm:text-[13px]">90%</span>
+          </div>
+        </div>
+      </div>
+
+<!-- Performance Section -->
+      <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-xl p-2.5 sm:p-3  flex flex-col gap-2">
+        <div id="performance-header-box" class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-[#3D2013]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          <span class="font-pressstart text-[9px] sm:text-[10px] uppercase">Your Performance</span>
+        </div>
+        <div id="performance-container" class="grid grid-cols-1 divide-y-2 sm:divide-y-0 divide-x-0 sm:divide-x-2 divide-[#3D2013]/20">
+          <div id="group-learning-box" class="hidden pb-3 sm:pb-0 sm:pr-4 flex-col justify-center gap-2">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-[#3D2013] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+              <span class="font-pressstart text-[9px] sm:text-[10px] uppercase">Group Learning Progress</span>
+            </div>
+            <div class="flex items-center justify-between text-center pt-1">
+              <div class="flex flex-col">
+                <span class="font-pixel text-xs text-[#3D2013]/50">PRE-TEST</span>
+                <span id="group-pretest" class="font-pressstart text-[8px] sm:text-[9px] text-[#D96B27]">0%</span>
+              </div>
+              <span class="font-pressstart text-[8px] sm:text-[9px]">→</span>
+              <div class="flex flex-col">
+                <span class="font-pixel text-xs text-[#3D2013]/50">POST-TEST</span>
+                <span id="group-posttest" class="font-pressstart text-[8px] sm:text-[9px] text-[#6B8E62]">0%</span>
+              </div>
+              <div class="flex flex-col border-l-2 border-[#3D2013]/20 pl-2">
+                <span class="font-pixel text-xs text-[#3D2013]/50">IMPROVEMENT</span>
+                <span id="group-improvement" class="font-pressstart text-[8px] sm:text-[9px] text-[#6B8E62]">↑ 0%</span>
+              </div>
+            </div>
+          </div>
+<div id="individual-learning-box" class="flex flex-col justify-center gap-2">
+  <div id="perf-sub-header" class="hidden items-center gap-2">
+    <span class="font-pressstart text-[9px] sm:text-[10px] uppercase">Your Performance</span>
+  </div>
+  
+  <!-- Added px-6 sm:px-12 to compress the content inward -->
+  <div class="flex items-center justify-between gap-3 w-full px-6 sm:px-12">
+    <!-- Avatar Container -->
+    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-[2px] border-[#3D2013] bg-[#FAE9CE] overflow-hidden shrink-0 flex items-center justify-center">
+      <img id="user-avatar" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Angela" alt="User Avatar" class="w-full h-full object-cover">
+    </div>
+
+    <!-- Metrics Grid / Flex Row -->
+    <div class="flex-1 flex items-center justify-around text-center">
+      <div class="flex flex-col items-center justify-center">
+        <span class="font-pixel text-[11px] sm:text-xs text-[#3D2013]/50 block">PRE-TEST</span>
+        <span id="user-pretest" class="font-pressstart text-xs sm:text-sm text-[#D96B27]">0%</span>
+      </div>
+
+      <span class="font-pressstart text-xs sm:text-sm text-[#3D2013]/60 font-bold self-center pt-3">→</span>
+
+      <div class="flex flex-col items-center justify-center">
+        <span class="font-pixel text-[11px] sm:text-xs text-[#3D2013]/50 block">POST-TEST</span>
+        <span id="user-posttest" class="font-pressstart text-xs sm:text-sm text-[#6B8E62]">0%</span>
+      </div>
+
+      <div class="flex flex-col items-center justify-center border-l-2 border-[#3D2013]/20 pl-3 sm:pl-4">
+        <span class="font-pixel text-[11px] sm:text-xs text-[#3D2013]/50 block">IMPROVEMENT</span>
+        <span id="user-improvement" class="font-pressstart text-xs sm:text-sm text-[#6B8E62]">↑ 0%</span>
+      </div>
+    </div>
+  </div>
+</div>
+        </div>
+      </div>
+
+      <!-- MEMBERS ACTIVITY SECTION (HIDDEN FOR SOLO) -->
+      <div id="group-members-section" class="hidden bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-xl p-3.5  flex flex-col gap-2.5">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-[#3D2013]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="font-pressstart text-[9px] sm:text-[10px] uppercase">Members Activity</span>
+        </div>
+
+        <div class="grid grid-cols-12 font-pixel text-xs text-[#3D2013]/60 uppercase px-1">
+          <span class="col-span-4">Member</span>
+          <span class="col-span-3 text-center">Focus Time</span>
+          <span class="col-span-3 text-center">Participation</span>
+          <span class="col-span-2 text-right">Tasks</span>
+        </div>
+
+        <div id="members-activity-list" class="flex flex-col gap-2 max-h-[140px] overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- ACTION BUTTON -->
+      <div class="flex justify-center pt-2">
+<button onclick="switchAnalyticsStep(2)" class="font-pressstart w-48 bg-[#D96B27] hover:bg-[#c45a1c] text-[#FEF4E0] border-[3px] border-[#3D2013] rounded-xl py-2.5 text-xs uppercase  hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_#3D2013] active:translate-x-1 active:translate-y-1 active:shadow-[0px_0px_0px_#3D2013] transition-all duration-150 cursor-pointer">
+  Next
+</button>
+      </div>
+
+    </div>
+
+    <!-- STEP 2: SESSION REWARDS -->
+    <div id="analytics-step-2" class="flex flex-col gap-4 hidden">
+      
+      <!-- HEADER -->
+      <div class="text-center flex flex-col gap-1">
+        <h2 class="font-pressstart text-xl sm:text-2xl font-black text-[#3D2013] uppercase tracking-wide">Session Rewards</h2>
+        <p class="font-pixel text-sm sm:text-base text-[#3D2013]/80">Keep up the good work!</p>
+      </div>
+
+      <!-- SUMMARY LEVEL & TOTAL EARNED -->
+      <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-xl p-4  grid grid-cols-3 divide-x-2 divide-[#3D2013]/20 text-center items-center">
+        <div class="flex flex-col gap-1">
+          <span class="font-pixel text-xs text-[#3D2013]/60 uppercase">Level</span>
+          <span id="reward-level" class="font-pressstart text-sm sm:text-lg">5</span>
+        </div>
+
+        <div class="flex flex-col gap-1 px-2 items-center">
+          <span class="font-pixel text-xs text-[#3D2013]/60 uppercase">XP Earned</span>
+          <span id="reward-xp-earned" class="font-pressstart text-sm sm:text-base text-[#D96B27]">+30 XP</span>
+          <div class="w-full max-w-[100px] h-2 bg-[#FAE9CE] border-[1.5px] border-[#3D2013] rounded-full overflow-hidden mt-0.5">
+            <div id="reward-xp-bar" class="bg-[#D96B27] h-full" style="width: 40%;"></div>
+          </div>
+          <span id="reward-xp-progress" class="font-pixel text-xs text-[#3D2013]/60">40/100</span>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <span class="font-pixel text-xs text-[#3D2013]/60 uppercase">Coins Earned</span>
+          <div class="flex items-center justify-center gap-1">
+            <span id="reward-coins-earned" class="font-pressstart text-sm sm:text-base text-[#6B8E62]">+20</span>
+            <div class="font-pressstart w-4 h-4 rounded-full bg-[#EAB246] border-[1.5px] border-[#3D2013] flex items-center justify-center text-[8px]">$</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BREAKDOWN DETAILS -->
+      <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-xl p-4  grid grid-cols-1 sm:grid-cols-2 gap-4 divide-y-2 sm:divide-y-0 sm:divide-x-2 divide-[#3D2013]/20">
+        
+        <!-- XP BREAKDOWN -->
+        <div class="flex flex-col gap-2 pb-3 sm:pb-0 sm:pr-2">
+          <div class="flex items-center gap-1.5 uppercase">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <span class="font-pressstart text-[8px] sm:text-[9px]">XP Breakdown</span>
+          </div>
+
+          <div id="xp-breakdown-list" class="flex flex-col gap-1.5 pt-1"></div>
+
+          <div class="border-t-2 border-[#3D2013]/20 pt-1.5 flex justify-between items-center">
+            <span class="font-pressstart text-[8px] sm:text-[9px]">TOTAL</span>
+            <span id="xp-breakdown-total" class="font-pressstart text-[8px] sm:text-[9px] text-[#D96B27]">+30 XP</span>
+          </div>
+        </div>
+
+        <!-- COINS BREAKDOWN -->
+        <div class="flex flex-col gap-2 pt-3 sm:pt-0 sm:pl-3">
+          <div class="flex items-center gap-1.5 uppercase">
+            <div class="font-pressstart w-3.5 h-3.5 rounded-full bg-[#EAB246] border-[1px] border-[#3D2013] flex items-center justify-center text-[7px]">$</div>
+            <span class="font-pressstart text-[8px] sm:text-[9px]">Coins Breakdown</span>
+          </div>
+
+          <div id="coins-breakdown-list" class="flex flex-col gap-1.5 pt-1"></div>
+
+          <div class="border-t-2 border-[#3D2013]/20 pt-1.5 flex justify-between items-center">
+            <span class="font-pressstart text-[8px] sm:text-[9px]">TOTAL</span>
+            <div class="flex items-center gap-1 text-[#6B8E62]">
+              <span id="coins-breakdown-total" class="font-pressstart text-[8px] sm:text-[9px]">+20</span>
+              <div class="w-3 h-3 rounded-full bg-[#EAB246] border-[1px] border-[#3D2013]"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ACTION BUTTON -->
+      <div class="flex justify-center pt-2">
+<button onclick="closeAnalyticsModal()" class="font-pressstart w-48 bg-[#D96B27] hover:bg-[#c45a1c] text-[#FEF4E0] border-[3px] border-[#3D2013] rounded-xl py-2.5 text-xs uppercase  hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_#3D2013] active:translate-x-1 active:translate-y-1 active:shadow-[0px_0px_0px_#3D2013] transition-all duration-150 cursor-pointer">
+  Done
+</button>
+      </div>
+
+    </div>
+
+  </div>
+</div>

@@ -807,13 +807,14 @@
           <!-- COLUMN 2: ACTION BUTTONS -->
           <div class="flex flex-col gap-3 justify-center">
             <!-- PAUSE / START BUTTON -->
-            <button id="timer-toggle-btn" class="w-full font-pressstart text-[10px] bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] !rounded-none py-2 px-3 flex items-center justify-center gap-2 transition-all duration-150 retro-shadow cursor-pointer pointer-events-auto">
-              <svg id="timer-toggle-icon" class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24">
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
-              </svg>
-              <span id="timer-toggle-text" class="pointer-events-none">START</span>
-            </button>
+            <!-- PAUSE / START BUTTON -->
+<button id="timer-toggle-btn" onclick="toggleTimer()" class="w-full font-pressstart text-[10px] bg-[#E87338] border-[2.5px] border-[#3D2013] text-[#FEF4E0] !rounded-none py-2 px-3 flex items-center justify-center gap-2 transition-all duration-150 retro-shadow cursor-pointer pointer-events-auto">
+  <svg id="timer-toggle-icon" class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24">
+    <rect x="6" y="4" width="4" height="16" />
+    <rect x="14" y="4" width="4" height="16" />
+  </svg>
+  <span id="timer-toggle-text" class="pointer-events-none">START</span>
+</button>
 
             <!-- RESET BUTTON -->
             <button onclick="resetTimer()" class="w-full font-pressstart text-[10px] bg-[#FEF4E0] border-[2.5px] border-[#3D2013] text-[#3D2013] !rounded-none py-2 px-3 flex items-center justify-center gap-2 transition-all duration-150 retro-shadow cursor-pointer pointer-events-auto">

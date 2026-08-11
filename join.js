@@ -29,11 +29,17 @@ async function fetchRooms() {
     console.warn("Backend fetch failed for rooms.", err);
   }
 
-  // Filter backend rooms to only include public and ongoing rooms
+  // Filter para lumabas lamang ang Public at Hangouts rooms na UNFINISHED (hindi pa tapos)
   allRooms = backendRooms.filter(room => {
     const visibility = room.visibility ? room.visibility.toLowerCase() : 'public';
     
-    // Calculate progress percentage to check if it's finished
+    // Alamin ang room mode kung naka-hangouts man
+    let roomMode = 'structured';
+    if (room.roomConfig && room.roomConfig.roomMode) {
+      roomMode = room.roomConfig.roomMode.toLowerCase();
+    }
+    
+    // Calculate progress percentage para malaman kung tapos na ba
     let calculatedPercent = room.progressPercent || 0;
     if (room.checklist && room.checklist.length > 0) {
       let checklistArray = room.checklist;
@@ -46,9 +52,13 @@ async function fetchRooms() {
       }
     }
 
+    // Siguraduhing hindi pa tapos (unfinished)
     const isFinished = calculatedPercent >= 100 || room.status === "finished";
 
-    return visibility === 'public' && !isFinished;
+    // Piliin lamang ang mga public o hangouts na hindi pa tapos
+    const isPublicOrHangout = (visibility === 'public' || visibility === 'hangout' || roomMode === 'hangout');
+
+    return isPublicOrHangout && !isFinished;
   });
 
   renderRoomCards(allRooms);
@@ -66,13 +76,14 @@ function renderRoomCards(rooms) {
   if (rooms.length === 0) {
     container.innerHTML = `
       <div class="col-span-full bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-none p-6 text-center shadow-md">
-        <p class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013]">NO ONGOING PUBLIC ROOMS FOUND.</p>
+        <p class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013]">NO UNFINISHED PUBLIC OR HANGOUT ROOMS FOUND.</p>
       </div>
     `;
     return;
   }
 
   rooms.forEach((room) => {
+    const roomCodeParam = room.roomCode || room.room_code || room.id;
     const cardHTML = `
       <div class="bg-[#FEF4E0] border-[2.5px] border-[#3D2013] !rounded-none p-3.5 flex flex-col justify-between gap-3 shadow-md transition-transform duration-150">
         
@@ -120,7 +131,7 @@ function renderRoomCards(rooms) {
 
         <!-- ACTION BUTTON ROW (JOIN ROOM) -->
         <div class="pt-0.5">
-          <button onclick="enterRoom('${room.id}')" 
+          <button onclick="enterRoom('${roomCodeParam}')" 
                   class="w-full font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] bg-[#FD923E] border-[2px] border-[#3D2013] !rounded-none py-2 px-2 text-center transition-all duration-150 cursor-pointer retro-shadow uppercase">
             JOIN ROOM
           </button>
@@ -154,13 +165,35 @@ function filterRooms(query) {
   renderRoomCards(filtered);
 }
 
-function enterRoom(roomId) {
-  // Ensure we extract a valid string or code if an object is passed
-  const cleanId = typeof roomId === 'object' ? roomId.id || roomId.room_code : roomId;
+async function enterRoom(roomIdentifier) {
+  let roomCode = roomIdentifier;
+  if (typeof roomIdentifier === 'object' && roomIdentifier !== null) {
+    roomCode = roomIdentifier.roomCode || roomIdentifier.room_code || roomIdentifier.id;
+  }
+
+  let targetPage = 'generated-homepage.html'; // Default para sa hangouts
   
-  sessionStorage.setItem("activeRoomId", cleanId);
-  startSimulatedLoad("Joining Room...", 2000, () => {
-    window.location.href = `generated-homepage.html?room=${cleanId}`;
+  const foundRoom = allRooms.find(r => r.id == roomIdentifier || r.roomCode == roomIdentifier || r.room_code == roomIdentifier);
+  if (foundRoom) {
+    roomCode = foundRoom.roomCode || foundRoom.room_code;
+    localStorage.setItem("currentActiveRoom", JSON.stringify(foundRoom));
+    
+    // I-check ang roomMode kung hangouts ba o structured
+    let mode = 'hangout';
+    if (foundRoom.roomConfig && foundRoom.roomConfig.roomMode) {
+      mode = foundRoom.roomConfig.roomMode.toLowerCase();
+    } else if (foundRoom.roomMode) {
+      mode = foundRoom.roomMode.toLowerCase();
+    }
+    
+    if (mode === 'structured') {
+      targetPage = 'kitsuai.html';
+    }
+  }
+
+  sessionStorage.setItem("activeRoomId", roomCode);
+  startSimulatedLoad("Joining Room...", 1500, () => {
+    window.location.href = `${targetPage}?code=${roomCode}`;
   });
 }
 
@@ -205,22 +238,20 @@ async function submitPrivateRoomCode() {
   if (!roomCode) {
     if (errorText) {
       errorText.textContent = "◆ PLEASE ENTER A CODE ◆";
-      errorText.classList.remove("hidden");
+      errorText.classList.add("hidden");
     }
     return;
   }
 
   try {
     const token = sessionStorage.getItem("token");
-    const currentUser = JSON.parse(sessionStorage.getItem("current_user") || '{"id": "u1", "username": "User"}');
-    
     const response = await fetch(`${API_BASE_URL}/api/join-room`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({ inviteCode: roomCode, user: currentUser })
+      body: JSON.stringify({ inviteCode: roomCode })
     });
 
     if (response.ok) {
@@ -228,7 +259,26 @@ async function submitPrivateRoomCode() {
       const matchedRoom = data.room;
       
       closeJoinPrivateModal();
-      enterRoom(matchedRoom.id || roomCode);
+      const finalCode = matchedRoom.roomCode || matchedRoom.room_code || roomCode;
+      
+      localStorage.setItem("currentActiveRoom", JSON.stringify(matchedRoom));
+      
+      // I-check ang roomMode bago mag-redirect
+      let targetPage = 'generated-homepage.html';
+      let mode = 'hangout';
+      if (matchedRoom.roomConfig && matchedRoom.roomConfig.roomMode) {
+        mode = matchedRoom.roomConfig.roomMode.toLowerCase();
+      } else if (matchedRoom.roomMode) {
+        mode = matchedRoom.roomMode.toLowerCase();
+      }
+      
+      if (mode === 'structured') {
+        targetPage = 'kitsuai.html';
+      }
+      
+      startSimulatedLoad("Joining Room...", 1500, () => {
+        window.location.href = `${targetPage}?code=${finalCode}`;
+      });
     } else {
       const errData = await response.json();
       if (errorText) {
