@@ -60,8 +60,8 @@ function processSessionResults(sessionInput) {
     endTime,
     completedTasks = 4,
     totalTasks = 4,
-    preTestScore = 72,
-    postTestScore = 84,
+    preTestScore = 0,
+    postTestScore = 0,
     userStreak = 7
   } = sessionInput;
 

@@ -1,14 +1,411 @@
 // --- STATE MANAGEMENT ---
-let uploadedFiles = []; // Start with a completely clean slate!
+let uploadedFiles = [
+  { id: '1', name: 'Cell_Biology_Ch3.pdf', size: '2.4 MB', addedBy: 'Player 1' },
+  { id: '2', name: 'Organic_Chemistry_Summary.pdf', size: '1.1 MB', addedBy: 'You' }
+];
 
 let generatedItems = []; // Saved tool items
 let currentActiveTool = ''; // 'Pre-quiz', 'Post-quiz', 'Flashcards', 'Notes'
 let currentGeneratedItem = null;
 let hasActiveToolChanged = false; // Tracks whether modifications occurred in current tool session
 
+const roomState = {
+  mode: 'structured', // 'hangout' | 'structured'
+  role: 'host', // 'host' | 'player'
+  isQuizStarted: false,
+  playersReady: 4,
+  totalPlayers: 5,
+  isPlayerReady: false
+};
+
+/**
+ * Safely updates the user's role in roomState, updates the URL,
+ * clamps ready counts, and re-renders dependent UI elements.
+ * 
+ * @param {'host' | 'player'} newRole 
+ * @param {Object} [options]
+ * @param {boolean} [options.broadcast=true] Whether to notify other tabs/clients
+ */
+function setRole(newRole, options = { broadcast: true }) {
+  // 1. Validate role input
+  if (newRole !== 'host' && newRole !== 'player') {
+    console.warn(`[setRole] Invalid role provided: "${newRole}". Must be 'host' or 'player'.`);
+    return;
+  }
+
+  // 2. Prevent redundant work if role hasn't changed
+  if (roomState.role === newRole) return;
+
+  const previousRole = roomState.role;
+  roomState.role = newRole;
+
+  // 3. Keep playersReady within valid bounds [0, totalPlayers]
+  roomState.playersReady = getClampedReadyCount(roomState.playersReady);
+
+  // 4. Synchronize URL query parameter without reloading the page
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set('role', newRole);
+    window.history.replaceState(null, '', url.toString());
+  } catch (err) {
+    console.error('[setRole] Failed to sync URL state:', err);
+  }
+
+  // 5. Update UI controls depending on host vs. player permissions
+  renderRoleDependentUI(newRole);
+
+  // 6. Broadcast state change if requested
+  // Note: Only allow broadcast if new role is host OR if broadcasting host-relinquishment
+  if (options.broadcast && roomStateChannel) {
+    roomStateChannel.postMessage({
+      type: 'ROLE_CHANGED',
+      previousRole,
+      role: roomState.role,
+      playersReady: roomState.playersReady,
+      totalPlayers: roomState.totalPlayers,
+      mode: roomState.mode,
+      isQuizStarted: roomState.isQuizStarted
+    });
+  }
+}
+
+/**
+ * Updates UI elements based on host/player control permissions.
+ * @param {'host' | 'player'} role 
+ */
+function renderRoleDependentUI(role) {
+  const isHost = role === 'host';
+
+  // Toggle host-only controls visibility
+  const hostElements = document.querySelectorAll('[data-host-only]');
+  hostElements.forEach((el) => {
+    el.classList.toggle('hidden', !isHost);
+    if ('disabled' in el) {
+      el.disabled = !isHost;
+    }
+  });
+
+  // Toggle player-only controls visibility
+  const playerElements = document.querySelectorAll('[data-player-only]');
+  playerElements.forEach((el) => {
+    el.classList.toggle('hidden', isHost);
+  });
+
+  // Re-render core room state views
+  if (typeof renderRoomStateDependents === 'function') {
+    renderRoomStateDependents();
+  }
+}
+
+const ROOM_STATE_CHANNEL = 'studycircle_room_state_channel';
+const roomStateChannel = typeof BroadcastChannel !== 'undefined'
+  ? new BroadcastChannel(ROOM_STATE_CHANNEL)
+  : null;
+
+function isStructuredMode() {
+  return roomState.mode === 'structured';
+}
+
+function isStructuredHost() {
+  return isStructuredMode() && roomState.role === 'host';
+}
+
+function isStructuredPlayer() {
+  return isStructuredMode() && roomState.role === 'player';
+}
+
+function isQuizTool(toolName = currentActiveTool) {
+  return toolName === 'Pre-quiz' || toolName === 'Post-quiz';
+}
+
+function getClampedReadyCount(value = roomState.playersReady) {
+  const num = Number(value);
+  const validNum = Number.isFinite(num) ? num : 0;
+  return Math.max(0, Math.min(roomState.totalPlayers, validNum));
+}
+
+function renderRoomStateDependents() {
+  renderToolsColumnForRoomState();
+
+  if (isStructuredHost() && isQuizTool() && !roomState.isQuizStarted) {
+    renderStructuredHostLobby();
+  }
+}
+
+function updateRoomState(patch = {}, options = {}) {
+  const shouldBroadcast = options.broadcast !== false;
+
+  if (patch.mode === 'hangout' || patch.mode === 'structured') {
+    roomState.mode = patch.mode;
+  }
+  if (patch.role === 'host' || patch.role === 'player') {
+    roomState.role = patch.role;
+  }
+  if (typeof patch.isQuizStarted === 'boolean') {
+    roomState.isQuizStarted = patch.isQuizStarted;
+  }
+  if (typeof patch.isPlayerReady === 'boolean') {
+    roomState.isPlayerReady = patch.isPlayerReady;
+  }
+
+  const nextTotalPlayers = Number(patch.totalPlayers);
+  if (Number.isFinite(nextTotalPlayers) && nextTotalPlayers > 0) {
+    roomState.totalPlayers = nextTotalPlayers;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch, 'playersReady')) {
+    roomState.playersReady = getClampedReadyCount(patch.playersReady);
+  } else {
+    roomState.playersReady = getClampedReadyCount();
+  }
+
+  renderRoomStateDependents();
+
+  if (shouldBroadcast) {
+    broadcastRoomState();
+  }
+}
+
+function setStructuredReadyStatus(playersReady, totalPlayers = roomState.totalPlayers) {
+  updateRoomState({ playersReady, totalPlayers });
+}
+
+function hydrateRoomStateFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('mode');
+  const role = params.get('role');
+  const readyParam = params.get('playersReady');
+  const totalParam = params.get('totalPlayers');
+
+  if (mode === 'hangout' || mode === 'structured') {
+    roomState.mode = mode;
+  }
+  if (role === 'host' || role === 'player') {
+    roomState.role = role;
+  }
+  
+  if (totalParam !== null) {
+    const total = Number(totalParam);
+    if (Number.isFinite(total) && total > 0) {
+      roomState.totalPlayers = total;
+    }
+  }
+
+  if (readyParam !== null) {
+    const ready = Number(readyParam);
+    if (Number.isFinite(ready)) {
+      roomState.playersReady = getClampedReadyCount(ready);
+    }
+  }
+}
+
+function getSharedRoomStatePatch() {
+  return {
+    mode: roomState.mode,
+    isQuizStarted: roomState.isQuizStarted,
+    playersReady: getClampedReadyCount(),
+    totalPlayers: roomState.totalPlayers
+  };
+}
+
+function broadcastRoomState() {
+  if (roomStateChannel) {
+    roomStateChannel.postMessage(getSharedRoomStatePatch());
+  }
+}
+
+if (roomStateChannel) {
+  roomStateChannel.onmessage = (event) => {
+    if (!event.data || typeof event.data !== 'object') return;
+
+    const patch = {};
+
+    if (event.data.mode === 'hangout' || event.data.mode === 'structured') {
+      patch.mode = event.data.mode;
+    }
+    if (typeof event.data.isQuizStarted === 'boolean') {
+      patch.isQuizStarted = event.data.isQuizStarted;
+    }
+    
+    const incomingTotal = Number(event.data.totalPlayers);
+    if (Number.isFinite(incomingTotal) && incomingTotal > 0) {
+      patch.totalPlayers = incomingTotal;
+    }
+
+    const incomingReady = Number(event.data.playersReady);
+    if (Number.isFinite(incomingReady)) {
+      patch.playersReady = incomingReady;
+    }
+
+    updateRoomState(patch, { broadcast: false });
+  };
+}
+
+function initializeRoomState() {
+  hydrateRoomStateFromUrl();
+  // Sync view without mutating roomState.playersReady default value
+  renderRoomStateDependents();
+}
+
+function renderToolsColumnForRoomState() {
+  const titleElem = document.getElementById('tools-header-title');
+  const mainMenu = document.getElementById('tools-main-menu');
+  const formView = document.getElementById('tools-form-view');
+  const playerView = document.getElementById('structured-player-view');
+
+  if (!mainMenu || !formView || !playerView) return;
+
+  if (isStructuredPlayer()) {
+    mainMenu.classList.add('hidden');
+    formView.classList.add('hidden');
+    playerView.classList.remove('hidden');
+    if (titleElem) titleElem.textContent = roomState.isQuizStarted ? 'Live Quiz' : 'Structured Quiz';
+    renderStructuredPlayerView();
+    return;
+  }
+
+  playerView.classList.add('hidden');
+
+  if (!currentActiveTool && formView.classList.contains('hidden')) {
+    mainMenu.classList.remove('hidden');
+    if (titleElem) titleElem.textContent = 'Tools';
+  }
+}
+
+function renderStructuredHostLobby(container = document.getElementById('structured-lobby-container')) {
+  if (!container) return;
+
+  const readyCount = getClampedReadyCount();
+  const waitingCount = Math.max(0, roomState.totalPlayers - readyCount);
+  const canStart = readyCount >= roomState.totalPlayers;
+
+  // Determine button label based on current active quiz type
+  const quizTypeLabel = isQuizTool(currentActiveTool) ? currentActiveTool : 'Quiz';
+  const buttonText = `Start ${quizTypeLabel}`;
+
+  container.innerHTML = `
+    <div class="bg-[#FFF8EC] border-2 border-[#3D2013] rounded-xl p-4 flex flex-col gap-4 shadow-sm">
+      <div class="flex flex-col gap-1 text-center">
+        <h3 class="font-pressstart text-[10px] text-[#3D2013] leading-relaxed">${quizTypeLabel} Lobby</h3>
+        <p class="font-pixel text-sm text-[#3D2013]/70">Players are joining and marking themselves ready.</p>
+      </div>
+
+      <div class="bg-[#FEF4E0] border-2 border-[#3D2013]/20 rounded-xl p-4 text-center">
+        <p class="font-pressstart text-xs text-[#3D2013]">${readyCount}/${roomState.totalPlayers} Players Ready</p>
+        <p class="font-pixel text-xs text-[#3D2013]/60 mt-1">${waitingCount === 0 ? 'Everyone is ready.' : `${waitingCount} still waiting.`}</p>
+      </div>
+
+      <button
+        type="button"
+        onclick="startStructuredQuiz()"
+        ${canStart ? '' : 'disabled'}
+        class="w-full bg-[#788D55] text-white font-pressstart text-xs py-3 rounded-xl border-2 border-[#3D2013] transition-all shadow-sm ${canStart ? 'hover:bg-[#5B6D3F] active:scale-[0.98] cursor-pointer' : 'opacity-50 cursor-not-allowed'}">
+        ${buttonText}
+      </button>
+
+      <!-- EMERGENCY FORCE START BUTTON -->
+<button
+  type="button"
+  onclick="emergencyForceStartQuiz()"
+  class="w-full bg-[#A53914] text-white font-pressstart text-[9px] py-2 rounded-xl border-2 border-[#3D2013] hover:bg-[#822B0F] active:scale-[0.98] transition-all cursor-pointer shadow-sm mt-2">
+  ⚠️ Emergency Force Start / Bypass Ready
+</button>
+    </div>
+  `;
+}
+
+function showStructuredHostLobby() {
+  const step1 = document.getElementById('step-1-source-select');
+  const lobby = document.getElementById('structured-lobby-container');
+  const step2 = document.getElementById('step-2-generated-container');
+
+  if (step1) step1.classList.add('hidden');
+  if (step2) step2.classList.add('hidden');
+  if (lobby) lobby.classList.remove('hidden');
+
+  renderStructuredHostLobby(lobby);
+}
+
+function renderStructuredPlayerView() {
+  const container = document.getElementById('structured-player-view');
+  if (!container) return;
+
+  if (roomState.isQuizStarted) {
+    if (!quizState.activeQuiz) {
+      currentActiveTool = currentActiveTool || 'Pre-quiz';
+      quizState.activeQuiz = JSON.parse(JSON.stringify(mockQuizData[currentActiveTool] || mockQuizData['Pre-quiz']));
+      quizState.currentQuestionIndex = 0;
+      quizState.userAnswers = {};
+      quizState.isCompleted = false;
+      quizState.isReviewing = false;
+    }
+
+    container.innerHTML = `<div id="structured-player-quiz-content" class="flex-1 flex flex-col gap-3"></div>`;
+    renderQuizView(document.getElementById('structured-player-quiz-content'));
+    return;
+  }
+
+  const readyLabel = roomState.isPlayerReady ? 'Ready' : "I'm Ready";
+  const readyCount = getClampedReadyCount();
+
+  container.innerHTML = `
+    <div class="flex-1 flex flex-col justify-center gap-4">
+      <div class="bg-[#FFF8EC] border-2 border-[#3D2013] rounded-xl p-4 flex flex-col gap-3 text-center shadow-sm">
+        <h3 class="font-pressstart text-[10px] text-[#3D2013] leading-relaxed">Waiting for the host to start</h3>
+        <p class="font-pixel text-sm text-[#3D2013]/70">${readyCount}/${roomState.totalPlayers} Players Ready</p>
+        <button
+          type="button"
+          onclick="toggleStructuredPlayerReady()"
+          class="w-full ${roomState.isPlayerReady ? 'bg-[#788D55]' : 'bg-[#E87339]'} text-white font-pressstart text-xs py-3 rounded-xl border-2 border-[#3D2013] hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer shadow-sm">
+          ${readyLabel}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function emergencyForceStartQuiz() {
+  console.warn("Emergency Force Start invoked by Host.");
+  if (typeof roomState !== 'undefined') {
+    roomState.playersReady = roomState.totalPlayers;
+  }
+  if (typeof startStructuredQuiz === 'function') {
+    startStructuredQuiz();
+  } else {
+    alert("Session force-started successfully via emergency override!");
+  }
+}
+
+function toggleStructuredPlayerReady() {
+  const nextPlayerReady = !roomState.isPlayerReady;
+  updateRoomState({
+    isPlayerReady: nextPlayerReady,
+    playersReady: roomState.playersReady + (nextPlayerReady ? 1 : -1)
+  });
+}
+
+function startStructuredQuiz() {
+  if (!isStructuredHost()) return;
+
+  updateRoomState({ isQuizStarted: true });
+  hasActiveToolChanged = true;
+
+  const lobby = document.getElementById('structured-lobby-container');
+  const step2 = document.getElementById('step-2-generated-container');
+  if (lobby) lobby.classList.add('hidden');
+  if (step2) step2.classList.remove('hidden');
+
+  if (currentGeneratedItem) {
+    currentGeneratedItem.isQuizStarted = true;
+  }
+
+  renderQuizView();
+}
+
 // Initial Setup on DOM Load
 document.addEventListener('DOMContentLoaded', () => {
   renderUploadedFiles();
+  initializeRoomState();
 });
 
 // Navigation back handler for the close button
@@ -91,17 +488,74 @@ function toggleColumn(columnName) {
   }
 }
 
-// Simple room timer incrementer logic
-let totalSeconds = 0;
-const timerElement = document.getElementById('room-timer');
-setInterval(() => {
-  totalSeconds++;
-  const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-  const secs = String(totalSeconds % 60).padStart(2, '0');
-  if (timerElement) {
-    timerElement.textContent = `${mins}:${secs}`;
+// Shared study timer display from homepage.html
+const STUDY_TIMER_STORAGE_KEY = "homepage_study_timer_state";
+const roomTimerChannel = new BroadcastChannel("study_timer_channel");
+let studyTimerState = getSavedStudyTimerState();
+let studyTimerInterval = null;
+
+function formatStudyTimer(seconds) {
+  const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const secs = String(seconds % 60).padStart(2, "0");
+  return `${mins}:${secs}`;
+}
+
+function getSavedStudyTimerState() {
+  try {
+    return JSON.parse(localStorage.getItem(STUDY_TIMER_STORAGE_KEY)) || null;
+  } catch (error) {
+    return null;
   }
-}, 1000);
+}
+
+function getLiveStudyTimerSeconds(data) {
+  if (!data || !Number.isFinite(data.secondsLeft)) return 0;
+
+  if (!data.isRunning || !Number.isFinite(data.updatedAt)) {
+    return Math.max(0, data.secondsLeft);
+  }
+
+  const elapsedSeconds = Math.floor((Date.now() - data.updatedAt) / 1000);
+  return Math.max(0, data.secondsLeft - elapsedSeconds);
+}
+
+function renderStudyTimerFromHomepage(data = studyTimerState) {
+  const timerElement = document.getElementById("room-timer");
+  const secondsLeft = getLiveStudyTimerSeconds(data);
+  const formattedTime = data?.formattedTime && !data.isRunning
+    ? data.formattedTime
+    : formatStudyTimer(secondsLeft);
+
+  if (timerElement) {
+    timerElement.textContent = formattedTime;
+    timerElement.style.color = data?.isBreak ? "#788D55" : "#3D2013";
+  }
+}
+
+function syncStudyTimerFromHomepage(data) {
+  if (!data || data.source !== "homepage-study-timer") return;
+
+  studyTimerState = data;
+  renderStudyTimerFromHomepage(studyTimerState);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  syncStudyTimerFromHomepage(getSavedStudyTimerState() || {
+    source: "homepage-study-timer",
+    secondsLeft: 0,
+    formattedTime: "00:00",
+    isRunning: false
+  });
+
+  if (studyTimerInterval) clearInterval(studyTimerInterval);
+  studyTimerInterval = setInterval(() => {
+    renderStudyTimerFromHomepage(studyTimerState);
+  }, 1000);
+});
+
+
+
+
 
 function togglePlayersDropdown() {
   const dropdown = document.getElementById('players-dropdown');
@@ -173,12 +627,11 @@ function sendChatMessage() {
   triggerAIResponse(messageText);
 }
 
-// Updated Simulated AI Answer Logic to fetch real backend AI responses
-async function triggerAIResponse(userQuery) {
+// Simulated AI Answer Logic
+function triggerAIResponse(userQuery) {
   const chatStream = document.getElementById('chat-stream');
-  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
 
-  // Create AI container element: Plain text, pixel font, #3D2013 color
+  // Create AI container element: Plain text, pixel font, #3D2013 color, NO background/bubble
   const aiContainer = document.createElement('div');
   aiContainer.className = 'self-start max-w-[85%] font-pixel text-[#3D2013] text-sm sm:text-lg md:text-[20px] leading-snug py-1 break-words';
 
@@ -187,36 +640,24 @@ async function triggerAIResponse(userQuery) {
   aiName.className = 'font-bold text-[#DD6E36] block text-xs sm:text-sm mb-0.5';
   aiName.textContent = 'Kitsu AI:';
 
-  // Response text container with typing indicator
+  // Response text container
   const aiText = document.createElement('span');
-  aiText.textContent = 'Thinking...';
+  aiText.textContent = '...'; // Typing indicator placeholder
 
   aiContainer.appendChild(aiName);
   aiContainer.appendChild(aiText);
 
-  chatStream.appendChild(aiContainer);
-  scrollToBottom();
+  // Delay simulation (1 second response time)
+  setTimeout(() => {
+    chatStream.appendChild(aiContainer);
+    scrollToBottom();
 
-  try {
-    const response = await fetch("http://127.0.0.1:5000/api/kitsu-ai/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({ message: userQuery })
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      typeWriterEffect(aiText, data.response, 25);
-    } else {
-      aiText.textContent = "Oops! Kitsu had trouble processing that request.";
-    }
-  } catch (err) {
-    console.error("AI Chat connection error:", err);
-    aiText.textContent = "Network error. Could not reach Kitsu AI server.";
-  }
+    // Pick response based on user input or random fallback
+    const reply = getAIReplyText(userQuery);
+    
+    // Simulate typing effect
+    typeWriterEffect(aiText, reply, 25);
+  }, 600);
 }
 
 // Quick keyword matcher for responses
@@ -309,80 +750,49 @@ function renderStep1Checkboxes() {
   `).join('');
 }
 
-// --- 2. GENERATE TOOL FUNCTION (Connected to Flask & Gemini) ---
-async function handleStep1Next() {
+// Step 1 Next Button Click Handler
+function handleStep1Next() {
   const checkboxes = document.querySelectorAll('#step-1-file-checkbox-list input[type="checkbox"]:checked');
   
   if (uploadedFiles.length > 0 && checkboxes.length === 0) {
-    showCustomizerSuccessToast('Please select at least one source file to continue.');
+    alert('Please select at least one source file to continue.');
     return;
   }
 
-  const selectedFileIds = Array.from(checkboxes).map(cb => cb.value);
-  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  if (isStructuredHost() && isQuizTool(currentActiveTool)) {
+    updateRoomState({ isQuizStarted: false });
+  }
 
-  showCustomizerSuccessToast('Kitsu AI is generating your study materials...');
+  // 1. Instantly generate & inflate the mock content state based on the current tool
+  generateMockToolContent(currentActiveTool);
+  
+  // 2. Mark state as changed/dirty so navigation handlers track it
+  hasActiveToolChanged = true;
 
-  try {
-    const response = await fetch("http://127.0.0.1:5000/api/generate-tool", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        toolType: currentActiveTool,
-        fileIds: selectedFileIds
-      })
-    });
+  // 3. Update the header title dynamically to match the newly generated item
+  if (currentGeneratedItem && currentGeneratedItem.title) {
+    const titleElem = document.getElementById('tools-header-title');
+    if (titleElem) titleElem.textContent = currentGeneratedItem.title;
+  }
 
-    if (response.ok) {
-      const result = await response.json();
-
-      currentGeneratedItem = {
-        id: Date.now().toString(),
-        title: result.title,
-        type: result.type,
-        badgeColor: result.badgeColor,
-        date: new Date().toLocaleDateString(),
-        quizState: result.quizState || null,
-        flashcardState: result.flashcardState || null,
-        notesState: result.notesState || null
-      };
-
-      const container = document.getElementById('mock-output-content');
-      if (result.quizState) {
-        quizState = JSON.parse(JSON.stringify(result.quizState));
-        renderQuizView(container);
-      } else if (result.flashcardState) {
-        flashcardState = JSON.parse(JSON.stringify(result.flashcardState));
-        renderFlashcardsView(container);
-      } else if (result.notesState) {
-        notesState = JSON.parse(JSON.stringify(result.notesState));
-        renderNotesView(container);
-      }
-
-      hasActiveToolChanged = true;
-
-      const titleElem = document.getElementById('tools-header-title');
-      if (titleElem) titleElem.textContent = currentGeneratedItem.title;
-
-      const existingIndex = generatedItems.findIndex(item => item.id === currentGeneratedItem.id);
-      if (existingIndex !== -1) {
-        generatedItems[existingIndex] = { ...currentGeneratedItem };
-      } else {
-        generatedItems.unshift({ ...currentGeneratedItem });
-      }
-      renderGeneratedItemsList();
-
-      document.getElementById('step-1-source-select').classList.add('hidden');
-      document.getElementById('step-2-generated-container').classList.remove('hidden');
+  // 4. Automatically save/persist the generated item into the generatedItems array if it's new
+  if (currentGeneratedItem) {
+    const existingIndex = generatedItems.findIndex(item => item.id === currentGeneratedItem.id);
+    if (existingIndex !== -1) {
+      generatedItems[existingIndex] = { ...currentGeneratedItem };
     } else {
-      showCustomizerSuccessToast('Failed to generate study tool from backend.');
+      generatedItems.unshift({ ...currentGeneratedItem });
     }
-  } catch (err) {
-    console.error("Generation network error:", err);
-    showCustomizerSuccessToast('Network error while generating tool.');
+    renderGeneratedItemsList();
+  }
+
+  // 5. Hide Step 1, then either show the structured lobby or generated content
+  if (isStructuredHost() && isQuizTool(currentActiveTool)) {
+    showStructuredHostLobby();
+  } else {
+    document.getElementById('step-1-source-select').classList.add('hidden');
+    document.getElementById('structured-lobby-container').classList.add('hidden');
+    document.getElementById('step-2-generated-container').classList.remove('hidden');
   }
 }
 
@@ -394,10 +804,13 @@ function resetToolsView() {
   // Reset form views
   document.getElementById('tools-form-view').classList.add('hidden');
   document.getElementById('step-1-source-select').classList.remove('hidden');
+  document.getElementById('structured-lobby-container').classList.add('hidden');
   document.getElementById('step-2-generated-container').classList.add('hidden');
   document.getElementById('tools-main-menu').classList.remove('hidden');
 
+  currentActiveTool = '';
   hasActiveToolChanged = false; // Reset modification flag
+  renderToolsColumnForRoomState();
 }
 
 // --- MOCK DATA FOR QUIZZES ---
@@ -913,6 +1326,25 @@ function renderQuizView(container = document.getElementById('mock-output-content
 
   const quiz = quizState.activeQuiz;
 
+  if (isStructuredMode() && isQuizTool(quiz.type) && !roomState.isQuizStarted && !quizState.isCompleted && !quizState.isReviewing) {
+    if (isStructuredHost()) {
+      renderStructuredHostLobby(container);
+    } else {
+      container.innerHTML = `
+        <div class="bg-[#FFF8EC] border-2 border-[#3D2013] rounded-xl p-4 text-center shadow-sm">
+          <h3 class="font-pressstart text-[10px] text-[#3D2013] leading-relaxed">Waiting for the host to start</h3>
+          <button
+            type="button"
+            onclick="toggleStructuredPlayerReady()"
+            class="mt-4 w-full ${roomState.isPlayerReady ? 'bg-[#788D55]' : 'bg-[#E87339]'} text-white font-pressstart text-xs py-3 rounded-xl border-2 border-[#3D2013] hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer shadow-sm">
+            ${roomState.isPlayerReady ? 'Ready' : "I'm Ready"}
+          </button>
+        </div>
+      `;
+    }
+    return;
+  }
+
   if (quizState.isReviewing) {
     renderQuizReview(container);
     return;
@@ -1175,9 +1607,11 @@ function renderQuizReview(container) {
 // --- 3. Check Flashcard changes when navigating back ---
 function handleBackToTools() {
   const step2Container = document.getElementById('step-2-generated-container');
+  const lobbyContainer = document.getElementById('structured-lobby-container');
   const isStep2Active = step2Container && !step2Container.classList.contains('hidden');
+  const isLobbyActive = lobbyContainer && !lobbyContainer.classList.contains('hidden');
 
-  if (isStep2Active) {
+  if (isStep2Active || isLobbyActive) {
     let hasChanges = hasActiveToolChanged;
 
     // Check Quiz state changes if not caught by flag
@@ -1473,7 +1907,6 @@ function closePdfModal() {
   card.classList.add('scale-95', 'opacity-0');
   setTimeout(() => {
     modal.classList.add('hidden');
-    resetModalProgress();
   }, 200);
 }
 
@@ -1484,29 +1917,21 @@ function resetModalProgress() {
   const progressPercent = document.getElementById('upload-percent');
   const dropZone = document.getElementById('drag-drop-zone');
 
-  if (progressContainer) {
-    progressContainer.classList.add('hidden');
-    progressContainer.classList.remove('flex');
-  }
+  if (progressContainer) progressContainer.classList.add('hidden');
   if (dropZone) dropZone.classList.remove('hidden');
   if (progressBar) progressBar.style.width = '0%';
   if (progressPercent) progressPercent.textContent = '0%';
 }
 
-// Trigger hidden file input click
 function triggerFileInput() {
-  const input = document.getElementById('pdf-file-input');
-  if (input) input.click();
+  document.getElementById('pdf-file-input').click();
 }
 
-// Handle file selection from browse dialog
 function handleFileSelect(event) {
   const files = event.target.files;
   if (files && files[0]) {
-    processUploadedFile(files[0]);
+    simulateFileUpload(files[0]);
   }
-  // IMPORTANT FIX: Clear the file input value so selecting the same file triggers onchange again!
-  event.target.value = '';
 }
 
 function handleDragOver(e) {
@@ -1520,136 +1945,56 @@ function handleDragLeave(e) {
 function handleFileDrop(e) {
   e.preventDefault();
   if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-    processUploadedFile(e.dataTransfer.files[0]);
+    simulateFileUpload(e.dataTransfer.files[0]);
   }
 }
 
-/// --- 1. UPLOAD FUNCTION (Connected to Flask) ---
-async function processUploadedFile(file) {
-  console.log("🔥 NA-TRIGGER ANG UPLOAD FUNCTION!", file);
-  
-  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-    showCustomizerSuccessToast('Error: Only PDF files are supported.');
-    return;
-  }
-
-  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const zone = document.getElementById('drag-drop-zone');
+function simulateFileUpload(file) {
   const progressContainer = document.getElementById('upload-progress-container');
-  const filenameElem = document.getElementById('upload-filename');
-  const filesizeElem = document.getElementById('upload-filesize');
   const progressBar = document.getElementById('upload-progress-bar');
-  const progressPercent = document.getElementById('upload-percent');
+  const percentText = document.getElementById('upload-percent');
+  const nameText = document.getElementById('upload-filename');
+  const sizeText = document.getElementById('upload-filesize');
 
-  const formattedSize = formatBytes(file.size);
-  if (filenameElem) filenameElem.textContent = file.name;
-  if (filesizeElem) filesizeElem.textContent = formattedSize;
-
-  if (zone) zone.classList.add('hidden');
-  if (progressContainer) {
-    progressContainer.classList.remove('hidden');
-    progressContainer.classList.add('flex');
-  }
+  progressContainer.classList.remove('hidden');
+  nameText.textContent = file.name;
+  sizeText.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
 
   let progress = 0;
-  const progressInterval = setInterval(() => {
-    if (progress < 90) {
-      progress += 10;
-      if (progressBar) progressBar.style.width = `${progress}%`;
-      if (progressPercent) progressPercent.textContent = `${progress}%`;
-    }
-  }, 100);
+  const interval = setInterval(() => {
+    progress += 20;
+    progressBar.style.width = `${progress}%`;
+    percentText.textContent = `${progress}%`;
 
-  try {
-    const headers = {};
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-
-    console.log("📤 Pinapadala sa Flask backend...");
-    const response = await fetch("http://127.0.0.1:5000/api/upload-source", {
-      method: "POST",
-      headers: headers,
-      body: formData
-    });
-
-    clearInterval(progressInterval);
-    console.log("📥 Server Response Status:", response.status);
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("✅ SERVER DATA RECEIVED:", data);
-      
-      if (progressBar) progressBar.style.width = '100%';
-      if (progressPercent) progressPercent.textContent = '100%';
-
+    if (progress >= 100) {
+      clearInterval(interval);
       setTimeout(() => {
-        // Tinitiyak na umiiral ang uploadedFiles array
-        if (typeof uploadedFiles === 'undefined') {
-          window.uploadedFiles = [];
-        }
-
-        uploadedFiles.unshift(data.file);
-        console.log("📦 ARRAY NGAYON:", uploadedFiles);
-        
+        uploadedFiles.push({
+          id: Date.now().toString(),
+          name: file.name,
+          size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+          addedBy: 'You'
+        });
         renderUploadedFiles();
         closePdfModal();
-        showCustomizerSuccessToast(`Uploaded: ${file.name}`);
-        resetModalProgress();
-
-        const toolsContainer = document.querySelector('#tools-col .overflow-y-auto');
-        const listContainer = document.getElementById('uploaded-files-list');
-        if (toolsContainer) toolsContainer.scrollTop = 0;
-        if (listContainer) listContainer.scrollTop = 0;
+        progressContainer.classList.add('hidden');
+        progressBar.style.width = '0%';
       }, 300);
-    } else {
-      const errData = await response.json().catch(() => ({}));
-      console.error("❌ SERVER ERROR:", errData);
-      showCustomizerSuccessToast(`Error: ${errData.error || 'Server error'}`);
-      closePdfModal();
-      resetModalProgress();
     }
-  } catch (err) {
-    clearInterval(progressInterval);
-    console.error("🚨 UPLOAD NETWORK ERROR:", err);
-    showCustomizerSuccessToast(`Network Error. Make sure Flask server is running.`);
-    closePdfModal();
-    resetModalProgress();
-  }
-}
-
-// Format Bytes to KB/MB
-function formatBytes(bytes, decimals = 1) {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }, 150);
 }
 
 // Render uploaded source files list on Main Menu
 function renderUploadedFiles() {
   const list = document.getElementById('uploaded-files-list');
-  if (!list) {
-    console.warn("⚠️ Warning: Element #uploaded-files-list ay hindi makita sa HTML!");
-    return;
-  }
-
-  if (typeof uploadedFiles === 'undefined' || uploadedFiles.length === 0) {
-    list.innerHTML = '';
-    list.classList.add('hidden'); // Force hide container if empty
-    return;
-  }
-
-  list.classList.remove('hidden'); // Force show container
+  if (!list) return;
 
   list.innerHTML = uploadedFiles.map(file => {
+    // Format addedBy display (defaults to "You" if missing or set to current user)
     const uploaderLabel = (!file.addedBy || file.addedBy === "You") ? "You" : file.addedBy;
 
     return `
-      <div class="flex items-center justify-between rounded-xl p-2.5 bg-[#FFF8EC]/60 border border-[#3D2013]/15 shadow-sm">
+      <div class="flex items-center justify-between rounded-xl p-2.5 bg-[#FFF8EC]/60 border border-[#3D2013]/10">
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="flex items-center justify-center shrink-0 text-[#E87339]">
             <svg xmlns="http://www.w3.org/2000/svg" width="1.25em" height="1.25em" viewBox="0 0 24 24">
@@ -1660,7 +2005,7 @@ function renderUploadedFiles() {
           <div class="flex flex-col min-w-0">
             <div class="flex items-center gap-1.5 min-w-0">
               <span class="font-pressstart text-[8px] lg:text-[10px] text-[#3D2013] truncate">${file.name}</span>
-              <span class="font-pixel text-[15px] text-[#482A1D] shrink-0">• Added by: ${uploaderLabel}</span>
+              <span class="font-pixel text-[15px] text-[#482A1D] shrink-0" leading-none>• Added by: ${uploaderLabel}</span>
             </div>
             <span class="font-pixel text-[11px] text-[#3D2013]/60">${file.size || 'Unknown size'}</span>
           </div>
@@ -1674,19 +2019,128 @@ function renderUploadedFiles() {
 }
 
 function removeUploadedFile(id) {
-  if (typeof uploadedFiles !== 'undefined') {
-    uploadedFiles = uploadedFiles.filter(f => f.id !== id);
-    renderUploadedFiles();
-  }
-}
-
-function removeUploadedFile(id) {
   uploadedFiles = uploadedFiles.filter(f => f.id !== id);
   renderUploadedFiles();
 }
 
-// Retro Toast Helper
-function showCustomizerSuccessToast(message = "Success!") {
+// Validate PDF format & simulate upload progress
+function validateAndProcessPdf(file) {
+  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith('.pdf')) {
+    alert("Please upload PDF files only!");
+    return;
+  }
+
+  const dropZone = document.getElementById('drag-drop-zone');
+  const progressContainer = document.getElementById('upload-progress-container');
+  const filenameElem = document.getElementById('upload-filename');
+  const filesizeElem = document.getElementById('upload-filesize');
+  const progressBar = document.getElementById('upload-progress-bar');
+  const progressPercent = document.getElementById('upload-percent');
+
+  // Format File Size
+  const formattedSize = formatBytes(file.size);
+
+  if (filenameElem) filenameElem.textContent = file.name;
+  if (filesizeElem) filesizeElem.textContent = formattedSize;
+
+  // Show Progress View
+  if (dropZone) dropZone.classList.add('hidden');
+  if (progressContainer) {
+    progressContainer.classList.remove('hidden');
+    progressContainer.classList.add('flex');
+  }
+
+  // Simulate Upload Progress
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.floor(Math.random() * 15) + 10;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+
+      if (progressBar) progressBar.style.width = '100%';
+      if (progressPercent) progressPercent.textContent = '100%';
+
+      setTimeout(() => {
+        // 1. Inflate File under Library Button
+        inflateUploadedFile(file.name, formattedSize, file);
+
+        // 2. Trigger Retro Success Toast
+        showCustomizerSuccessToast(`Uploaded: ${file.name}`);
+
+        // 3. Close Modal
+        closePdfModal();
+      }, 400);
+    } else {
+      if (progressBar) progressBar.style.width = `${progress}%`;
+      if (progressPercent) progressPercent.textContent = `${progress}%`;
+    }
+  }, 150);
+}
+
+// Format Bytes to KB/MB
+function formatBytes(bytes, decimals = 1) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function inflateUploadedFile(filename, filesize, fileObject, addedBy = "You") {
+  const container = document.getElementById('uploaded-files-list');
+  if (!container) return;
+
+  const fileUrl = URL.createObjectURL(fileObject);
+
+  const fileCard = document.createElement('div');
+  fileCard.className = 
+    "uploaded-file-item p-2 flex items-center justify-between border-b border-[#3D2013]/10 last:border-b-0 " +
+    "transition-all animate-fadeIn";
+
+  // Check if added by the current user to display "You" vs the username
+  const uploaderLabel = (addedBy === "You" || !addedBy) ? "You" : addedBy;
+
+  fileCard.innerHTML = `
+    <div class="flex items-center gap-2.5 min-w-0 pr-2">
+      <div class="flex items-center justify-center shrink-0 text-[#E87339]">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+          <path d="M0 0h24v24H0z" fill="none" />
+          <path fill="#ef5350" d="M13 9h5.5L13 3.5zM6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2m4.93 10.44c.41.9.93 1.64 1.53 2.15l.41.32c-.87.16-2.07.44-3.34.93l-.11.04l.5-1.04c.45-.87.78-1.66 1.01-2.4m6.48 3.81c.18-.18.27-.41.28-.66c.03-.2-.02-.39-.12-.55c-.29-.47-1.04-.69-2.28-.69l-1.29.07l-.87-.58c-.63-.52-1.2-1.43-1.6-2.56l.04-.14c.33-1.33.64-2.94-.02-3.6a.85.85 0 0 0-.61-.24h-.24c-.37 0-.7.39-.79.77c-.37 1.33-.15 2.06.22 3.27v.01c-.25.88-.57 1.9-1.08 2.93l-.96 1.8l-.89.49c-1.2.75-1.77 1.59-1.88 2.12c-.04.19-.02.36.05.54l.03.05l.48.31l.44.11c.81 0 1.73-.95 2.97-3.07l.18-.07c1.03-.33 2.31-.56 4.03-.75c1.03.51 2.24.74 3 .74c.44 0 .74-.11.91-.3m-.41-.71l.09.11c-.01.1-.04.11-.09.13h-.04l-.19.02c-.46 0-1.17-.19-1.9-.51c.09-.1.13-.1.23-.1c1.4 0 1.8.25 1.9.35M7.83 17c-.65 1.19-1.24 1.85-1.69 2c.05-.38.5-1.04 1.21-1.69zm3.02-6.91c-.23-.9-.24-1.63-.07-2.05l.07-.12l.15.05c.17.24.19.56.09 1.1l-.03.16l-.16.82z" />
+        </svg>
+      </div>
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] truncate">${filename}</span>
+          <span class="font-pixel text-[11px] sm:text-xs text-[#E87339] shrink-0">• Added by ${uploaderLabel}</span>
+        </div>
+        <span class="font-pixel text-xs text-[#3D2013]/60">${filesize} • Just now</span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.5 shrink-0">
+      <a href="${fileUrl}" download="${filename}" title="Download / Open File"
+         class="p-1.5 text-[#788D55] hover:text-[#5B6D3F] transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </a>
+      
+      <button onclick="this.closest('.uploaded-file-item').remove()" title="Remove File"
+              class="p-1.5 text-[#3D2013]/40 hover:text-[#A53914] transition-colors cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  `;
+
+  container.prepend(fileCard);
+}
+
+// Retro Toast Helper (Included from reference)
+function showCustomizerSuccessToast(message = "Purchase Successful!") {
   const container = document.getElementById("toast-container");
   if (!container) return;
 
@@ -1723,6 +2177,7 @@ function showCustomizerSuccessToast(message = "Success!") {
   }, 4000);
 }
 
+// Add this helper function to handle flashcard flipping
 function toggleFlashcard(cardElement) {
   const front = cardElement.querySelector('.card-front');
   const back = cardElement.querySelector('.card-back');
@@ -1732,51 +2187,331 @@ function toggleFlashcard(cardElement) {
   }
 }
 
-const timerChannel = new BroadcastChannel('study_timer_channel');
-
-timerChannel.onmessage = (event) => {
-  const data = event.data;
-  const roomTimerElement = document.getElementById("room-timer");
-
-  if (roomTimerElement && data.formattedTime) {
-    roomTimerElement.textContent = data.formattedTime;
-    
-    if (data.isBreak) {
-      roomTimerElement.style.color = "#788D55"; 
-    } else {
-      roomTimerElement.style.color = "#3D2013"; 
-    }
-  }
+roomTimerChannel.onmessage = (event) => {
+  syncStudyTimerFromHomepage(event.data);
 };
 
-console.log("Kitsu JS is successfully loaded!");
+window.addEventListener("storage", (event) => {
+  if (event.key !== STUDY_TIMER_STORAGE_KEY) return;
+
+  try {
+    syncStudyTimerFromHomepage(JSON.parse(event.newValue));
+  } catch (error) {
+    renderStudyTimerFromHomepage({
+      source: "homepage-study-timer",
+      secondsLeft: 0,
+      formattedTime: "00:00",
+      isRunning: false
+    });
+  }
+});
+
+
+// --- MOCK DATA ---
+const roomInfo = {
+  name: 'Study Rooooom'
+};
+
+const mockPlayers = [
+  { id: '1', name: 'Player 1', avatarLabel: 'P1' },
+  { id: '2', name: 'Player 2', avatarLabel: 'P2' },
+  { id: '3', name: 'Player 3', avatarLabel: 'P3' },
+];
+
+// --- INITIAL SETUP ---
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM is fully loaded. Waiting for file upload...");
+  renderRoomInfo();
+  renderPlayers();
+  renderUploadedFiles();
+});
 
-    // 1. Hanapin ang file input kung meron man (palitan ang 'pdf-file-input' kung iba ang ID sa HTML mo)
-    /*const fileInput = document.getElementById('pdf-file-input') || document.querySelector('input[type="file"]');
-    if (fileInput) {
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files.length > 0) {
-                console.log("File selected via input:", e.target.files[0].name);
-                processUploadedFile(e.target.files[0]);
+// --- RENDER FUNCTIONS ---
+
+// 1. Render Room Information
+function renderRoomInfo() {
+  const roomHeading = document.getElementById('room-name-heading');
+  if (roomHeading) {
+    roomHeading.textContent = roomInfo.name;
+  }
+}
+
+// 2. Render Desktop & Mobile Players List Dynamically
+function renderPlayers() {
+  const desktopContainer = document.getElementById('desktop-players-list');
+  const mobileDropdownContainer = document.getElementById('players-dropdown');
+  const mobileCountBadge = document.getElementById('mobile-players-count');
+
+  // Update mobile button counter badge (e.g. "3P")
+  if (mobileCountBadge) {
+    mobileCountBadge.textContent = `${mockPlayers.length}P`;
+  }
+
+  // Render Desktop Avatars
+  if (desktopContainer) {
+    desktopContainer.innerHTML = mockPlayers.map(player => `
+      <div title="${player.name}" class="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full border-[3px] sm:border-[4px] border-[#788D55] bg-[#FEF4E0] shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+        <span class="font-pixel text-xs font-bold">${player.avatarLabel}</span>
+      </div>
+    `).join('');
+  }
+
+  // Render Mobile Dropdown List
+  if (mobileDropdownContainer) {
+    mobileDropdownContainer.innerHTML = mockPlayers.map((player, index) => {
+      const isLast = index === mockPlayers.length - 1;
+      const borderClass = isLast ? '' : 'pb-1 border-b border-[#3D2013]/20';
+      return `
+        <div class="flex items-center gap-2 ${borderClass}">
+          <div class="w-7 h-7 rounded-full border-[2px] border-[#788D55] bg-[#FEF4E0] flex items-center justify-center text-xs font-pixel shrink-0">
+            ${player.avatarLabel}
+          </div>
+          <span class="font-pixel text-xs font-bold text-[#3D2013] truncate">${player.name}</span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function closeKitsuModal() {
+  // If embedded in an iframe inside homepage.html modal
+  if (window.parent && window.parent.closeKitsuAiModal) {
+    window.parent.closeKitsuAiModal();
+  } else if (document.referrer && document.referrer.includes(window.location.host)) {
+    // If opened as a standalone page, use history navigation
+    window.history.back();
+  } else {
+    // Fallback navigation
+    window.location.href = 'homepage.html';
+  }
+}
+
+d// ==========================================
+// 1. EXISTING UI FUNCTIONS (Huwag burahin)
+// ==========================================
+function closeKitsuModal() {
+  // If embedded in an iframe inside homepage.html modal
+  if (window.parent && window.parent.closeKitsuAiModal) {
+    window.parent.closeKitsuAiModal();
+  } else if (document.referrer && document.referrer.includes(window.location.host)) {
+    // If opened as a standalone page, use history navigation
+    window.history.back();
+  } else {
+    // Fallback navigation
+    window.location.href = 'homepage.html';
+  }
+}
+
+// ==========================================
+// 2. NEW LOBBY & POLLING VARIABLES
+// ==========================================
+let roomPollingInterval;
+let isPlayerReady = false;
+
+// ==========================================
+// 3. NEW LOBBY FUNCTIONS
+// ==========================================
+async function toggleReadyStatus(roomCode) {
+    const token = sessionStorage.getItem("token");
+    if (!token) return alert("You are not logged in!");
+
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/api/room/toggle-ready`, {
+            method: "POST",
+            headers: { 
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ roomCode: roomCode })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            isPlayerReady = data.is_ready;
+            // Update button UI based on status
+            const readyBtn = document.getElementById("btn-ready");
+            if (readyBtn) {
+                readyBtn.innerText = isPlayerReady ? "Ready!" : "Click to Ready";
+                readyBtn.style.backgroundColor = isPlayerReady ? "#97B591" : "#FD923E"; 
             }
-        });
-    }*/
+        } else {
+            console.error("Failed to toggle ready:", data.error);
+        }
+    } catch (err) {
+        console.error("Error toggling ready:", err);
+    }
+}
 
-    // 2. I-setup ang Drag-and-Drop zone para siguradong sumasalo ng PDF
-    const dropZone = document.getElementById('drag-drop-zone');
-    if (dropZone) {
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
+let roomPollingInterval;
+let isPlayerReady = false;
 
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                console.log("File dropped:", e.dataTransfer.files[0].name);
-                processUploadedFile(e.dataTransfer.files[0]);
-            }
+// Function para i-render ang Lobby UI batay sa kung Host o Player ka
+function renderQuizLobbyUI(data) {
+    const container = document.getElementById("kitsu-main-content") || document.body; // Baguhin depende sa container ID mo
+    
+    const readyCount = data.players.filter(p => p.is_ready).length;
+    const totalCount = data.current_count;
+
+    // Kung sinimulan na ng host ang quiz, i-redirect o i-load na ang quiz questions screen
+    if (data.quiz_started) {
+        clearInterval(roomPollingInterval);
+        loadQuizQuestionsInterface();
+        return;
+    }
+
+    if (data.is_host) {
+        // --- HOST VIEW (Screenshot 1 style) ---
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-6">
+                <h2 class="font-pressstart text-[14px] text-[#3D2013] mb-2">Quiz Lobby</h2>
+                <p class="font-pressstart text-[8px] text-[#3D2013]/70 mb-6">Players are joining and marking themselves ready.</p>
+                
+                <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] p-6 rounded-lg w-full max-w-md text-center shadow-md mb-6">
+                    <p class="font-pressstart text-[12px] text-[#3D2013] mb-1">${readyCount}/${totalCount} Players Ready</p>
+                    <p class="font-pressstart text-[8px] text-[#3D2013]/60">${data.all_ready ? "Everyone is ready." : "Waiting for players to ready up..."}</p>
+                </div>
+
+                <button id="btn-start-quiz" onclick="hostStartQuiz('${data.roomCode}')" 
+                    class="font-pressstart text-[10px] text-[#FEF4E0] px-8 py-3 rounded-lg border-[3px] border-[#3D2013] transition-all cursor-pointer retro-shadow ${data.all_ready ? 'bg-[#788D55] hover:brightness-105' : 'bg-gray-400 opacity-50 cursor-not-allowed'}"
+                    ${!data.all_ready ? 'disabled' : ''}>
+                    Start Quiz
+                </button>
+            </div>
+        `;
+    } else {
+        // --- PLAYER VIEW (Screenshot 2 & 3 style) ---
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-6">
+                <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] p-6 rounded-lg w-full max-w-md text-center shadow-md mb-6">
+                    <p class="font-pressstart text-[11px] text-[#3D2013] mb-2">Waiting for the host to start</p>
+                    <p class="font-pressstart text-[8px] text-[#3D2013]/60 mb-4">${readyCount}/${totalCount} Players Ready</p>
+                    
+                    <button id="btn-ready" onclick="toggleReadyStatus('${data.roomCode}')" 
+                        class="w-full font-pressstart text-[10px] text-[#FEF4E0] py-3 rounded-lg border-[3px] border-[#3D2013] transition-all cursor-pointer retro-shadow ${isPlayerReady ? 'bg-[#788D55]' : 'bg-[#FD923E]'}">
+                        ${isPlayerReady ? 'Ready' : "I'm Ready"}
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Function para tawagin ang status check bawat 2 segundo
+async function fetchRoomStatus(roomCode) {
+    const token = sessionStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/api/room/${roomCode}/status`, {
+            headers: { "Authorization": `Bearer ${token}` }
         });
+        const data = await res.json();
+
+        if (res.ok) {
+            data.roomCode = roomCode;
+            renderQuizLobbyUI(data);
+        }
+    } catch (err) {
+        console.error("Error fetching room status:", err);
+    }
+}
+
+// Host action para i-start ang quiz para sa lahat
+async function hostStartQuiz(roomCode) {
+    const token = sessionStorage.getItem("token");
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/api/room/${roomCode}/start-quiz`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.ok) {
+            loadQuizQuestionsInterface();
+        }
+    } catch (err) {
+        console.error("Error starting quiz:", err);
+    }
+}
+
+// Dito kukunin at ipapakita ang mismong Pre-Quiz questions para sa pagsagot sabay-sabay
+async function loadQuizQuestionsInterface() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCode = urlParams.get('code');
+    const token = sessionStorage.getItem("token");
+    
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/api/room/${roomCode}/pre-quiz`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const quizData = await res.json();
+
+        if (res.ok) {
+            console.log("Quiz Loaded:", quizData);
+            // Ilagay dito ang rendering ng mga tanong (Questions, Options, at Individual Score tracker)
+            alert("Quiz has started! Rendering questions now...");
+        }
+    } catch (err) {
+        console.error("Error loading quiz questions:", err);
+    }
+}
+
+// Bagong function para i-fetch ang Pre-Quiz galing sa AI
+async function fetchAndShowPreQuiz(roomCode) {
+    const token = sessionStorage.getItem("token");
+    try {
+        alert("All players are ready! Generating AI Pre-Quiz from your PDF...");
+        
+        const res = await fetch(`http://127.0.0.1:5000/api/room/${roomCode}/pre-quiz`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const quizData = await res.json();
+
+        if (res.ok) {
+            console.log("Pre-Quiz Generated successfully:", quizData);
+            
+            // Pansamantalang ilalagay natin sa memory para magamit sa UI mo
+            window.currentActiveQuiz = quizData;
+            
+            // Dito mo na i-rrender ang quiz questions sa HTML modal o container mo
+            alert(`Quiz Ready! Topic: ${quizData.topic}\nFirst Question: ${quizData.questions[0].question}`);
+            
+            // TODO: Ilagay dito ang function para ipakita ang quiz container sa kitsuai.html
+        } else {
+            alert("Error generating quiz: " + (quizData.error || "Unknown error"));
+        }
+    } catch (err) {
+        console.error("Error fetching pre-quiz:", err);
+    }
+}
+
+// ==========================================
+// 4. INITIALIZATION ON PAGE LOAD
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Get the code from the URL (Priority)
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCodeFromUrl = urlParams.get('code');
+
+    // 2. Determine which room data to load
+    if (roomCodeFromUrl) {
+        console.log("Loading Room from URL:", roomCodeFromUrl);
+        
+        // --- BAGONG IDINAGDAG PARA SA LOBBY ---
+        // Simulan ang timer! Magtatanong sa backend every 2 seconds
+        roomPollingInterval = setInterval(() => fetchRoomStatus(roomCodeFromUrl), 2000);
+
+        // I-setup ang "Ready" button
+        const readyBtn = document.getElementById("btn-ready");
+        if (readyBtn) {
+            readyBtn.addEventListener("click", () => toggleReadyStatus(roomCodeFromUrl));
+        }
+        // --------------------------------------
+
+    } else {
+        // Fallback: If no code in URL, check localStorage
+        const storedRoom = JSON.parse(localStorage.getItem("currentActiveRoom"));
+        if (storedRoom && (storedRoom.roomCode === roomCodeFromUrl || storedRoom.room_code === roomCodeFromUrl)) {
+             console.log("Room data matches URL:", storedRoom.name);
+        } else {
+            console.warn("No active room found in URL or LocalStorage.");
+        }
     }
 });

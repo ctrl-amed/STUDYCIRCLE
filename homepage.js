@@ -2272,8 +2272,13 @@ function acceptRoomInvite(roomCode, notificationId) {
 
 // --- KITSU AI SCORE RETRIEVAL FOR HOMEPAGE ---
 function retrieveAndClearTestScores() {
-  const preTest = parseFloat(localStorage.getItem('current_pre_test')) || 72; // Default fallback kung wala
-  const postTest = parseFloat(localStorage.getItem('current_post_test')) || 84; // Default fallback kung wala
+  const storedPre = localStorage.getItem('current_pre_test');
+  const storedPost = localStorage.getItem('current_post_test');
+  
+  // Gamitin ang '??' para kung null/undefined lang siya magiging 0. 
+  // Kung 0 ang naka-save, tatanggapin na niya ang 0 at hindi na mag-f-fallback sa 72/84.
+  const preTest = storedPre !== null ? parseFloat(storedPre) : 0;
+  const postTest = storedPost !== null ? parseFloat(storedPost) : 0;
   
   // Linisin na pagkatapos kunin
   localStorage.removeItem('current_pre_test');

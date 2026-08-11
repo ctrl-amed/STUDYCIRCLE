@@ -502,7 +502,7 @@ async function submitCreateRoom(e) {
     alert("About to redirect to the room page now...");
 
     if (mode === 'structured') {
-        window.location.href = `kitsuai.html?code=${roomCode}`;
+        window.location.href = `kitsuroom.html?code=${roomCode}`;
     } else {
         window.location.href = `generated-homepage.html?code=${roomCode}`;
     }

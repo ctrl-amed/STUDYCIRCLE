@@ -1,21 +1,21 @@
-// Pre-defined Mock Datasets
+// Pre-defined Mock Datasets (Cleaned up default values to 0 instead of hardcoded mock scores)
 window.MOCK_ANALYTICS_DATA = {
   group: {
     sessionType: "structured", // Options: "structured" | "hangout"
     duration: "1hr 30m",
     completedTasks: 4,
     totalTasks: 4,
-    avgScore: 80,
-    groupPreTest: 72,
-    groupPostTest: 84,
-    groupImprovement: 12,
+    avgScore: 0,
+    groupPreTest: 0,
+    groupPostTest: 0,
+    groupImprovement: 0,
     userTasksCompleted: 4,
     userTasksTotal: 4,
     user: { 
       avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=Angela", 
-      preTest: 72, 
-      postTest: 84, 
-      improvement: 12 
+      preTest: 0, 
+      postTest: 0, 
+      improvement: 0 
     },
     members: [
       { name: "YOU (ANGELA)", avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=Angela", focusTime: "1hr 30m", participation: 96, tasks: "4/4" },
@@ -44,7 +44,7 @@ window.MOCK_ANALYTICS_DATA = {
     duration: "1hr 15m",
     completedTasks: 3,
     totalTasks: 5,
-    avgScore: 85,
+    avgScore: 0,
     user: { 
       avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=Angela"
     },
@@ -73,14 +73,14 @@ window.MOCK_ANALYTICS_DATA = {
     duration: "45m",
     completedTasks: 3,
     totalTasks: 3,
-    avgScore: 90,
+    avgScore: 0,
     userTasksCompleted: 3,
     userTasksTotal: 3,
     user: { 
       avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=Angela", 
-      preTest: 60, 
-      postTest: 90, 
-      improvement: 30 
+      preTest: 0, 
+      postTest: 0, 
+      improvement: 0 
     },
     members: [{ name: "YOU" }],
     rewards: {
@@ -346,7 +346,21 @@ window.showSessionAnalytics = function(data) {
 
   if (!data || typeof data === 'string') {
     const type = data === 'solo' ? 'solo' : (data === 'hangout' ? 'hangout' : 'group');
-    data = window.MOCK_ANALYTICS_DATA[type];
+    // Clone ang object para hindi maapektuhan ang original mock data
+    data = JSON.parse(JSON.stringify(window.MOCK_ANALYTICS_DATA[type]));
+
+    // Kunin ang tunay na score mula sa localStorage kung tinapos ang pre/post test bago mag-session
+    const savedPre = localStorage.getItem('last_pre_test_score');
+    const savedPost = localStorage.getItem('last_post_test_score');
+
+    if (savedPre !== null && data.user) {
+      data.user.preTest = parseInt(savedPre);
+    }
+    if (savedPost !== null && data.user) {
+      data.user.postTest = parseInt(savedPost);
+      data.user.improvement = data.user.postTest - (data.user.preTest || 0);
+      data.avgScore = data.user.postTest;
+    }
   }
 
   switchAnalyticsStep(1);
