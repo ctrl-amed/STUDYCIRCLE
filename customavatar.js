@@ -313,7 +313,6 @@ function renderAssets() {
   container.innerHTML = htmlMarkup;
 }
 
-// Asset Selection Event
 // Asset Selection Event (With Toggle/Unequip Logic)
 function selectAsset(category, assetId) {
   const meta = CATEGORY_MAP[category];

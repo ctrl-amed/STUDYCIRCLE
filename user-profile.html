@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - Profile</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Load emoji-picker-element library -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen relative text-[#3D2013] flex flex-col">
+  <!-- ==================== BACKGROUND TEXTURE LAYERS ==================== -->
+  
+  <!-- 1. FIXED BACKGROUND LINE GRID TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- ==================== END BACKGROUND TEXTURE ==================== -->
+
+<div id="sidebar-container"></div>
+
+<div id="main-wrapper" class="flex-1 flex flex-col transition-all duration-300 ease-in-out pl-0 md:pl-64 w-full">
+  
+  <div id="header-container"></div>
+<main class="relative flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 flex flex-col gap-5 pb-10">
+  
+  <!-- ROW 1: TITLE & SUBTEXT -->
+  <div class="flex flex-col gap-1">
+    <h1 class="font-pressstart text-3xl sm:text-4xl md:text-5xl inline-block room-title-gradient">PROFILE</h1>
+    <p class="font-pressstart text-[10px] sm:text-xs text-[#3D2013]/80">
+      Customize your avatar and room to make it yours.    
+    </p>
+  </div>
+
+<!-- NAVIGATION TABS CONTAINER -->
+  <div class="flex items-center bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[10px] p-1.5 w-full lg:w-[700px] ml-0 lg:ml-7 gap-2">
+    <button id="tab-avatar-btn" onclick="switchProfileTab('avatar')" 
+            class="flex-1 font-pressstart text-[10px] sm:text-[12px] py-2.5 text-center cursor-pointer transition-all text-[#E16F37] border-b-2 border-[#E16F37]">
+      AVATAR
+    </button>
+    <button id="tab-room-btn" onclick="switchProfileTab('room')" 
+            class="flex-1 font-pressstart text-[10px] sm:text-[12px] py-2.5 text-center cursor-pointer transition-all text-[#3D2013] border-b-2 border-transparent">
+      ROOM
+    </button>
+  </div>
+<!-- IFRAME CONTAINER WRAPPER -->
+  <div class="w-full h-[850px] sm:h-[555px] overflow-hidden flex flex-col">
+    <iframe id="profile-iframe" src="customavatar.html" class="w-full h-full border-none block" title="Profile Customization"></iframe>
+  </div>
+</main>
+
+
+<!-- ========================================== -->
+<!-- GLOBAL RETRO NOTIFICATION TOAST CONTAINER   -->
+<!-- ========================================== -->
+<div id="toast-container" class="fixed top-20 right-6 z-50 pointer-events-none flex flex-col gap-3"></div>
+  
+<!-- FOOTER -->
+<footer class="w-full py-4 px-4 mt-auto relative z-10">
+  <div class="max-w-7xl mx-auto flex items-center justify-center">
+    <p class="font-pressstart text-[15px] text-[#4A2E21] text-center tracking-tight">
+      StudyCircle
+    </p>
+  </div>
+</footer>
+
+<!-- KITSU AI OVERLAY MODAL (FULL SCREEN) -->
+<div id="kitsuai-modal" class="modal hidden fixed inset-0 z-50 flex flex-col bg-[#FEF4E0]">
+  <iframe id="kitsuai-frame" src="" class="w-full h-full border-none flex-grow"></iframe>
+</div>
+
+  <!-- JavaScript File -->
+   
+<script src="global.js"></script>
+<script src="sidebar.js"></script>
+<script src="header.js"></script>
+<script src="user-profile.js"></script>
+
+
+</body>
+</html>

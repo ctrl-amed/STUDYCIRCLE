@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - Settings</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Load emoji-picker-element library -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen relative text-[#3D2013] flex flex-col">
+  <!-- ==================== BACKGROUND TEXTURE LAYERS ==================== -->
+  
+  <!-- 1. FIXED BACKGROUND LINE GRID TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- ==================== END BACKGROUND TEXTURE ==================== -->
+
+<div id="sidebar-container"></div>
+
+<div id="main-wrapper" class="flex-1 flex flex-col transition-all duration-300 ease-in-out pl-0 md:pl-64 w-full">
+  
+  <div id="header-container"></div>
+<main class="relative flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 flex flex-col gap-5 pb-10">
+  
+  <!-- ROW 1: TITLE & SUBTEXT -->
+  <div class="flex flex-col gap-1">
+<h1 class="font-pressstart text-3xl sm:text-4xl md:text-5xl inline-block room-title-gradient">SETTINGS</h1>
+    <p class="font-pressstart text-[10px] sm:text-xs text-[#3D2013]/80">
+      Manage your account and get study reminders.    
+    </p>
+  </div>
+
+  <!-- TWO COLUMNS CARD LAYOUT -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+    
+    <!-- LEFT CARD: ACCOUNT SETTINGS -->
+    <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-5 sm:p-6 shadow-md flex flex-col gap-5">
+<div class="flex items-center gap-3 border-b-2 border-[#3D2013]/20 pb-3">
+  <svg class="w-[1em] h-[1em] text-[20px] text-[#E87339]" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
+    <path d="M0 0h16v16H0z" fill="none" />
+    <path fill="currentColor" d="M11 7c0 1.66-1.34 3-3 3S5 8.66 5 7s1.34-3 3-3s3 1.34 3 3" />
+    <path fill="currentColor" fill-rule="evenodd" d="M16 8c0 4.42-3.58 8-8 8s-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8M4 13.75C4.16 13.484 5.71 11 7.99 11c2.27 0 3.83 2.49 3.99 2.75A6.98 6.98 0 0 0 14.99 8c0-3.87-3.13-7-7-7s-7 3.13-7 7c0 2.38 1.19 4.49 3.01 5.75" clip-rule="evenodd" />
+  </svg>
+  <h2 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">ACCOUNT</h2>
+</div>
+
+      <div class="flex flex-col gap-4">
+        
+        <!-- USERNAME ROW -->
+        <div class="flex items-center justify-between pb-4 border-b-[1.5px] border-dashed border-[#3D2013]/30">
+          <div class="flex flex-col min-w-0 pr-2">
+            <span class="font-pixel text-[14px] text-[#3D2013]/70 uppercase">Username</span>
+            <span id="settings-display-username" class="font-pressstart text-[12px] text-[#3D2013] truncate mt-1">ACORN_HERO</span>
+          </div>
+<button id="open-edit-username-btn" title="Edit Username"
+        class="h-8 sm:h-11 bg-[#FAE9CE] border-[2px] border-[#3D2013] px-2 sm:px-3 rounded-[8px] sm:rounded-[10px] flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-150 retro-shadow shrink-0 cursor-pointer hover:bg-[#FAE9CE]">
+  <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#3D2013]" viewBox="0 0 24 24" fill="none">
+    <path d="M0 0h24v24H0z" fill="none" />
+    <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34l-3.75-3.75-2.53 2.54 3.75 3.75 2.53-2.54z" />
+  </svg>
+  <span class="font-pressstart text-[8px] sm:text-[10px] text-[#3D2013]">EDIT</span>
+</button>
+        </div>
+
+        <!-- EMAIL ROW -->
+        <div class="flex items-center justify-between pb-4 border-b-[1.5px] border-dashed border-[#3D2013]/30">
+          <div class="flex flex-col min-w-0 pr-2">
+            <span class="font-pixel text-[14px] text-[#3D2013]/70 uppercase">Email</span>
+            <span id="settings-display-email" class="font-pressstart text-[12px] text-[#3D2013] truncate mt-1">hero@acorn.study</span>
+          </div>
+<button id="open-edit-email-btn" title="Edit Email"
+        class="h-8 sm:h-11 bg-[#FAE9CE] border-[2px] border-[#3D2013] px-2 sm:px-3 rounded-[8px] sm:rounded-[10px] flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-150 retro-shadow shrink-0 cursor-pointer hover:bg-[#FAE9CE]">
+  <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#3D2013]" viewBox="0 0 24 24" fill="none">
+    <path d="M0 0h24v24H0z" fill="none" />
+    <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34l-3.75-3.75-2.53 2.54 3.75 3.75 2.53-2.54z" />
+  </svg>
+  <span class="font-pressstart text-[8px] sm:text-[10px] text-[#3D2013]">EDIT</span>
+</button>
+        </div>
+
+<!-- CHANGE PASSWORD ROW -->
+        <button id="open-change-password-btn" type="button" class="w-full flex items-center justify-between pt-1 group cursor-pointer text-left bg-transparent border-none p-0">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-[#3D2013]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4v-3.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            <span class="font-pressstart text-[10px] sm:text-[11px] text-[#3D2013] group-hover:text-[#E87339] transition-colors">Change password</span>
+          </div>
+          <span class="font-pressstart text-[10px] text-[#3D2013] group-hover:text-[#E87339] flex items-center gap-1">
+            <span class="transition-transform group-hover:translate-x-0.5">&gt;</span>
+          </span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- RIGHT CARD: STUDY REMINDERS -->
+    <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-5 sm:p-6 shadow-md flex flex-col gap-5">
+<div class="flex items-center gap-3 border-b-2 border-[#3D2013]/20 pb-3">
+  <svg class="w-[1em] h-[1em] text-[20px] text-[#E87339]" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+    <path d="M0 0h24v24H0z" fill="none" />
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 6v6l4 2" />
+    </g>
+  </svg>
+  <h2 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">Study reminders</h2>
+</div>
+
+      <div class="flex flex-col gap-4">
+        
+        <!-- DAILY STUDY REMINDER TOGGLE ROW -->
+        <div class="flex flex-col gap-3 pb-4 border-b-[1.5px] border-dashed border-[#3D2013]/30">
+          <div class="flex items-center justify-between">
+            <div class="flex flex-col pr-2">
+              <span class="font-pressstart text-[10px] sm:text-[11px] text-[#3D2013]">DAILY STUDY REMINDER</span>
+              <span class="font-pixel text-[13px] text-[#3D2013]/70 mt-1">Get a reminder via email to keep you focused.</span>
+            </div>
+            <!-- Toggle Switch -->
+            <button id="reminder-toggle-btn" class="w-12 h-6 bg-[#3D2013]/20 border-[2px] border-[#3D2013] rounded-full relative cursor-pointer transition-colors duration-200 shrink-0">
+              <div id="reminder-toggle-thumb" class="w-4 h-4 bg-[#FAE9CE] border border-[#3D2013] rounded-full absolute top-[2px] left-[2px] transition-transform duration-200"></div>
+            </button>
+          </div>
+
+          <!-- Dynamic reminder info when ON -->
+          <div id="reminder-active-box" class="hidden flex flex-col gap-2 mt-2 bg-[#FAE9CE] p-3 rounded-[6px] border border-[#3D2013]/30">
+            <div class="flex items-center justify-between">
+              <span id="reminder-status-text" class="font-pixel text-[13px] text-[#3D2013]">You will be reminded daily at 08:00 AM</span>
+              <button id="edit-reminder-time-btn" class="font-pressstart text-[8px] bg-[#E87339] text-[#FFFFF6] border border-[#3D2013] px-2 py-1 cursor-pointer">EDIT</button>
+            </div>
+            <!-- Time Picker Row (Hidden by default, shown on edit) -->
+            <div id="reminder-time-picker-box" class="hidden flex items-center gap-2 pt-2 border-t border-[#3D2013]/20">
+              <input type="time" id="reminder-time-input" value="08:00" class="bg-[#FEF4E0] border border-[#3D2013] px-2 py-1 font-pixel text-[14px] text-[#3D2013] rounded">
+              <button id="save-reminder-time-btn" class="font-pressstart text-[8px] bg-[#2E7D32] text-[#FFFFF6] border border-[#3D2013] px-3 py-1.5 cursor-pointer">SAVE</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MANUAL REMINDER SECTION (When Daily is OFF) -->
+        <div id="reminder-manual-box" class="flex flex-col gap-3 pt-1">
+          <span class="font-pressstart text-[10px] text-[#3D2013]">MANUAL REMINDERS</span>
+          <span class="font-pixel text-[13px] text-[#3D2013]/70">Set a specific custom date and time for a reminder.</span>
+          
+          <div class="flex flex-col sm:flex-row gap-2 mt-1">
+            <input type="datetime-local" id="manual-reminder-input" class="bg-[#FAE9CE] border-[1.5px] border-[#3D2013] p-2 font-pixel text-[13px] text-[#3D2013] rounded-[6px] flex-1">
+            <button id="save-manual-reminder-btn" class="font-pressstart text-[9px] bg-[#E87339] text-[#FFFFF6] border-[2px] border-[#3D2013] px-4 py-2 hover:bg-[#d66530] cursor-pointer">SAVE</button>
+          </div>
+
+          <!-- Inflated Saved Manual Reminders List -->
+          <div id="manual-reminders-list" class="flex flex-col gap-2 mt-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- 1. EDIT USERNAME MODAL -->
+<div id="edit-username-modal" class="fixed inset-0 bg-[#3D2013]/50 z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-6 sm:p-8 w-full max-w-md shadow-2xl flex flex-col gap-4">
+    <div class="flex items-center justify-between border-b-2 border-[#3D2013]/20 pb-3">
+      <h3 class="font-pressstart text-[12px] text-[#E87339]">Edit Username</h3>
+      <button class="close-modal-btn font-pressstart text-[10px] text-[#3D2013] hover:text-[#FD923E] cursor-pointer" onclick="closeModal('edit-username-modal')">✕</button>
+    </div>
+    
+    <div class="flex flex-col gap-3 font-pixel text-[14px] text-[#3D2013]">
+      <div class="flex flex-col gap-1">
+        <span class="text-[#3D2013]/70">Current Username:</span>
+        <span id="modal-current-username" class="font-pressstart text-[11px]">ACORN_HERO</span>
+      </div>
+      <div class="flex flex-col gap-1 pt-2">
+        <label for="modal-new-username" class="text-[#3D2013]">New Username:</label>
+        <div class="relative">
+          <input type="text" id="modal-new-username" maxlength="20" placeholder="Enter new username" class="w-full bg-[#FAE9CE] border-[1.5px] border-[#3D2013] p-2.5 font-pixel text-[15px] rounded-[6px] outline-none">
+          <span id="username-char-count" class="absolute right-3 top-2.5 text-[12px] text-[#3D2013]/60">0/20</span>
+        </div>
+        <p id="username-error-note" class="font-pixel text-[12px] text-[#3D2013]/70 mt-1 leading-tight">
+          Usernames must be 6-20 characters long and can include letters, numbers, and special characters.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-3 border-t-2 border-[#3D2013]/20">
+      <button type="button" class="font-pressstart text-[9px] bg-transparent border-[2px] border-[#3D2013] px-4 py-2 hover:bg-[#3D2013]/10 cursor-pointer" onclick="closeModal('edit-username-modal')">Cancel</button>
+      <button id="save-username-btn" type="button" class="font-pressstart text-[9px] bg-[#E87339] text-[#FFFFF6] border-[2px] border-[#3D2013] px-4 py-2 hover:bg-[#d66530] cursor-pointer">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. EDIT EMAIL MODAL -->
+<div id="edit-email-modal" class="fixed inset-0 bg-[#3D2013]/50 z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-6 sm:p-8 w-full max-w-md shadow-2xl flex flex-col gap-4">
+    <div class="flex items-center justify-between border-b-2 border-[#3D2013]/20 pb-3">
+      <h3 class="font-pressstart text-[12px] text-[#E87339]">Edit Email</h3>
+      <button class="close-modal-btn font-pressstart text-[10px] text-[#3D2013] hover:text-[#FD923E] cursor-pointer" onclick="closeModal('edit-email-modal')">✕</button>
+    </div>
+    
+    <div class="flex flex-col gap-3 font-pixel text-[14px] text-[#3D2013]">
+      <div class="flex flex-col gap-1">
+        <span class="text-[#3D2013]/70">Current Email:</span>
+        <span id="modal-current-email" class="font-pressstart text-[11px]">hero@acorn.study</span>
+      </div>
+      <div class="flex flex-col gap-1 pt-2">
+        <label for="modal-new-email" class="text-[#3D2013]">New Email:</label>
+        <input type="email" id="modal-new-email" placeholder="Enter new email" class="w-full bg-[#FAE9CE] border-[1.5px] border-[#3D2013] p-2.5 font-pixel text-[15px] rounded-[6px] outline-none">
+        <p id="email-error-note" class="font-pixel text-[12px] text-[#3D2013]/70 mt-1 leading-tight hidden"></p>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-3 border-t-2 border-[#3D2013]/20">
+      <button type="button" class="font-pressstart text-[9px] bg-transparent border-[2px] border-[#3D2013] px-4 py-2 hover:bg-[#3D2013]/10 cursor-pointer" onclick="closeModal('edit-email-modal')">Cancel</button>
+      <button id="save-email-btn" type="button" class="font-pressstart text-[9px] bg-[#E87339] text-[#FFFFF6] border-[2px] border-[#3D2013] px-4 py-2 hover:bg-[#d66530] cursor-pointer">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. CHANGE PASSWORD MODAL -->
+<div id="change-password-modal" class="fixed inset-0 bg-[#3D2013]/50 z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-6 sm:p-8 w-full max-w-lg shadow-2xl flex flex-col gap-4">
+    <div class="flex items-center justify-between border-b-2 border-[#3D2013]/20 pb-3">
+      <h3 class="font-pressstart text-[12px] text-[#E87339]">Change password</h3>
+      <button class="close-modal-btn font-pressstart text-[10px] text-[#3D2013] hover:text-[#FD923E] cursor-pointer" onclick="closeModal('change-password-modal')">✕</button>
+    </div>
+    
+    <div class="flex flex-col gap-4 font-pixel text-[14px] text-[#3D2013]">
+      
+      <!-- Old Password Field -->
+      <div class="flex flex-col gap-1">
+        <label for="old-password" class="text-[#3D2013] font-pressstart text-[9px]">Old Password</label>
+        <div class="relative">
+          <input type="password" id="old-password" placeholder="Enter old password" class="w-full bg-[#FAE9CE] border-[1.5px] border-[#3D2013] p-2.5 pr-10 font-pixel text-[15px] rounded-[6px] outline-none">
+          <button type="button" id="toggle-old-password" class="absolute right-3 top-3 text-[#3D2013]/70 hover:text-[#3D2013] cursor-pointer">
+            <svg class="w-5 h-5 eye-open" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <svg class="w-5 h-5 eye-closed hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.03 10.03 0 012.062-3.86m3.22-2.33A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+          </button>
+        </div>
+        <p id="old-password-error" class="hidden"></p>
+      </div>
+
+      <!-- New Password Field -->
+      <div class="flex flex-col gap-1">
+        <label for="new-password" class="text-[#3D2013] font-pressstart text-[9px]">New Password</label>
+        <div class="relative">
+          <input type="password" id="new-password" placeholder="Enter new password" class="w-full bg-[#FAE9CE] border-[1.5px] border-[#3D2013] p-2.5 pr-10 font-pixel text-[15px] rounded-[6px] outline-none">
+          <button type="button" id="toggle-new-password" class="absolute right-3 top-3 text-[#3D2013]/70 hover:text-[#3D2013] cursor-pointer">
+            <svg class="w-5 h-5 eye-open" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <svg class="w-5 h-5 eye-closed hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.03 10.03 0 012.062-3.86m3.22-2.33A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+          </button>
+        </div>
+        <p id="new-password-error" class="hidden"></p>
+      </div>
+
+      <!-- Confirm Password Field -->
+      <div class="flex flex-col gap-1">
+        <label for="confirm-password" class="text-[#3D2013] font-pressstart text-[9px]">Confirm Password</label>
+        <div class="relative">
+          <input type="password" id="confirm-password" placeholder="Confirm new password" class="w-full bg-[#FAE9CE] border-[1.5px] border-[#3D2013] p-2.5 pr-10 font-pixel text-[15px] rounded-[6px] outline-none">
+          <button type="button" id="toggle-confirm-password" class="absolute right-3 top-3 text-[#3D2013]/70 hover:text-[#3D2013] cursor-pointer">
+            <svg class="w-5 h-5 eye-open" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <svg class="w-5 h-5 eye-closed hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.03 10.03 0 012.062-3.86m3.22-2.33A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+          </button>
+        </div>
+        <!-- Helper / Security / Confirm Error Text -->
+        <p id="password-security-note" class="font-pixel text-[#3D2013] text-[10px] sm:text-[12px] md:text-[14px] lg:text-[16px] leading-tight mt-1 transition-colors duration-150">
+          Create a strong password using 8 or more characters, including uppercase and lowercase letters, a number, and a special character.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-3 border-t-2 border-[#3D2013]/20">
+      <button type="button" class="font-pressstart text-[9px] bg-transparent border-[2px] border-[#3D2013] px-4 py-2 hover:bg-[#3D2013]/10 cursor-pointer" onclick="closeModal('change-password-modal')">Cancel</button>
+      <button id="save-password-btn" type="button" class="font-pressstart text-[9px] bg-[#E87339] text-[#FFFFF6] border-[2px] border-[#3D2013] px-4 py-2 hover:bg-[#d66530] cursor-pointer">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- GLOBAL RETRO NOTIFICATION TOAST CONTAINER   -->
+<!-- ========================================== -->
+<div id="toast-container" class="fixed top-20 right-6 z-50 pointer-events-none flex flex-col gap-3"></div>
+  
+<!-- FOOTER -->
+<footer class="w-full py-6 px-4 mt-auto relative z-10">
+  <div class="max-w-7xl mx-auto flex items-center justify-center">
+    <p class="font-pressstart text-[15px] text-[#4A2E21] text-center tracking-tight">
+      StudyCircle
+    </p>
+  </div>
+</footer>
+
+<!-- KITSU AI OVERLAY MODAL (FULL SCREEN) -->
+<div id="kitsuai-modal" class="modal hidden fixed inset-0 z-50 flex flex-col bg-[#FEF4E0]">
+  <iframe id="kitsuai-frame" src="" class="w-full h-full border-none flex-grow"></iframe>
+</div>
+
+  <!-- JavaScript File -->
+   
+<script src="global.js"></script>
+<script src="sidebar.js"></script>
+<script src="header.js"></script>
+<script src="user-settings.js"></script>
+
+
+</body>
+</html>

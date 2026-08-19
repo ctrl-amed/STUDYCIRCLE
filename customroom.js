@@ -305,18 +305,14 @@ function openPurchaseModal() {
       listContainer.className = "flex items-center justify-center min-h-[100px]";
       listContainer.innerHTML = `<p class="text-[8px] text-[#3D2013]/60 italic text-center font-pressstart">No new unowned rooms selected.</p>`;
     } else {
-      listContainer.className = "grid grid-cols-1 gap-2.5 max-h-[260px] overflow-y-auto p-1";
+      listContainer.className = "grid grid-cols-1 gap-2.5 max-h-[260px] p-1";
       listContainer.innerHTML = itemList.map(i => {
         const item = getRoomItem(i.id);
         return `
-          <div style="background: linear-gradient(180deg, #FFF2DD 0%, #FFEAC8 100%);"
-               class="relative aspect-[4/3] border-[2px] border-[#3D2013] rounded-[8px] p-2 flex flex-col items-center justify-between shadow-xs overflow-hidden">
+          <div
+               class="relative aspect-[3/2] p-2 flex flex-col items-center justify-between shadow-xs overflow-hidden">
             <div class="w-full h-full flex items-center justify-center overflow-hidden pb-5">
               <img src="ASSETS/ROOMS/${i.id}.png" alt="${i.id}" class="max-h-full max-w-full object-contain pointer-events-none">
-            </div>
-            <div class="absolute bottom-1 left-1/2 -translate-x-1/2 bg-[#FAE9CE]/90 border border-[#3D2013] rounded-full px-1.5 py-0.5 flex items-center gap-1 shadow-xs z-10 pointer-events-none w-max">
-              <img src="media/coin_logo.png" alt="Coin" class="w-3 h-3 object-contain">
-              <span class="text-[8px] text-[#3D2013] font-pressstart leading-none">${item ? item.price : 0}</span>
             </div>
           </div>
         `;

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - Room</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Load emoji-picker-element library -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen relative text-[#3D2013] flex flex-col">
+  <!-- ==================== BACKGROUND TEXTURE LAYERS ==================== -->
+  
+  <!-- 1. FIXED BACKGROUND LINE GRID TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- ==================== END BACKGROUND TEXTURE ==================== -->
+
+<div id="sidebar-container"></div>
+
+<div id="main-wrapper" class="flex-1 flex flex-col transition-all duration-300 ease-in-out pl-0 md:pl-64 w-full">
+  
+  <div id="header-container"></div>
+<main class="relative flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 flex flex-col gap-5 pb-10">
+  
+  <!-- ==================== ROW 1: TITLE & SUBTEXT ==================== -->
+  <div class="flex flex-col gap-1">
+<h1 class="font-pressstart text-3xl sm:text-4xl md:text-5xl inline-block room-title-gradient">ROOMS</h1>
+<p class="font-pressstart text-[10px] sm:text-xs text-[#3D2013]/80">
+      Find a study space that motivates you.
+    </p>
+  </div>
+
+  <!-- ==================== ROW 2: ACTION BUTTONS (RIGHT-ALIGNED) ==================== -->
+<div class="flex items-center justify-end gap-3 flex-wrap">
+    <button id="open-join-modal-btn" class="font-pressstart text-[9px] sm:text-[10px] bg-[#FEF4E0] text-[#3D2013] !rounded-none border-[2px] border-[#3D2013] px-3.5 py-2.5 transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#FDE4D0]">
+      Join Private Room
+    </button>
+    <button id="open-create-modal-btn" class="font-pressstart text-[9px] sm:text-[10px] bg-[#E87339] text-[#FFFFF6] !rounded-none border-[2px] border-[#3D2013] px-3.5 py-2.5 transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#d66530]">
+      Create Room
+    </button>
+  </div>
+
+<!-- ==================== MAIN ROOMS CONTAINER ==================== -->
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-sm flex flex-col gap-6">
+    
+    <!-- ==================== ROW 3: NAVIGATION TABS & SEARCH ==================== -->
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b-2 border-[#3D2013]/20 relative">
+      <!-- Left: Form Tab Buttons -->
+<div class="flex items-center gap-6 overflow-x-auto pb-2 md:pb-0">
+        <button class="room-tab-btn font-pressstart text-[10px] pb-1 border-b-2 border-[#E16F37] text-[#E16F37] transition-colors cursor-pointer shrink-0 hover:text-[#E16F37]" data-target="all-rooms">
+          ALL ROOMS
+        </button>
+        <button class="room-tab-btn font-pressstart text-[10px] pb-1 border-b-2 border-transparent text-[#3D2013] transition-colors cursor-pointer shrink-0 hover:text-[#E16F37]" data-target="my-rooms">
+          MY ROOMS
+        </button>
+        <button class="room-tab-btn font-pressstart text-[10px] pb-1 border-b-2 border-transparent text-[#3D2013] transition-colors cursor-pointer shrink-0 hover:text-[#E16F37]" data-target="history">
+          HISTORY
+        </button>
+      </div>
+
+<!-- Right: Search Bar with Icon -->
+      <div class="relative w-full md:w-72 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="absolute left-3 w-4 h-4 text-[#3D2013]/70 pointer-events-none select-none">
+          <path d="M0 0h24v24H0z" fill="none" />
+          <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m21 21l-4.343-4.343m0 0A8 8 0 1 0 5.343 5.343a8 8 0 0 0 11.314 11.314" />
+        </svg>        
+        <input type="text" id="room-search-input" placeholder="Search rooms..." class="w-full bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[8px] pl-9 pr-3 py-2 font-pressstart text-[9px] text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none focus:ring-1 focus:ring-[#FD923E]">
+      </div>
+    </div>
+
+    <!-- ==================== TAB CONTENT CONTAINER ==================== -->
+    <div id="rooms-content-container" class="pt-2 h-[420px] sm:h-[480px] md:h-[450px] overflow-y-auto pr-1">
+      
+      <!-- TAB 1: ALL ROOMS -->
+      <div id="all-rooms" class="room-tab-pane grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Inflated dynamically via JS -->
+      </div>
+
+      <!-- TAB 2: MY ROOMS -->
+      <div id="my-rooms" class="room-tab-pane grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
+        <!-- Inflated dynamically via JS -->
+      </div>
+
+      <!-- TAB 3: HISTORY -->
+      <div id="history" class="room-tab-pane grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
+        <!-- Inflated dynamically via JS -->
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+
+<!-- ================================================================= -->
+<!-- MODALS SECTION                                                    -->
+<!-- ================================================================= -->
+
+<!-- 1. JOIN PRIVATE ROOM MODAL -->
+<div id="join-room-modal" class="fixed inset-0 bg-[#3D2013]/50 z-50 hidden flex items-center justify-center !rounded-none p-4">
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-6 sm:p-8 w-full max-w-md shadow-2xl flex flex-col items-center text-center !rounded-none gap-5 relative">
+    
+    <!-- Top Lock Icon -->
+    <div class="text-[20px] text-[#E87339] mb-[-8px]">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="M6 22q-.825 0-1.412-.587T4 20V10q0-.825.588-1.412T6 8h1V6q0-2.075 1.463-3.537T12 1t3.538 1.463T17 6v2h1q.825 0 1.413.588T20 10v10q0 .825-.587 1.413T18 22zm0-2h12V10H6zm7.413-3.588Q14 15.826 14 15t-.587-1.412T12 13t-1.412.588T10 15t.588 1.413T12 17t1.413-.587M9 8h6V6q0-1.25-.875-2.125T12 3t-2.125.875T9 6zM6 20V10z" />
+</svg>
+
+    </div>
+
+    <!-- Header & Subtitle -->
+    <div class="flex flex-col gap-1.5">
+      <h3 class="font-pressstart text-[11px] sm:text-[13px] text-[#3D2013] tracking-wider">JOIN PRIVATE</h3>
+      <p class="font-pressstart text-[7px] sm:text-[8px] text-[#3D2013]/70">Enter the room code to join.</p>
+    </div>
+
+    <!-- Input Section -->
+    <div class="w-full flex flex-col gap-1.5">
+      <input type="text" id="private-code-input" placeholder="ABCD123" class="w-full bg-[#FAE9CE] border-[2px] border-[#3D2013] rounded-[8px] p-3 font-pressstart text-[10px] text-center text-[#3D2013] placeholder-[#3D2013]/40 focus:outline-none tracking-widest uppercase">
+    </div>
+
+    <!-- Action Buttons Row -->
+    <div class="grid grid-cols-2 gap-3 w-full pt-2">
+      <button id="cancel-join-btn" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] bg-[#FEF4E0] !rounded-none border-[2px] border-[#3D2013] py-2.5 transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#FAE9CE]">
+        CANCEL
+      </button>
+      <button id="confirm-join-btn" class="font-pressstart text-[8px] sm:text-[9px] text-[#FFFFF6] bg-[#E87339] !rounded-none border-[2px] border-[#3D2013] py-2.5 transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#d66530]">
+        JOIN
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- 2. CREATE ROOM MODAL -->
+<div id="create-room-modal" class="fixed inset-0 bg-[#3D2013]/50 z-50 hidden flex items-center justify-center !rounded-none p-4">
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-6 sm:p-8 w-full max-w-md shadow-2xl flex flex-col !rounded-none gap-6">
+    
+    <!-- Modal Title -->
+    <div class="flex items-center justify-center relative pb-2">
+      <h3 class="font-pressstart text-[14px] text-[#E87339] tracking-wide">CREATE A ROOM</h3>
+    </div>
+
+    <!-- Form Fields Container -->
+    <div class="flex flex-col gap-5">
+      
+      <!-- Room Name Field -->
+      <div class="flex flex-col gap-2">
+        <label class="font-pressstart text-[10px] text-[#3D2013]">ROOM NAME</label>
+        <input type="text" id="create-room-name" placeholder="Enter room name..." class="w-full bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[8px] px-3 py-2.5 font-pressstart text-[9px] text-[#3D2013] placeholder-[#3D2013]/50 focus:outline-none">
+      </div>
+
+      <!-- Privacy Field -->
+      <div class="flex flex-col gap-2">
+        <label class="font-pressstart text-[10px] text-[#3D2013]">PRIVACY</label>
+        <div id="create-room-privacy-group" class="flex gap-3">
+          <!-- Public Button -->
+<!-- Public Button (Active with Hover Effects) -->
+          <button type="button" data-value="public" class="privacy-choice-btn flex-1 flex items-center justify-center gap-2 font-pressstart text-[9px] bg-[#EAF3FF] border-[1.5px] border-[#315B8C] py-2.5 rounded-[8px] text-[#315B8C] opacity-90 hover:opacity-100 hover:text-[#315B8C] hover:border-[#315B8C] hover:bg-[#dce8f9] cursor-pointer transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10s10-4.49 10-10S17.51 2 12 2M4 12c0-.9.16-1.76.43-2.57L6 11l2 2v2l2 2l1 1v1.93c-3.94-.49-7-3.86-7-7.93m14.33 4.87c-.65-.53-1.64-.87-2.33-.87v-1c0-1.1-.9-2-2-2h-4v-3c1.1 0 2-.9 2-2V7h1c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41c0 1.83-.63 3.52-1.67 4.87" /></svg>
+            Public
+          </button>
+          
+          <!-- Private Button (Inactive with Hover Effects) -->
+          <button type="button" data-value="private" class="privacy-choice-btn flex-1 flex items-center justify-center gap-2 font-pressstart text-[9px] bg-[#FEF4E0] border-[1.5px] border-[#3D2013]/30 py-2.5 rounded-[8px] text-[#3D2013]/50 opacity-60 hover:opacity-100 hover:text-[#6846A5] hover:border-[#6846A5] hover:bg-[#F1EDFF] cursor-pointer transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M6 22q-.825 0-1.412-.587T4 20V10q0-.825.588-1.412T6 8h1V6q0-2.075 1.463-3.537T12 1t3.538 1.463T17 6v2h1q.825 0 1.413.588T20 10v10q0 .825-.587 1.413T18 22zm0-2h12V10H6zm7.413-3.588Q14 15.826 14 15t-.587-1.412T12 13t-1.412.588T10 15t.588 1.413T12 17t1.413-.587M9 8h6V6q0-1.25-.875-2.125T12 3t-2.125.875T9 6zM6 20V10z" /></svg>
+            Private
+          </button>
+        </div>
+      </div>
+
+      <!-- Maximum Members Field -->
+      <div class="flex flex-col gap-2">
+        <label class="font-pressstart text-[10px] text-[#3D2013]">MAXIMUM MEMBERS</label>
+        <div class="relative flex items-center">
+          <select id="create-room-max" class="w-full bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[8px] px-3 py-2.5 font-pressstart text-[9px] text-[#3D2013] focus:outline-none cursor-pointer appearance-none">
+            <option value="" disabled selected>Select maximum members</option>
+            <option value="1">1 Member</option>
+            <option value="2">2 Members</option>
+            <option value="3">3 Members</option>
+            <option value="4">4 Members</option>
+            <option value="5">5 Members</option>
+            <option value="6">6 Members</option>
+          </select>
+          <svg class="absolute right-3 w-4 h-4 text-[#3D2013] pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"/></svg>
+        </div>
+      </div>
+
+    </div>
+
+<!-- Modal Footer Action Buttons -->
+    <div class="grid grid-cols-2 gap-3 w-full pt-2">
+      <button id="cancel-create-btn" class="font-pressstart text-[8px] sm:text-[9px] text-[#3D2013] bg-[#FEF4E0] !rounded-none border-[2px] border-[#3D2013] py-2.5 transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#FAE9CE]">
+        CANCEL
+      </button>
+      <button id="confirm-create-btn" class="font-pressstart text-[8px] sm:text-[9px] text-[#FFFFF6] bg-[#E87339] !rounded-none border-[2px] border-[#3D2013] py-2.5 transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#d66530]">
+        CREATE
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- 3. STATISTICS MODAL -->
+<div id="stats-modal" class="fixed inset-0 bg-[#3D2013]/50 z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-6 sm:p-8 w-full max-w-lg shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto">
+    
+    <!-- Modal Title -->
+    <div class="flex items-center justify-center relative pb-2">
+      <h3 id="stats-modal-title" class="font-pressstart text-[14px] text-[#E87339] tracking-wide">MY STATISTICS</h3>
+    </div>
+
+    <!-- Stats Details Body -->
+    <div class="flex flex-col gap-4 font-pressstart text-[9px] text-[#3D2013]">
+      
+      <!-- Study Technique -->
+      <div class="flex justify-between items-center pb-3 border-b-[1.5px] border-dashed border-[#3D2013]/30">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="w-5 h-5 text-[#3D2013] shrink-0">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <path fill="currentColor" fill-rule="evenodd" d="M8 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1h2a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm6 1h-4v2H9a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2h-1zm-6 8a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1m1 3a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2z" clip-rule="evenodd" />
+          </svg>
+          <span class="font-pixel text-[20px] text-[#3D2013]">STUDY TECHNIQUE</span>
+        </div>
+        <span id="stat-technique" class="font-pixel text-[20px] text-[#3D2013]">Pomodoro</span>
+      </div>
+
+      <!-- Focus Time -->
+      <div class="flex justify-between items-center pb-3 border-b-[1.5px] border-dashed border-[#3D2013]/30">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="w-5 h-5 text-[#3D2013] shrink-0">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <path fill="currentColor" d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2m4.2 14.2L11 13V7h1.5v5.2l4.5 2.7z" />
+          </svg>
+          <span class="font-pixel text-[20px] text-[#3D2013]">FOCUS TIME</span>
+        </div>
+        <span id="stat-focus" class="font-pixel text-[20px] text-[#3D2013]">02h 30m</span>
+      </div>
+
+      <!-- Break Time -->
+      <div class="flex justify-between items-center pb-3 border-b-[1.5px] border-dashed border-[#3D2013]/30">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="w-5 h-5 text-[#3D2013] shrink-0">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <path fill="currentColor" d="M10.624 3.416a.75.75 0 1 0-1.248-.832l-2 3a.75.75 0 0 0 1.248.832zm3 0a.75.75 0 1 0-1.248-.832l-2 3a.75.75 0 1 0 1.248.832zm3 0a.75.75 0 1 0-1.248-.832l-2 3a.75.75 0 1 0 1.248.832zM4.923 8.25c-.924 0-1.673.749-1.673 1.673V17A4.75 4.75 0 0 0 8 21.75h6A4.75 4.75 0 0 0 18.75 17v-1.25h.75a3.25 3.25 0 0 0 0-6.5h-.91c-.244-.556-.765-1-1.513-1z" />
+          </svg>
+          <span class="font-pixel text-[20px] text-[#3D2013]">BREAK TIME</span>
+        </div>
+        <span id="stat-break" class="font-pixel text-[20px] text-[#3D2013]">00h 30m</span>
+      </div>
+
+      <!-- Number of Sessions -->
+      <div class="flex justify-between items-center pb-3 border-b-[1.5px] border-solid border-[#3D2013]/40">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="w-5 h-5 text-[#3D2013] shrink-0">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <g fill="currentColor">
+              <path d="M7.75 2.5C7.75 2.08579 7.41421 1.75 7 1.75C6.58579 1.75 6.25 2.08579 6.25 2.5V4.07926C4.81067 4.19451 3.86577 4.47737 3.17157 5.17157C2.47737 5.86577 2.19451 6.81067 2.07926 8.25H21.9207C21.8055 6.81067 21.5226 5.86577 20.8284 5.17157C20.1342 4.47737 19.1893 4.19451 17.75 4.07926V2.5C17.75 2.08579 17.4142 1.75 17 1.75C16.5858 1.75 16.25 2.08579 16.25 2.5V4.0129C15.5847 4 14.839 4 14 4H10C9.16097 4 8.41527 4 7.75 4.0129V2.5Z" />
+              <path fill-rule="evenodd" d="M2 12C2 11.161 2 10.4153 2.0129 9.75H21.9871C22 10.4153 22 11.161 22 12V14C22 17.7712 22 19.6569 20.8284 20.8284C19.6569 22 17.7712 22 14 22H10C6.22876 22 4.34315 22 3.17157 20.8284C2 19.6569 2 17.7712 2 14V12ZM17 14C17.5523 14 18 13.5523 18 13C18 12.4477 17.5523 12 17 12C16.4477 12 16 12.4477 16 13C16 13.5523 16.4477 14 17 14ZM17 18C17.5523 18 18 17.5523 18 17C18 16.4477 17.5523 16 17 16C16.4477 16 16 16.4477 16 17C16 17.5523 16.4477 18 17 18ZM13 13C13 13.5523 12.5523 14 12 14C11.4477 14 11 13.5523 11 13C11 12.4477 11.4477 12 12 12C12.5523 12 13 12.4477 13 13ZM13 17C13 17.5523 12.5523 18 12 18C11.4477 18 11 17.5523 11 17C11 16.4477 11.4477 16 12 16C12.5523 16 13 16.4477 13 17ZM7 14C7.55228 14 8 13.5523 8 13C8 12.4477 7.55228 12 7 12C6.44772 12 6 12.4477 6 13C6 13.5523 6.44772 14 7 14ZM7 18C7.55228 18 8 17.5523 8 17C8 16.4477 7.55228 16 7 16C6.44772 16 6 16.4477 6 17C6 17.5523 6.44772 18 7 18Z" clip-rule="evenodd" />
+            </g>
+          </svg>
+          <span class="font-pixel text-[20px] text-[#3D2013]">NUMBER OF SESSIONS</span>
+        </div>
+        <span id="stat-sessions" class="font-pixel text-[20px] text-[#3D2013]">4</span>
+      </div>
+
+      <!-- Tasks Completed Header -->
+      <div class="flex justify-between items-center pt-1">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="w-5 h-5 text-[#3D2013] shrink-0">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+              <path d="M11 5h10m-10 7h10m-10 7h10" />
+              <rect width="4" height="4" x="3" y="3" fill="currentColor" rx="1" />
+              <rect width="4" height="4" x="3" y="10" fill="currentColor" rx="1" />
+              <rect width="4" height="4" x="3" y="17" fill="currentColor" rx="1" />
+            </g>
+          </svg>
+          <span class="font-pixel text-[20px] text-[#3D2013]">TASKS COMPLETED</span>
+        </div>
+        <span id="stat-tasks-count" class="font-pixel text-[20px] text-[#3D2013]">6 / 7</span>
+      </div>
+
+      <!-- Task List -->
+      <div class="flex flex-col gap-2 pb-3 border-b-[2px] border-solid border-[#3D2013]">
+        <ul id="stat-task-list" class="flex flex-col text-[8px] list-none pl-2 m-0">
+          <!-- Inflated via JS -->
+        </ul>
+      </div>
+
+      <!-- XP Earned -->
+      <div class="flex justify-between items-center pb-3 border-b-[1.5px] border-dashed border-[#3D2013]/30">
+        <div class="flex items-center gap-3">
+          <div class="w-7 h-7 rounded-full bg-[#F1EDFF] border border-[#6846A5] flex items-center justify-center shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="w-4 h-4 text-[#6846A5]">
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path fill="currentColor" d="m12 17.275l-4.15 2.5q-.275.175-.575.15t-.525-.2t-.35-.437t-.05-.588l1.1-4.725L3.775 10.8q-.25-.225-.312-.513t.037-.562t.3-.45t.55-.225l4.85-.425l1.875-4.45q.125-.3.388-.45t.537-.15t.537.15t.388.45l1.875 4.45l4.85.425q.35.05.55.225t.3.45t.038.563t-.313.512l-3.675 3.175l1.1 4.725q.075.325-.05.588t-.35.437t-.525.2t-.575-.15z" />
+            </svg>
+          </div>
+          <span class="font-pixel text-[20px] text-[#3D2013]">XP EARNED</span>
+        </div>
+        <span class="font-pixel text-[20px] text-[#7E57C2]"><span id="stat-xp">150</span> XP</span>
+      </div>
+
+      <!-- Coins Earned -->
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center shrink-0 overflow-hidden">
+            <img src="media/coin_logo.png" alt="Coins" class="w-7 h-7 object-contain" />
+          </div>
+          <span class="font-pixel text-[20px] text-[#3D2013]">COINS EARNED</span>
+        </div>
+        <span class="font-pixel text-[20px] text-[#E87339]"><span id="stat-coins">120</span> coins</span>
+      </div>
+
+    </div>
+
+    <!-- Close Button Row -->
+    <div class="flex items-center justify-center pt-2">
+      <button id="close-stats-btn" class="font-pressstart text-[9px] sm:text-[10px] text-[#FFFFF6] bg-[#E87339] !rounded-none border-[2px] border-[#3D2013] px-8 py-3 transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#d66530] w-full">CLOSE</button>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+  
+<!-- FOOTER -->
+<footer class="w-full py-6 px-4 mt-auto relative z-10">
+  <div class="max-w-7xl mx-auto flex items-center justify-center">
+    <p class="font-pressstart text-[15px] text-[#4A2E21] text-center tracking-tight">
+      StudyCircle
+    </p>
+  </div>
+</footer>
+
+<!-- KITSU AI OVERLAY MODAL (FULL SCREEN) -->
+<div id="kitsuai-modal" class="modal hidden fixed inset-0 z-50 flex flex-col bg-[#FEF4E0]">
+  <iframe id="kitsuai-frame" src="" class="w-full h-full border-none flex-grow"></iframe>
+</div>
+
+  <!-- JavaScript File -->
+   
+<script src="global.js"></script>
+<script src="sidebar.js"></script>
+<script src="header.js"></script>
+<script src="user-rooms.js"></script>
+
+
+</body>
+</html>

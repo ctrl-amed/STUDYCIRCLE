@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - Statistics</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Load emoji-picker-element library -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen relative text-[#3D2013] flex flex-col">
+  <!-- ==================== BACKGROUND TEXTURE LAYERS ==================== -->
+  
+  <!-- 1. FIXED BACKGROUND LINE GRID TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- ==================== END BACKGROUND TEXTURE ==================== -->
+
+<div id="sidebar-container"></div>
+
+<div id="main-wrapper" class="flex-1 flex flex-col transition-all duration-300 ease-in-out pl-0 md:pl-64 w-full">
+  
+  <div id="header-container"></div>
+<!-- MAIN CONTENT CONTAINER -->
+<main class="relative flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 flex flex-col gap-5 pb-10">
+
+  <!-- 1ST ROW: STAT CARDS -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+    
+    <!-- CARD 1: STREAK DAYS -->
+    <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md flex flex-col justify-between">
+      <div class="flex items-center gap-3 sm:gap-4 mb-3">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#FFD7A3] border-2 border-[#944444] rounded-[10px] flex items-center justify-center text-[#944444] shrink-0 text-2xl sm:text-3xl">
+          <svg class="w-3.5 h-3.5 sm:w-6 sm:h-6 text-[#ED8C00]" viewBox="0 0 24 24">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.8 9.4Q11 7 12 3q2.5 5 0 10q3 0 5-2.9a7 7 0 1 1-9.2-.7" />
+          </svg>
+        </div>
+        <div class="flex flex-col min-w-0 overflow-hidden">
+          <span id="stat-streak-days" class="font-pressstart text-lg sm:text-2xl text-[#3D2013] font-bold leading-none truncate">7 Days</span>
+          <span class="font-pixel text-[15px] sm:text-[18px] text-[#3D2013]/70 uppercase tracking-tight mt-1 leading-tight truncate">Current Streak</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: BEST STREAK -->
+    <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md flex flex-col justify-between">
+      <div class="flex items-center gap-3 sm:gap-4 mb-3">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#CDECCF] border-2 border-[#5C8D57] rounded-[10px] flex items-center justify-center text-[#5C8D57] shrink-0 text-2xl sm:text-3xl">
+<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="M7 21v-2h4v-3.1q-1.225-.275-2.187-1.037T7.4 12.95q-1.875-.225-3.137-1.637T3 8V7q0-.825.588-1.412T5 5h2V3h10v2h2q.825 0 1.413.588T21 7v1q0 1.9-1.263 3.313T16.6 12.95q-.45 1.15-1.412 1.913T13 15.9V19h4v2zm0-10.2V7H5v1q0 .95.55 1.713T7 10.8m10 0q.9-.325 1.45-1.088T19 8V7h-2z" />
+</svg>
+
+        </div>
+        <div class="flex flex-col min-w-0 overflow-hidden">
+          <span id="stat-best-streak" class="font-pressstart text-lg sm:text-2xl text-[#3D2013] font-bold leading-none truncate">14 Days</span>
+          <span class="font-pixel text-[15px] sm:text-[18px] text-[#3D2013]/70 uppercase tracking-tight mt-1 leading-tight truncate">Best Streak</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: TOTAL SESSIONS -->
+    <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md flex flex-col justify-between">
+      <div class="flex items-center gap-3 sm:gap-4 mb-3">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#E3D2E5] border-2 border-[#261A36] rounded-[10px] flex items-center justify-center text-[#261A36] shrink-0 text-2xl sm:text-3xl">
+<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
+	<path d="M0 0h16v16H0z" fill="none" />
+	<g fill="currentColor">
+		<path d="M1.5 1a.5.5 0 0 1 .5.5V14h12.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5v-13a.5.5 0 0 1 .5-.5" />
+		<path d="M5 8a1 1 0 0 1 1 1v4H3V9a1 1 0 0 1 1-1zm4-6a1 1 0 0 1 1 1v10H7V3a1 1 0 0 1 1-1zm4 4a1 1 0 0 1 1 1v6h-3V7a1 1 0 0 1 1-1z" />
+	</g>
+</svg>
+
+        </div>
+        <div class="flex flex-col min-w-0 overflow-hidden">
+          <span id="stat-total-sessions" class="font-pressstart text-lg sm:text-2xl text-[#3D2013] font-bold leading-none truncate">318</span>
+          <span class="font-pixel text-[15px] sm:text-[18px] text-[#3D2013]/70 uppercase tracking-tight mt-1 leading-tight truncate">Total Sessions</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 4: FOCUS TIME -->
+    <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-5 shadow-md flex flex-col justify-between">
+      <div class="flex items-center gap-3 sm:gap-4 mb-3">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#CDE9F8] border-2 border-[#4F87B6] rounded-[10px] flex items-center justify-center text-[#4F87B6] shrink-0 text-2xl sm:text-3xl">
+          <svg class="w-[1em] h-[1em]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+          </svg>
+        </div>
+        <div class="flex flex-col min-w-0 overflow-hidden">
+          <span id="stat-focus-time" class="font-pressstart text-base sm:text-xl text-[#3D2013] font-bold leading-none truncate">42h 15m</span>
+          <span class="font-pixel text-[15px] sm:text-[18px] text-[#3D2013]/70 uppercase tracking-tight mt-1 leading-tight truncate">Focus Time</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<!-- 2ND ROW: THIS WEEK TRACKER -->
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-4">
+    <div class="flex items-center justify-between border-b-2 border-[#3D2013]/20 pb-3">
+      <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">THIS WEEK</h3>
+      <span id="week-range-label" class="font-pixel text-[14px] text-[#3D2013]/70">Mon - Sun</span>
+    </div>
+    <!-- Changed grid-cols-2 to grid-cols-3 -->
+    <div id="weekly-tracker-container" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-4 text-center">
+      <!-- Injected dynamically via user-statistics.js -->
+    </div>
+  </div>
+
+<!-- 3RD ROW: CALENDAR HEATMAP -->
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b-2 border-[#3D2013]/20 pb-3 gap-2">
+      <h3 id="heatmap-title" class="font-pixel text-[15px] sm:text-[20px] text-[#3D2013]">318 study sessions in the last year</h3>
+      <div class="flex items-center gap-2 text-[10px] font-pixel text-[#3D2013]">
+        <span>Less</span>
+        <div class="flex gap-1 items-center">
+          <span class="w-3 h-3 bg-[#EADcc9] border border-[#3D2013]/30 rounded-sm"></span>
+          <span class="w-3 h-3 bg-[#F8C8A6] border border-[#3D2013]/30 rounded-sm"></span>
+          <span class="w-3 h-3 bg-[#F2994A] border border-[#3D2013]/30 rounded-sm"></span>
+          <span class="w-3 h-3 bg-[#E87339] border border-[#3D2013]/30 rounded-sm"></span>
+        </div>
+        <span>More</span>
+      </div>
+    </div>
+    
+    <!-- Mobile Responsive Scrollable Wrapper -->
+    <div class="w-full overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch]">
+      <div class="min-w-[700px] relative">
+        <div id="heatmap-container" class="flex flex-col gap-1 relative">
+          <!-- Injected dynamically via user-statistics.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4TH ROW: MOST PRODUCTIVE DAY -->
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-4">
+    <div class="border-b-2 border-[#3D2013]/20 pb-3">
+      <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">MOST PRODUCTIVE DAY</h3>
+    </div>
+    <div id="productive-days-container" class="flex flex-col gap-3 pt-1">
+      <!-- Injected dynamically via user-statistics.js -->
+    </div>
+  </div>
+
+</main>
+
+<script src="user-statistics.js"></script>
+
+
+
+  
+<!-- FOOTER -->
+<footer class="w-full py-6 px-4 mt-auto relative z-10">
+  <div class="max-w-7xl mx-auto flex items-center justify-center">
+    <p class="font-pressstart text-[15px] text-[#4A2E21] text-center tracking-tight">
+      StudyCircle
+    </p>
+  </div>
+</footer>
+
+<!-- KITSU AI OVERLAY MODAL (FULL SCREEN) -->
+<div id="kitsuai-modal" class="modal hidden fixed inset-0 z-50 flex flex-col bg-[#FEF4E0]">
+  <iframe id="kitsuai-frame" src="" class="w-full h-full border-none flex-grow"></iframe>
+</div>
+
+  <!-- JavaScript File -->
+   
+<script src="global.js"></script>
+<script src="sidebar.js"></script>
+<script src="header.js"></script>
+<script src="user-statistics.js"></script>
+
+
+</body>
+</html>

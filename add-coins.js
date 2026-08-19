@@ -1,25 +1,31 @@
 // ==========================================
-// CENTRALIZED COIN SYSTEM & STORAGE
+// CENTRALIZED COIN SYSTEM & STORAGE BRIDGE
 // ==========================================
 
 const COINS_KEY = 'player_user_coins';
 
 /**
- * Gets current coin balance from localStorage
+ * Gets current coin balance using the shared global fallback logic (1250 default)
  */
 function getCoins() {
+  if (typeof getSavedCoins === 'function') {
+    return getSavedCoins();
+  }
   const saved = localStorage.getItem(COINS_KEY);
-  // Default to 1000 starting coins
-  return saved !== null ? parseInt(saved, 10) : 1000;
+  return saved !== null ? parseInt(saved, 10) : 1250;
 }
 
 /**
- * Directly sets a new coin total in localStorage
+ * Directly sets a new coin total in localStorage and updates the UI
  */
 function setCoins(amount) {
   const finalAmount = Math.max(0, amount);
-  localStorage.setItem(COINS_KEY, finalAmount.toString());
-  updateCoinDisplays();
+  if (typeof window.updateGlobalCoins === 'function') {
+    window.updateGlobalCoins(finalAmount);
+  } else {
+    localStorage.setItem(COINS_KEY, finalAmount.toString());
+    updateCoinDisplays();
+  }
 }
 
 /**
@@ -28,15 +34,15 @@ function setCoins(amount) {
 function updateCoinDisplays() {
   const currentCoins = getCoins();
   
-  // Updates any element with class="user-coin-balance" or id="user-coin-balance"
-  const coinElements = document.querySelectorAll('.user-coin-balance, #user-coin-balance');
+  // Updates any element with class="user-coin-balance", id="user-coin-balance", or id="coin-number"
+  const coinElements = document.querySelectorAll('.user-coin-balance, #user-coin-balance, #coin-number');
   coinElements.forEach(el => {
     el.textContent = currentCoins.toLocaleString();
   });
 
   // Keep in sync with global playerData if present
-  if (typeof playerData !== 'undefined' && playerData !== null) {
-    playerData.coins = currentCoins;
+  if (typeof window.playerData !== 'undefined' && window.playerData !== null) {
+    window.playerData.coin_number = currentCoins;
   }
 }
 
@@ -45,7 +51,15 @@ function updateCoinDisplays() {
  */
 function addCoins(amount) {
   const currentCoins = getCoins();
-  setCoins(currentCoins + amount);
+  const newTotal = currentCoins + amount;
+  
+  // Updates localStorage and syncs with global state helper
+  if (typeof window.updateGlobalCoins === 'function') {
+    window.updateGlobalCoins(newTotal);
+  } else {
+    localStorage.setItem(COINS_KEY, newTotal.toString());
+    updateCoinDisplays();
+  }
 }
 
 /**
@@ -217,27 +231,29 @@ function resetCoinModal() {
   });
 }
 
-// Global Modal Open/Close Helpers
-window.openModal = function(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    if (modalId === 'add-coins-modal') {
-      resetCoinModal(); // Ensures fresh state every time modal opens
-    }
-    modal.classList.remove('hidden');
-  }
-};
-
-window.closeModal = function(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    modal.classList.add('hidden');
-    
-    // Slight delay before reset so user doesn't see UI jump during closing
-    if (modalId === 'add-coins-modal') {
-      setTimeout(() => {
+// Global Modal Open/Close Helpers (safe check to prevent overriding if already defined in global.js)
+if (typeof window.openModal === 'undefined') {
+  window.openModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      if (modalId === 'add-coins-modal') {
         resetCoinModal();
-      }, 150);
+      }
+      modal.classList.remove('hidden');
     }
-  }
-};
+  };
+}
+
+if (typeof window.closeModal === 'undefined') {
+  window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.add('hidden');
+      if (modalId === 'add-coins-modal') {
+        setTimeout(() => {
+          resetCoinModal();
+        }, 150);
+      }
+    }
+  };
+}

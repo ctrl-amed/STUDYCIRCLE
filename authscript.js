@@ -45,7 +45,7 @@ const mockUsernames = ['acorn_hero', 'study_master', 'admin_boss'];
 const userAccount = {
   email: "user@studycircle.app",
   password: "password123",
-  redirectUrl: "homepage.html"
+  redirectUrl: "user-homepage.html"
 };
 
 const adminAccount = {

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - Home</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Load emoji-picker-element library -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+</head>
+
+<!-- BASE BACKGROUND COLOR -->
+<body class="bg-[#FAE9CE] min-h-screen relative text-[#3D2013] flex flex-col">
+  <!-- ==================== BACKGROUND TEXTURE LAYERS ==================== -->
+  
+  <!-- 1. FIXED BACKGROUND LINE GRID TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 2. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+  <!-- ==================== END BACKGROUND TEXTURE ==================== -->
+
+
+<div id="sidebar-container"></div>
+
+
+<!-- MAIN WRAPPER SHIFT (DESKTOP ONLY PL-64) -->
+<div id="main-wrapper" class="flex-1 flex flex-col transition-all duration-300 ease-in-out pl-0 md:pl-64 w-full">
+<!-- HEADER -->
+<div id="header-container"></div>
+
+
+<!-- ==================== MAIN CONTENT AREA ==================== -->
+
+<!-- MAIN CONTENT AREA -->
+    <main class="relative flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 flex flex-col gap-5">
+<!-- 1ST ROW: 2 COLUMNS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full">
+        
+<!-- LEFT COLUMN: HEADER AND BODY -->
+<section class="flex flex-col gap-2 sm:gap-4 p-2 sm:p-4">
+  <!-- Header -->
+  <div>
+    <h2 id="user-greeting" class="font-pressstart text-[14px] sm:text-[18px] mb-1 bg-gradient-to-r from-[#DD6E36] via-[#D06631] to-[#511B00] bg-clip-text text-transparent w-fit">
+      Good Afternoon, username
+    </h2>
+    <div class="flex items-center gap-2 font-pixel text-[20px] sm:text-[25px] text-[#3D2013]/80">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="inline-block text-[#E16F37] shrink-0">
+        <path d="M0 0h24v24H0z" fill="none" />
+        <path fill="currentColor" d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0-2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z" />
+      </svg>
+      <span id="current-date-text">August 17, 2026 | Ready to focus?</span>
+    </div>
+  </div>
+
+  <!-- Body Content: Study Room & Avatar Container -->
+  <div class="relative w-full flex items-center justify-center rounded-[12px]">
+    
+    <!-- Relative wrapper -->
+    <div class="relative flex items-center justify-center max-w-[1100px] w-full mx-auto">
+      
+      <!-- Big Cozy Ambient Glow -->
+      <div class="absolute w-[80%] h-[80%] sm:w-[100%] sm:h-[100%] rounded-full pointer-events-none opacity-75 filter blur-3xl z-0"
+           style="background: radial-gradient(circle, rgba(253, 146, 62, 0.5) 0%, rgba(253, 146, 62, 0) 100%);">
+      </div>
+
+      <!-- Custom Dynamic Room Component -->
+      <custom-room class="relative w-full h-auto flex items-center justify-center scale-100 origin-center"></custom-room>
+
+      <!-- Overlay Avatar Container -->
+      <div class="absolute 
+                  w-[160px] h-[160px] scale-100 bottom-[10%]
+                  md:w-[200px] md:h-[200px] md:scale-75 md:bottom-[19%]
+                  lg:w-[240px] lg:h-[240px] lg:scale-100 lg:bottom-[20%]
+                  left-[50%] -translate-x-1/2 origin-bottom pointer-events-auto">
+
+        <!-- NAME TAG ABOVE AVATAR -->
+        <div class="absolute top-6 sm:top-2 left-1/2 -translate-x-1/2 bg-[#000000]/20 px-1.5 sm:px-3 py-0.5 sm:py-1 whitespace-nowrap shadow-md pointer-events-none flex items-center justify-center">
+          <span id="avatar-nametag" class="font-pressstart text-[6px] sm:text-[8px] text-[#FFFFFF] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            name
+          </span>
+        </div>
+        <custom-avatar state="idle"></custom-avatar>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- RIGHT COLUMN: TWO ROWS IN CARD FORM -->
+<div class="flex flex-col gap-5 w-full">    
+<!-- Card 1 -->
+<section id="active-session-card" class="bg-gradient-to-b from-[#FDE4D0] to-[#FFD2AE] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col justify-between gap-4">
+  
+  <!-- Card Header & Description -->
+  <div class="flex flex-col gap-2">
+    <h3 class="font-pressstart text-[20px] sm:text-[25px] text-[#3D2013]">
+      READY TO FOCUS?
+    </h3>
+    <p class="font-pixel text-[18px] sm:text-[20px] text-[#3D2013] leading-snug">
+      Select a task category and let StudyCircle recommend the right study technique for you.
+    </p>
+  </div>
+
+  <!-- Card Footer -->
+  <div class="flex flex-wrap items-center justify-between gap-3 pt-15">
+    <!-- CTA Button -->
+<a href="create-session.html" id="start-session-btn" class="inline-block font-pressstart text-[6px] sm:text-[8px] md:text-[12px] text-[#FFFFF6] bg-[#E87339] !rounded-none border-[2px] md:border-[2px] border-[#3D2013] px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5 transition-all duration-150 retro-shadow cursor-pointer text-center">
+  START SESSION
+</a>
+
+    <!-- Stats Container -->
+    <div class="flex items-center gap-4 sm:gap-6">
+      <!-- Current Streak Stat -->
+      <div class="flex flex-col items-center sm:items-start text-center sm:text-left">
+        <span class="font-pixel text-[11px] sm:text-[20px] text-[#3D2013]/50 uppercase tracking-wider">
+          Current Streak
+        </span>
+<span id="streak-display" class="font-pressstart text-[11px] sm:text-[13px] text-[#E87339]">
+  0 days
+</span>
+      </div>
+
+      <!-- Today Time Stat -->
+      <div class="flex flex-col items-center sm:items-start text-center sm:text-left">
+        <span class="font-pixel text-[11px] sm:text-[20px] text-[#3D2013]/50 uppercase tracking-wider">
+          Today
+        </span>
+<span id="focus-time-display" class="font-pressstart text-[11px] sm:text-[13px] text-[#E87339]">
+  0h 0m
+</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Card 2: RECENT ACTIVITY -->
+<section id="recent-activity-card" class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-3">
+  
+  <!-- HEADER: TITLE & VIEW ALL BUTTON -->
+  <div class="flex items-center justify-between pb-2">
+    <h3 class="font-pressstart text-[12px] sm:text-[14px] text-[#3D2013]">RECENT ACTIVITY</h3>
+    <button onclick="openRecentActivitiesModal()" class="text-[#3D2013] hover:text-[#EA781C] font-pressstart text-[8px] sm:text-[9px] px-2.5 py-1.5 rounded-[6px] transition-colors cursor-pointer">
+      VIEW ALL
+    </button>
+  </div>
+
+  <!-- BORDER SEPARATOR -->
+  <div class="border-t-[2px] border-[#3D2013]/20"></div>
+
+  <!-- INFLATED ACTIVITY LIST (Max 3) -->
+  <div id="recent-activity-list" class="flex flex-col gap-1 overflow-y-auto">
+    <!-- Top 3 Items rendered via JavaScript -->
+  </div>
+
+</section>
+</div>
+
+      </div>
+
+      <!-- 2ND ROW: 3 COLUMNS IN CARD FORM (Left < Middle < Right) -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-5 w-full">
+        
+        <!-- LEFT COLUMN (Smaller - 3 cols on desktop) -->
+        <section class="md:col-span-3 bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-3">
+          <h3 class="font-pressstart text-[11px] sm:text-[13px] text-[#3D2013]">Row 2 Left</h3>
+          <!-- Component Placeholder -->
+          <div class="w-full h-full min-h-[120px] bg-[#FAE9CE] border-[2px] border-dashed border-[#3D2013]/50 rounded-[8px] p-4 flex items-center justify-center text-center">
+            <span class="font-pressstart text-[9px] text-[#3D2013]/60">[ Placeholder Component: Small ]</span>
+          </div>
+        </section>
+
+<!-- MIDDLE COLUMN (Medium - 4 cols on desktop) -->
+<section class="md:col-span-4 bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-3">
+  <!-- CARD HEADER -->
+  <div class="flex items-center justify-between pb-2 border-b-[2px] border-[#3D2013]/20">
+    <div class="flex items-center gap-2">
+      <!-- Leaderboard Icon -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="text-[#E16F37] shrink-0">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="M3 21q-.425 0-.712-.288T2 20V10q0-.425.288-.712T3 9h3.5q.425 0 .713.288T7.5 10v10q0 .425-.288.713T6.5 21zm7.25 0q-.425 0-.712-.288T9.25 20V4q0-.425.288-.712T10.25 3h3.5q.425 0 .713.288T14.75 4v16q0 .425-.288.713T13.75 21zm7.25 0q-.425 0-.712-.288T16.5 20v-8q0-.425.288-.712T17.5 11H21q.425 0 .713.288T22 12v8q0 .425-.288.713T21 21z" />
+</svg>
+      <h3 class="font-pressstart text-[11px] sm:text-[13px] text-[#3D2013] uppercase">Leaderboards</h3>
+    </div>
+    <!-- Full Screen Button -->
+    <button onclick="openLeaderboardModal()" class="p-1 hover:text-[#EA781C] p-1 cursor-pointer transition-colors text-[#3D2013]" title="View Full Leaderboard">
+<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20H4v-5m0 5l6.5-6.5M15 4h5v5m0-5l-6.5 6.5" />
+</svg>
+
+    </button>
+  </div>
+
+<!-- NAVIGATION TABS -->
+<div class="flex gap-2 p-1">
+  <button onclick="switchTab('all-time')" id="tab-all-time" class="lb-tab active flex-1 py-1.5 font-pressstart text-[8px] sm:text-[9px] !rounded-none border-[1.5px] sm:border-[2px] border-[#3D2013] transition-all duration-150 retro-shadow active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+    ALL TIME
+  </button>
+  <button onclick="switchTab('this-month')" id="tab-this-month" class="lb-tab flex-1 py-1.5 font-pressstart text-[8px] sm:text-[9px] !rounded-none border-[1.5px] sm:border-[2px] border-[#3D2013] transition-all duration-150 retro-shadow active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+    THIS MONTH
+  </button>
+  <button onclick="switchTab('streaks')" id="tab-streaks" class="lb-tab flex-1 py-1.5 font-pressstart text-[8px] sm:text-[9px] !rounded-none border-[1.5px] sm:border-[2px] border-[#3D2013] transition-all duration-150 retro-shadow active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+    STREAKS
+  </button>
+</div>
+
+  <!-- LEADERBOARD LIST CONTAINER (Top 10) -->
+  <div id="leaderboard-list" class="flex flex-col gap-1.5 overflow-y-auto max-h-[300px] pr-1">
+    <!-- Inflated by JS -->
+  </div>
+</section>
+
+
+<!-- RIGHT COLUMN (Largest - 5 cols on desktop) -->
+<section id="calendar-section" class="md:col-span-5 bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-3 sm:p-4 shadow-md flex flex-col gap-2.5 transition-all duration-300 relative">
+  <!-- Section Header -->
+  <div class="flex items-center justify-between gap-2 pb-2.5 shrink-0">
+    <!-- Left: Calendar Icon + Month Year -->
+    <div class="flex items-center gap-2 min-w-0">
+      <svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#3D2013] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <span id="cal-month-year" class="font-pressstart text-[10px] sm:text-[12px] text-[#3D2013] truncate">August 2026</span>
+    </div>
+
+    <!-- Right: Fullscreen Icon + Arrow Controls -->
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button id="cal-fullscreen-btn" title="Full Screen" class="p-1 sm:p-1.5 rounded-[6px] text-[#3D2013] hover:bg-[#FDE4D0] hover:text-[#E87339] transition-all cursor-pointer">
+        <svg id="cal-fullscreen-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24">
+          <path d="M0 0h24v24H0z" fill="none" />
+          <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20H4v-5m0 5l6.5-6.5M15 4h5v5m0-5l-6.5 6.5" />
+        </svg>
+      </button>
+
+      <div class="flex items-center gap-1">
+        <button id="cal-prev-month" title="Previous Month" class="p-1 sm:p-1.5 rounded-[4px] text-[#3D2013] hover:bg-[#FDE4D0] transition-colors cursor-pointer">
+          <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button id="cal-next-month" title="Next Month" class="p-1 sm:p-1.5 rounded-[4px] text-[#3D2013] hover:bg-[#FDE4D0] transition-colors cursor-pointer">
+          <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Container Grid -->
+  <div class="w-full flex-1 flex flex-col justify-between p-2 sm:p-3 overflow-hidden">
+    <!-- Day Headers -->
+    <div class="grid grid-cols-7 gap-1 text-center font-pressstart text-[7.5px] sm:text-[9px] text-[#3D2013]/70 shrink-0">
+      <div>S</div>
+      <div>M</div>
+      <div>T</div>
+      <div>W</div>
+      <div>T</div>
+      <div>F</div>
+      <div>S</div>
+    </div>
+
+    <!-- Calendar Date Grid -->
+    <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-1.5 pt-1.5 flex-1 auto-rows-fr h-full">
+      <!-- Calendar day slots generated dynamically by JavaScript -->
+    </div>
+  </div>
+</section>
+
+<!-- Fullscreen Modal Overlay Container -->
+<div id="cal-modal-overlay" class="fixed inset-0 bg-[#3D2013]/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-6 transition-all duration-300">
+  <!-- Reduced max-width to max-w-2xl and height to h-[75vh] -->
+  <div id="cal-modal-content" class="w-full max-w-2xl h-[75vh] bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] shadow-2xl flex flex-col p-3 sm:p-4 gap-2">
+    
+    <!-- Fullscreen Modal Header -->
+    <div class="flex items-center justify-between gap-2 pb-2 shrink-0 border-b border-[#3D2013]/20">
+      <!-- Left: Calendar Icon + Month Year Inside Modal -->
+      <div class="flex items-center gap-2 min-w-0">
+        <svg class="w-5 h-5 text-[#3D2013] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span id="modal-cal-month-year" class="font-pressstart text-[11px] sm:text-[13px] text-[#3D2013] truncate">August 2026</span>
+      </div>
+
+      <!-- Right: Minimize Icon + Arrow Controls Inside Modal -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button id="cal-minimize-btn" title="Minimize Modal" class="p-1 rounded-[6px] text-[#3D2013] hover:bg-[#FDE4D0] hover:text-[#E87339] transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="w-4 h-4" viewBox="0 0 24 24">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <path fill="currentColor" d="m10 15.4l-5.9 5.9q-.275.275-.7.275t-.7-.275t-.275-.7t.275-.7L8.6 14H5q-.425 0-.712-.288T4 13t.288-.712T5 12h6q.425 0 .713.288T12 13v6q0 .425-.288.713T11 20t-.712-.288T10 19zm5.4-5.4H19q.425 0 .713.288T20 11t-.288.713T19 12h-6q-.425 0-.712-.288T12 11V5q0-.425.288-.712T13 4t.713.288T14 5v3.6l5.9-5.9q.275-.275.7-.275t.7.275t.275.7t-.275.7z" />
+          </svg>
+        </button>
+
+        <div class="flex items-center gap-1">
+          <button id="modal-cal-prev-month" title="Previous Month" class="p-1 rounded-[4px] text-[#3D2013] hover:bg-[#FDE4D0] transition-colors cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button id="modal-cal-next-month" title="Next Month" class="p-1 rounded-[4px] text-[#3D2013] hover:bg-[#FDE4D0] transition-colors cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar Container inside Modal -->
+    <div class="w-full flex-1 flex flex-col justify-between p-2 overflow-y-auto">
+      <!-- Day Headers -->
+      <div class="grid grid-cols-7 gap-1 text-center font-pressstart text-[9px] sm:text-[11px] text-[#3D2013]/70 pb-2">
+        <div>S</div>
+        <div>M</div>
+        <div>T</div>
+        <div>W</div>
+        <div>T</div>
+        <div>F</div>
+        <div>S</div>
+      </div>
+
+      <!-- Calendar Grid Inside Modal -->
+      <div id="modal-calendar-days-grid" class="grid grid-cols-7 gap-1.5 pt-1 flex-1 auto-rows-fr">
+        <!-- Generated dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ==================== PLACEHOLDER MODALS ==================== -->
+
+<!-- RECENT ACTIVITIES ALL-IN-ONE MODAL -->
+<div id="recent-activities-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3D2013]/50 backdrop-blur-xs hidden">
+  
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] w-full max-w-lg p-5 shadow-2xl flex flex-col gap-4 max-h-[85vh]">
+    
+    <!-- MODAL HEADER -->
+    <div class="flex items-center justify-between pb-2 border-b-[2px] border-[#3D2013]/20">
+      <h3 class="font-pressstart text-[13px] sm:text-[15px] text-[#3D2013]">ALL RECENT ACTIVITY</h3>
+      <button onclick="closeModal('recent-activities-modal')" class="text-[#3D2013] hover:text-[#EA781C] p-1 cursor-pointer transition-colors" title="Close">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- FULL ACTIVITY LIST CONTAINER -->
+    <div id="all-activities-list" class="flex flex-col gap-1.5 overflow-y-auto pr-1 max-h-[60vh]">
+      <!-- All items populated dynamically via JavaScript -->
+    </div>
+
+  </div>
+
+</div>
+
+<!-- FULLSCREEN LEADERBOARD MODAL -->
+<div id="leaderboard-modal" class="fixed inset-0 bg-[#3D2013]/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 w-full max-w-2xl max-h-[85vh] flex flex-col gap-4 shadow-2xl">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between pb-2 border-b-[2px] border-[#3D2013]/20">
+      <div class="flex items-center gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" class="text-[#E16F37] shrink-0">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="M3 21q-.425 0-.712-.288T2 20V10q0-.425.288-.712T3 9h3.5q.425 0 .713.288T7.5 10v10q0 .425-.288.713T6.5 21zm7.25 0q-.425 0-.712-.288T9.25 20V4q0-.425.288-.712T10.25 3h3.5q.425 0 .713.288T14.75 4v16q0 .425-.288.713T13.75 21zm7.25 0q-.425 0-.712-.288T16.5 20v-8q0-.425.288-.712T17.5 11H21q.425 0 .713.288T22 12v8q0 .425-.288.713T21 21z" />
+</svg>
+        <h3 class="font-pressstart text-[13px] sm:text-[15px] text-[#3D2013] uppercase">Full Leaderboard</h3>
+      </div>
+      <button onclick="closeLeaderboardModal()" class="text-[#3D2013] hover:text-[#EA781C] p-1 cursor-pointer transition-colors" title="Close">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+<!-- Modal Tabs -->
+<div class="flex gap-2 p-1">
+  <button onclick="switchTab('all-time', true)" id="modal-tab-all-time" class="modal-lb-tab active flex-1 py-1.5 font-pressstart text-[9px] !rounded-none border-[1.5px] sm:border-[2px] border-[#3D2013] transition-all duration-150 retro-shadow active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+    ALL TIME
+  </button>
+  <button onclick="switchTab('this-month', true)" id="modal-tab-this-month" class="modal-lb-tab flex-1 py-1.5 font-pressstart text-[9px] !rounded-none border-[1.5px] sm:border-[2px] border-[#3D2013] transition-all duration-150 retro-shadow active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+    THIS MONTH
+  </button>
+  <button onclick="switchTab('streaks', true)" id="modal-tab-streaks" class="modal-lb-tab flex-1 py-1.5 font-pressstart text-[9px] !rounded-none border-[1.5px] sm:border-[2px] border-[#3D2013] transition-all duration-150 retro-shadow active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+    STREAKS
+  </button>
+</div>
+
+    <!-- Modal Full List -->
+    <div id="modal-leaderboard-list" class="flex flex-col gap-1.5 overflow-y-auto max-h-[60vh] pr-2">
+      <!-- Inflated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- SESSION COMPLETE REWARDS MODAL -->
+<div id="rewards-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3D2013]/60 backdrop-blur-xs hidden">
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] w-full max-w-md p-6 shadow-2xl flex flex-col items-center text-center gap-4">
+    
+    <!-- Trophy Icon / Reward Graphic -->
+    <div class="w-16 h-16 bg-[#E87339] border-[2px] border-[#3D2013] rounded-full flex items-center justify-center text-[#FEF4E0] text-3xl shadow-md">
+      🏆
+    </div>
+
+    <!-- Title & Description -->
+    <div class="flex flex-col gap-1">
+      <h3 class="font-pressstart text-[16px] text-[#3D2013]">SESSION COMPLETE!</h3>
+      <p class="font-pixel text-[18px] text-[#3D2013]/80 leading-snug">
+        Awesome job! You stuck through all focus intervals and finished your tasks.
+      </p>
+    </div>
+
+    <!-- Claim Rewards Box -->
+    <div class="w-full bg-[#FAE9CE] border-[2px] border-[#3D2013] p-3 rounded-[8px] flex justify-around items-center">
+      <div class="flex flex-col items-center">
+        <span class="font-pressstart text-[12px] text-[#E87339]">+100</span>
+        <span class="font-pixel text-[14px] text-[#3D2013]/70">FOCUS EXP</span>
+      </div>
+      <div class="h-8 w-[1.5px] bg-[#3D2013]/20"></div>
+      <div class="flex flex-col items-center">
+        <span class="font-pressstart text-[12px] text-[#ED8C00]">+1 DAY</span>
+        <span class="font-pixel text-[14px] text-[#3D2013]/70">STREAK</span>
+      </div>
+    </div>
+
+    <!-- Claim Button -->
+    <button onclick="closeRewardsModal()" class="w-full font-pressstart text-[10px] text-[#FEF4E0] bg-[#E87339] border-[2px] border-[#3D2013] py-2.5 transition-all retro-shadow cursor-pointer">
+      CLAIM REWARDS
+    </button>
+  </div>
+</div>
+
+  
+<!-- FOOTER -->
+<footer class="w-full py-6 px-4 mt-auto relative z-10">
+  <div class="max-w-7xl mx-auto flex items-center justify-center">
+    <p class="font-pressstart text-[15px] text-[#4A2E21] text-center tracking-tight">
+      StudyCircle
+    </p>
+  </div>
+</footer>
+
+<!-- KITSU AI OVERLAY MODAL (FULL SCREEN) -->
+<div id="kitsuai-modal" class="modal hidden fixed inset-0 z-50 flex flex-col bg-[#FEF4E0]">
+  <iframe id="kitsuai-frame" src="" class="w-full h-full border-none flex-grow"></iframe>
+</div>
+
+
+  <!-- JavaScript File -->
+<script src="user-homepage.js"></script>
+<script src="avatar-system.js"></script>
+<script src="furniture-system.js"></script>
+<script src="global.js"></script>
+<script src="sidebar.js"></script>
+<script src="header.js"></script>
+
+</body>
+</html>

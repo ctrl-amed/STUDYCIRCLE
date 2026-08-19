@@ -2253,14 +2253,14 @@ function renderPlayers() {
 }
 
 function closeKitsuModal() {
-  // If embedded in an iframe inside homepage.html modal
-  if (window.parent && window.parent.closeKitsuAiModal) {
+  // 1. If embedded inside parent iframe
+  if (window.parent && typeof window.parent.closeKitsuAiModal === 'function') {
     window.parent.closeKitsuAiModal();
-  } else if (document.referrer && document.referrer.includes(window.location.host)) {
-    // If opened as a standalone page, use history navigation
+  } 
+  // 2. If opened as a standalone page fallback
+  else if (document.referrer && document.referrer.includes(window.location.host)) {
     window.history.back();
   } else {
-    // Fallback navigation
-    window.location.href = 'homepage.html';
+    window.location.href = 'user-homepage.html';
   }
 }

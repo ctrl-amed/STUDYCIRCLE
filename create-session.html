@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyCircle - Create Session</title>
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body class="bg-[#FAE9CE] min-h-screen md:h-screen md:overflow-hidden relative text-[#3D2013] overflow-x-hidden flex flex-col">
+
+     <!-- ========================================================================= -->
+  <!-- HEADER LAYER WITH CLOSE (X) BUTTON                                        -->
+  <!-- ========================================================================= -->
+  <header class="relative z-20 pt-3 sm:pt-6 px-4 sm:px-6 w-full max-w-7xl mx-auto flex items-center justify-end shrink-0">
+    <button onclick="goBack()" title="Close and Go Back" 
+            style="border-radius: 50% !important;"
+            class="w-8 h-8 sm:w-10 sm:h-10 bg-[#FEF4E0] border-[2px] md:border-[3px] border-[#3D2013] text-[#3D2013] hover:bg-[#E87339] hover:text-[#FFFFF6] transition-all duration-150 retro-shadow cursor-pointer flex items-center justify-center shrink-0">
+      <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- 1. SCATTERED LEAVES DESIGN LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-60">
+    <img src="media/leaves_design.png" alt="" class="absolute top-[3%] left-[12%] w-6 h-6 rotate-[-15deg]">
+    <img src="media/leaves_design.png" alt="" class="absolute top-[4%] right-[15%] w-6 h-6 rotate-[45deg]">
+    <img src="media/leaves_design.png" alt="" class="absolute top-[22%] left-[3%] w-5 h-5 rotate-[30deg]">
+    <img src="media/leaves_design.png" alt="" class="absolute top-[58%] left-[8%] w-5 h-5 rotate-[-30deg]">
+    <img src="media/leaves_design.png" alt="" class="absolute top-[25%] right-[4%] w-6 h-6 rotate-[15deg]">
+    <img src="media/leaves_design.png" alt="" class="absolute top-[60%] right-[7%] w-5 h-5 rotate-[60deg]">
+    <img src="media/leaves_design.png" alt="" class="absolute bottom-[12%] left-[42%] w-5 h-5 rotate-[10deg]">
+    <img src="media/leaves_design.png" alt="" class="absolute bottom-[4%] left-[48%] w-6 h-6 rotate-[-45deg]">
+    <img src="media/leaves_design.png" alt="" class="absolute bottom-[8%] right-[32%] w-5 h-5 rotate-[25deg]">
+    <img src="media/leaves_design.png" alt="" class="absolute bottom-[2%] left-[6%] w-6 h-6 rotate-[75deg]">
+  </div>
+
+  <!-- 2. FIXED BACKGROUND TEXTURE LAYER -->
+  <div class="fixed inset-0 pointer-events-none z-0"
+       style="background-image: linear-gradient(rgba(61, 32, 19, 0.06) 1px, transparent 1px); background-size: 100% 5px;">
+  </div>
+
+  <!-- 3. AMBIENT GLOWS CONTAINER -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute right-[20%] sm:right-[25%] md:right-[90%] top-[10%] sm:top-[8%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[20%] sm:left-[25%] md:left-[90%] top-[52%] sm:top-[54%] w-[250px] h-[250px] sm:w-[450px] sm:h-[600px] rounded-full opacity-50 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.45) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute left-[70%] sm:left-[75%] md:left-[80%] top-[-5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+    <div class="absolute right-[75%] md:right-[85%] bottom-[5%] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full opacity-45 filter blur-3xl mix-blend-multiply"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.4) 0%, rgba(253, 146, 62, 0) 70%);">
+    </div>
+  </div>
+
+<!-- 4. MAIN CONTAINER -->
+<main class="relative z-10 flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 md:py-8 flex flex-col justify-center items-center">
+  <div class="w-full flex flex-col justify-between">
+      
+    <!-- FORM 1: WHAT ARE YOU WORKING ON? -->
+    <section id="form-step-1" class="form-step flex flex-col justify-between h-full flex-1">
+      <div class="space-y-4 sm:space-y-6">
+        <div class="text-center mb-6 sm:mb-10">
+          <h1 class="font-pressstart text-xl sm:text-3xl md:text-4xl inline-block room-title-gradient leading-relaxed">WHAT ARE YOU WORKING ON?</h1>
+          <p class="font-pressstart text-[9px] sm:text-xs text-[#3D2013]/80 mt-2"> Choose the type of work you want to focus on. </p>
+        </div>
+
+<!-- Outer Grid: 2 columns on mobile, 3 columns on medium screens -->
+<div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 pt-2">
+  
+  <!-- Reading Option -->
+  <button type="button" data-work="reading" class="work-option-btn bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-3 sm:p-6 min-h-[120px] sm:min-h-[180px] text-left flex flex-col transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] data-[selected=true]:bg-gradient-to-b data-[selected=true]:from-[#FDE4D0] data-[selected=true]:to-[#FFD2AE]">
+    <span class="text-xl sm:text-3xl mb-2 sm:mb-4 block text-[#E16F37]">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M21.5 5.134a1 1 0 0 1 .493.748L22 6v13a1 1 0 0 1-1.5.866A8 8 0 0 0 13 19.6V4.426a10 10 0 0 1 8.5.708M11 4.427l.001 15.174a8 8 0 0 0-7.234.117l-.327.18l-.103.044l-.049.016l-.11.026l-.061.01L3 20h-.042l-.11-.012l-.077-.014l-.108-.032l-.126-.056l-.095-.056l-.089-.067l-.06-.056l-.073-.082l-.064-.089l-.022-.036l-.032-.06l-.044-.103l-.016-.049l-.026-.11l-.01-.061l-.004-.049L2 6a1 1 0 0 1 .5-.866a10 10 0 0 1 8.5-.707" /></svg>
+    </span>
+    <div class="space-y-1 sm:space-y-2">
+      <span class="font-pressstart text-[11px] sm:text-[20px] md:text-[24px] block text-[#511B00] leading-none">READING</span>
+      <span class="font-pixel text-[13px] sm:text-[16px] md:text-[20px] text-[#3D2013]/70 leading-tight block">Focus consumption of texts and articles.</span>
+    </div>
+  </button>
+
+  <!-- Writing Option -->
+  <button type="button" data-work="writing" class="work-option-btn bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-3 sm:p-6 min-h-[120px] sm:min-h-[180px] text-left flex flex-col transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] data-[selected=true]:bg-gradient-to-b data-[selected=true]:from-[#FDE4D0] data-[selected=true]:to-[#FFD2AE]">
+    <span class="text-xl sm:text-3xl mb-2 sm:mb-4 block text-[#E16F37]">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="-0.5 -0.5 24 24"><path d="M-0.5 -0.5h24v24H-0.5z" fill="none" /><path fill="currentColor" d="m21.289.98l.59.59c.813.814.69 2.257-.277 3.223L9.435 16.96l-3.942 1.442c-.495.182-.977-.054-1.075-.525a.93.93 0 0 1 .045-.51l1.47-3.976L18.066 1.257c.967-.966 2.41-1.09 3.223-.276zM8.904 2.19a1 1 0 1 1 0 2h-4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4a1 1 0 0 1 2 0v4a4 4 0 0 1-4 4h-12a4 4 0 0 1-4-4v-12a4 4 0 0 1 4-4z" /></svg>
+    </span>
+    <div class="space-y-1 sm:space-y-2">
+      <span class="font-pressstart text-[11px] sm:text-[20px] md:text-[24px] block text-[#511B00] leading-none">WRITING</span>
+      <span class="font-pixel text-[13px] sm:text-[16px] md:text-[20px] text-[#3D2013]/70 leading-tight block">Drafting essays, reports, or creative work.</span>
+    </div>
+  </button>
+
+  <!-- Review Option -->
+  <button type="button" data-work="review" class="work-option-btn bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-3 sm:p-6 min-h-[120px] sm:min-h-[180px] text-left flex flex-col transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] data-[selected=true]:bg-gradient-to-b data-[selected=true]:from-[#FDE4D0] data-[selected=true]:to-[#FFD2AE]">
+    <span class="text-xl sm:text-3xl mb-2 sm:mb-4 block text-[#E16F37]">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M7 14h1.625q.2 0 .388-.075t.337-.225l4.7-4.7q.225-.225.338-.513t.112-.562t-.125-.537t-.325-.488l-.9-.95q-.225-.225-.5-.337t-.575-.113q-.275 0-.562.113T11 5.95l-4.7 4.7q-.15.15-.225.338T6 11.375V13q0 .425.288.713T7 14m6-6.075L12.075 7zM7.5 12.5v-.95l2.525-2.525l.5.45l.45.5L8.45 12.5zm3.025-3.025l.45.5l-.95-.95zm.65 4.525H17q.425 0 .713-.288T18 13t-.288-.712T17 12h-3.825zM6 18l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z" /></svg>
+    </span>
+    <div class="space-y-1 sm:space-y-2">
+      <span class="font-pressstart text-[11px] sm:text-[20px] md:text-[24px] block text-[#511B00] leading-none">REVIEW</span>
+      <span class="font-pixel text-[13px] sm:text-[16px] md:text-[20px] text-[#3D2013]/70 leading-tight block">Analyze notes, flashcards, or past materials.</span>
+    </div>
+  </button>
+
+  <!-- Practice Option -->
+  <button type="button" data-work="practice" class="work-option-btn bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-3 sm:p-6 min-h-[120px] sm:min-h-[180px] text-left flex flex-col transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] data-[selected=true]:bg-gradient-to-b data-[selected=true]:from-[#FDE4D0] data-[selected=true]:to-[#FFD2AE]">
+    <span class="text-xl sm:text-3xl mb-2 sm:mb-4 block text-[#E16F37]">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83l3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z" /></svg>
+    </span>
+    <div class="space-y-1 sm:space-y-2">
+      <span class="font-pressstart text-[11px] sm:text-[20px] md:text-[24px] block text-[#511B00] leading-none">PRACTICE</span>
+      <span class="font-pixel text-[13px] sm:text-[16px] md:text-[20px] text-[#3D2013]/70 leading-tight block">Strengthen skills through exercises.</span>
+    </div>
+  </button>
+
+  <!-- Memorize Option -->
+  <button type="button" data-work="memorize" class="work-option-btn bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-3 sm:p-6 min-h-[120px] sm:min-h-[180px] text-left flex flex-col transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] data-[selected=true]:bg-gradient-to-b data-[selected=true]:from-[#FDE4D0] data-[selected=true]:to-[#FFD2AE]">
+    <span class="text-xl sm:text-3xl mb-2 sm:mb-4 block text-[#E16F37]">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M21.33 12.91c.09 1.55-.62 3.04-1.89 3.95l.77 1.49c.23.45.26.98.06 1.45c-.19.47-.58.84-1.06 1l-.79.25a1.69 1.69 0 0 1-1.86-.55L14.44 18c-.89-.15-1.73-.53-2.44-1.1c-.5.15-1 .23-1.5.23c-.88 0-1.76-.27-2.5-.79c-.53.16-1.07.23-1.62.22c-.79.01-1.57-.15-2.3-.45a4.1 4.1 0 0 1-2.43-3.61c-.08-.72.04-1.45.35-2.11c-.29-.75-.32-1.57-.07-2.33C2.3 7.11 3 6.32 3.87 5.82c.58-1.69 2.21-2.82 4-2.7c1.6-1.5 4.05-1.66 5.83-.37c.42-.11.86-.17 1.3-.17c1.36-.03 2.65.57 3.5 1.64c2.04.53 3.5 2.35 3.58 4.47c.05 1.11-.25 2.2-.86 3.13c.07.36.11.72.11 1.09m-5-1.41c.57.07 1.02.5 1.02 1.07a1 1 0 0 1-1 1h-.63c-.32.9-.88 1.69-1.62 2.29c.25.09.51.14.77.21c5.13-.07 4.53-3.2 4.53-3.25a2.59 2.59 0 0 0-2.69-2.49a1 1 0 0 1-1-1a1 1 0 0 1 1-1c1.23.03 2.41.49 3.33 1.3c.05-.29.08-.59.08-.89c-.06-1.24-.62-2.32-2.87-2.53c-1.25-2.96-4.4-1.32-4.4-.4c-.03.23.21.72.25.75a1 1 0 0 1 1 1c0 .55-.45 1-1 1c-.53-.02-1.03-.22-1.43-.56c-.48.31-1.03.5-1.6.56c-.57.05-1.04-.35-1.07-.9a.97.97 0 0 1 .88-1.1c.16-.02.94-.14.94-.77c0-.66.25-1.29.68-1.79c-.92-.25-1.91.08-2.91 1.29C6.75 5 6 5.25 5.45 7.2C4.5 7.67 4 8 3.78 9c1.08-.22 2.19-.13 3.22.25c.5.19.78.75.59 1.29c-.19.52-.77.78-1.29.59c-.73-.32-1.55-.34-2.3-.06c-.32.27-.32.83-.32 1.27c0 .74.37 1.43 1 1.83c.53.27 1.12.41 1.71.4q-.225-.39-.39-.81a1.038 1.038 0 0 1 1.96-.68c.4 1.14 1.42 1.92 2.62 2.05c1.37-.07 2.59-.88 3.19-2.13c.23-1.38 1.34-1.5 2.56-1.5m2 7.47l-.62-1.3l-.71.16l1 1.25zm-4.65-8.61a1 1 0 0 0-.91-1.03c-.71-.04-1.4.2-1.93.67c-.57.58-.87 1.38-.84 2.19a1 1 0 0 0 1 1c.57 0 1-.45 1-1c0-.27.07-.54.23-.76c.12-.1.27-.15.43-.15c.55.03 1.02-.38 1.02-.92" /></svg>
+    </span>
+    <div class="space-y-1 sm:space-y-2">
+      <span class="font-pressstart text-[11px] sm:text-[20px] md:text-[24px] block text-[#511B00] leading-none">MEMORIZE</span>
+      <span class="font-pixel text-[13px] sm:text-[16px] md:text-[20px] text-[#3D2013]/70 leading-tight block">Improve recall of key facts.</span>
+    </div>
+  </button>
+
+  <!-- Creation Option -->
+  <button type="button" data-work="creation" class="work-option-btn bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-3 sm:p-6 min-h-[120px] sm:min-h-[180px] text-left flex flex-col transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] data-[selected=true]:bg-gradient-to-b data-[selected=true]:from-[#FDE4D0] data-[selected=true]:to-[#FFD2AE]">
+    <span class="text-xl sm:text-3xl mb-2 sm:mb-4 block text-[#E16F37]">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M17.5 12a1.5 1.5 0 0 1-1.5-1.5A1.5 1.5 0 0 1 17.5 9a1.5 1.5 0 0 1 1.5 1.5a1.5 1.5 0 0 1-1.5 1.5m-3-4A1.5 1.5 0 0 1 13 6.5A1.5 1.5 0 0 1 14.5 5A1.5 1.5 0 0 1 16 6.5A1.5 1.5 0 0 1 14.5 8m-5 0A1.5 1.5 0 0 1 8 6.5A1.5 1.5 0 0 1 9.5 5A1.5 1.5 0 0 1 11 6.5A1.5 1.5 0 0 1 9.5 8m-3 4A1.5 1.5 0 0 1 5 10.5A1.5 1.5 0 0 1 6.5 9A1.5 1.5 0 0 1 8 10.5A1.5 1.5 0 0 1 6.5 12M12 3a9 9 0 0 0-9 9a9 9 0 0 0 9 9a1.5 1.5 0 0 0 1.5-1.5c0-.39-.15-.74-.39-1c-.23-.27-.38-.62-.38-1a1.5 1.5 0 0 1 1.5-1.5H16a5 5 0 0 0 5-5c0-4.42-4.03-8-9-8" /></svg>
+    </span>
+    <div class="space-y-1 sm:space-y-2">
+      <span class="font-pressstart text-[11px] sm:text-[20px] md:text-[24px] block text-[#511B00] leading-none">CREATION</span>
+      <span class="font-pixel text-[13px] sm:text-[16px] md:text-[20px] text-[#3D2013]/70 leading-tight block">Develop ideas through projects.</span>
+    </div>
+  </button>
+
+</div>
+      </div>
+
+<div class="flex items-center justify-between gap-4 pt-6 mt-6">
+  <!-- Back Button -->
+  <button type="button" id="f1-back-btn" class="font-pressstart text-[10px] bg-[#FEF4E0] border-[2px] border-[#3D2013] px-5 py-3 w-1/2 sm:w-44 text-center cursor-pointer hover:bg-[#FEF4E0] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] transition-all">
+    BACK
+  </button>
+  
+  <!-- Continue Button -->
+  <button type="button" id="f1-continue-btn" class="font-pressstart text-[10px] bg-[#E87339] text-white border-[2px] border-[#3D2013] px-5 py-3 w-1/2 sm:w-44 text-center cursor-pointer hover:opacity-90 hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] transition-all">
+    CONTINUE
+  </button>
+</div>
+    </section>
+
+<!-- FORM 2: WHAT’S YOUR TASK? -->
+    <section id="form-step-2" class="form-step hidden flex flex-col justify-between h-full flex-1">
+      <div class="space-y-4 sm:space-y-6">
+        <div class="text-center mb-6 sm:mb-10">
+          <h2 class="font-pressstart text-xl sm:text-3xl md:text-4xl inline-block room-title-gradient leading-relaxed">WHAT’S YOUR TASK?</h2>
+          <p class="font-pressstart text-[9px] sm:text-xs text-[#3D2013]/80 mt-2">Tell us what you want to accomplish during this session.</p>
+        </div>
+
+<!-- DYNAMIC TASK CARD CONTAINER -->
+        <div class="bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-4 sm:p-6 flex flex-col h-[280px] sm:h-[320px] max-w-xl mx-auto w-full">
+          <!-- Header (Fixed) -->
+          <div class="flex items-center gap-2 mb-3 shrink-0">
+            <span class="text-lg sm:text-xl block text-[#E16F37]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="-0.5 -0.5 24 24"><path d="M-0.5 -0.5h24v24H-0.5z" fill="none" /><path fill="currentColor" d="m21.289.98l.59.59c.813.814.69 2.257-.277 3.223L9.435 16.96l-3.942 1.442c-.495.182-.977-.054-1.075-.525a.93.93 0 0 1 .045-.51l1.47-3.976L18.066 1.257c.967-.966 2.41-1.09 3.223-.276zM8.904 2.19a1 1 0 1 1 0 2h-4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4a1 1 0 0 1 2 0v4a4 4 0 0 1-4 4h-12a4 4 0 0 1-4-4v-12a4 4 0 0 1 4-4z" /></svg>
+            </span>
+            <label class="font-pressstart text-[11px] sm:text-[13px] text-[#511B00] block">
+              YOUR TASK
+            </label>
+          </div>
+
+          <!-- DYNAMICALLY POPULATED TASKS LIST (Scrollable) -->
+          <div id="tasks-list-container" class="flex flex-col gap-2.5 flex-1 overflow-y-auto pr-1 min-h-0">
+            <!-- Dynamic row inputs will be rendered here via JS -->
+          </div>
+
+          <!-- ADD TASK BUTTON (Fixed at bottom) -->
+          <button id="btn-add-task" type="button" onclick="addDraftTaskRow()" 
+                  class="self-start w-auto bg-[#97B591] text-[#3D2013] border-[2px] border-[#3D2013] px-4 py-2 font-pressstart text-[9px] sm:text-[10px] cursor-pointer transition-all duration-150 hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] flex items-center justify-center gap-1.5 mt-3 shrink-0">
+            <span>+ Add Task</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-4 pt-6 mt-6">
+        <!-- Back Button -->
+        <button type="button" id="f2-back-btn" class="font-pressstart text-[10px] bg-[#FEF4E0] border-[2px] border-[#3D2013] px-5 py-3 w-1/2 sm:w-44 text-center cursor-pointer hover:bg-[#FEF4E0] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] transition-all">
+          BACK
+        </button>
+        
+        <!-- Continue Button -->
+        <button type="button" id="f2-continue-btn" class="font-pressstart text-[10px] bg-[#E87339] text-white border-[2px] border-[#3D2013] px-5 py-3 w-1/2 sm:w-44 text-center cursor-pointer hover:opacity-90 hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] transition-all">
+          CONTINUE
+        </button>
+      </div>
+    </section>
+
+<!-- FORM 3: RECOMMENDED FOR YOU -->
+    <section id="form-step-3" class="form-step hidden flex flex-col justify-between h-full flex-1">
+      <div class="space-y-4 sm:space-y-6">
+        <div class="text-center mb-6 sm:mb-10">
+          <h2 class="font-pressstart text-xl sm:text-3xl md:text-4xl inline-block room-title-gradient leading-relaxed">RECOMMENDED FOR YOU</h2>
+          <p class="font-pressstart text-[9px] sm:text-xs text-[#3D2013]/80 mt-2">Today’s study plan strategy.</p>
+        </div>
+
+        <div class="flex flex-col gap-3.5 pt-1 max-w-2xl mx-auto w-full">
+<!-- REVISED RECOMMENDED STUDY TECHNIQUE BUTTON -->
+<button type="button" data-technique="recommended" data-selected="true" class="technique-option-btn glow-border-card bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-4 sm:p-5 text-center flex flex-col items-center justify-center gap-3 transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013]">
+  
+  <!-- 1st Row: STUDY TECHNIQUE (with Gradient) -->
+  <div class="font-pressstart text-[30px] sm:text-[40px] leading-snug tracking-wide room-title-gradient">STUDY TECHNIQUE</div>
+
+  <!-- Border Separator -->
+  <div class="w-full h-[1px] bg-[#3D2013]/20"></div>
+
+  <!-- 2nd Row: Three Columns Stacked Horizontally -->
+  <div class="w-full grid grid-cols-3 items-center justify-center divide-x divide-[#3D2013]/20">
+    
+    <!-- Column 1: Focus Time -->
+    <div class="flex items-center justify-center gap-3 px-1">
+      <svg class="w-7 h-7 sm:w-9 sm:h-9 shrink-0 text-[#E87339]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"></path></svg>
+      <div class="flex flex-col text-left">
+        <span class="font-pressstart text-[15px] sm:text-[20px] leading-none text-[#511B00]"><span id="rec-focus-time">25</span>m</span>
+        <span class="font-pixel text-[15px] sm:text-[20px] text-[#511B00]/70 mt-1">FOCUS TIME</span>
+      </div>
+    </div>
+
+    <!-- Column 2: Break Time -->
+    <div class="flex items-center justify-center gap-3 px-1">
+      <svg class="w-7 h-7 sm:w-9 sm:h-9 shrink-0 text-[#E87339]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 8h1a3 3 0 010 6h-1M6 8h12v7a3 3 0 01-3 3H9a3 3 0 01-3-3V8zM6 10H4a2 2 0 00-2 2v1a2 2 0 002 2h2"></path></svg>
+      <div class="flex flex-col text-left">
+        <span class="font-pressstart text-[15px] sm:text-[20px] leading-none text-[#511B00]"><span id="rec-break-time">5</span>m</span>
+        <span class="font-pixel text-[15px] sm:text-[20px] text-[#511B00]/70 mt-1">BREAK TIME</span>
+      </div>
+    </div>
+
+    <!-- Column 3: Sessions -->
+    <div class="flex items-center justify-center gap-3 px-1">
+      <svg class="w-7 h-7 sm:w-9 sm:h-9 shrink-0 text-[#E87339]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg>
+      <div class="flex flex-col text-left">
+        <span class="font-pressstart text-[15px] sm:text-[20px] leading-none text-[#511B00]"><span id="rec-session-count">4</span></span>
+        <span class="font-pixel text-[15px] sm:text-[20px] text-[#511B00]/70 mt-1">SESSIONS</span>
+      </div>
+    </div>
+
+  </div>
+</button>
+
+          <!-- OTHER OPTIONS LABEL -->
+          <div class="pt-2">
+            <h3 class="font-pressstart text-[10px] sm:text-[11px] text-[#3D2013] text-left">OTHER OPTIONS</h3>
+          </div>
+
+<!-- 3-Column Grid for Individual Techniques Below -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <!-- Pomodoro Option -->
+            <button type="button" data-technique="pomodoro" data-focus="1" data-break="1" data-selected="false" class="technique-option-btn bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-4 text-left flex flex-col justify-between transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] data-[selected=true]:bg-gradient-to-b data-[selected=true]:from-[#FDE4D0] data-[selected=true]:to-[#FFD2AE]">
+              <div class="font-pressstart text-[10px] sm:text-[11px] text-[#511B00] leading-snug uppercase">pomodoro (25/5)</div>
+              <div class="text-[15px] sm:text-[20px] font-pixel text-[#3D2013]/70 mt-2">Standard Interval</div>
+            </button>
+
+            <!-- 52-17 Option -->
+            <button type="button" data-technique="52-17" data-focus="52" data-break="17" data-selected="false" class="technique-option-btn bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-4 text-left flex flex-col justify-between transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] data-[selected=true]:bg-gradient-to-b data-[selected=true]:from-[#FDE4D0] data-[selected=true]:to-[#FFD2AE]">
+              <div class="font-pressstart text-[10px] sm:text-[11px] text-[#511B00] leading-snug uppercase">52-17</div>
+              <div class="text-[15px] sm:text-[20px] font-pixel text-[#3D2013]/70 mt-2">Long Focus Period</div>
+            </button>
+
+            <!-- 90m Option -->
+            <button type="button" data-technique="90m" data-focus="90" data-break="20" data-selected="false" class="technique-option-btn bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-4 text-left flex flex-col justify-between transition-all duration-150 cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] data-[selected=true]:bg-gradient-to-b data-[selected=true]:from-[#FDE4D0] data-[selected=true]:to-[#FFD2AE]">
+              <div class="font-pressstart text-[10px] sm:text-[11px] text-[#511B00] leading-snug uppercase">90-minute study</div>
+              <div class="text-[15px] sm:text-[20px] font-pixel text-[#3D2013]/70 mt-2">Deep Immersion</div>
+            </button>
+          </div>
+        </div>
+
+        <div id="session-input-wrapper" class="hidden pt-2 max-w-2xl mx-auto w-full">
+          <label for="session-count-input" class="block font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] mb-1.5">
+            Enter number of sessions:
+          </label>
+          <input type="number" id="session-count-input" min="1" value="1" class="w-full sm:w-1/2 bg-[#FEF4E0] rounded-[8px] border-[1px] border-[#3D2013] px-3.5 py-2 font-pressstart text-[9px] sm:text-[10px] text-[#3D2013] outline-none">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-4 pt-6 mt-6">
+        <!-- Back Button -->
+        <button type="button" id="f3-back-btn" class="font-pressstart text-[8px] sm:text-[10px] bg-[#FEF4E0] text-[#511B00] border-[2px] border-[#3D2013] px-5 py-3 w-fit text-center cursor-pointer hover:bg-[#FEF4E0] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] transition-all">
+          BACK
+        </button>
+        
+        <!-- Continue Button -->
+        <button type="button" id="f3-continue-btn" class="font-pressstart text-[7px] sm:text-[10px] bg-[#E87339] text-white border-[2px] border-[#3D2013] px-4 sm:px-6 py-3 w-fit text-center cursor-pointer hover:opacity-90 hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] transition-all">
+          USE RECOMMENDATION
+        </button>
+      </div>
+    </section>
+
+<!-- FORM 4: REVIEW & CONFIRM -->
+<section id="form-step-4" class="form-step hidden flex flex-col justify-between h-full flex-1">
+  <div class="space-y-4 sm:space-y-6 max-w-2xl mx-auto w-full">
+    <div class="text-center mb-6 sm:mb-10">
+      <h1 class="font-pressstart text-xl sm:text-3xl md:text-4xl inline-block room-title-gradient leading-relaxed">REVIEW YOUR SESSION</h1>
+      <p class="font-pressstart text-[9px] sm:text-xs text-[#3D2013]/80 mt-2"> Double-check your study session details before starting. </p>
+    </div>
+
+    <!-- SUMMARY CONTAINER -->
+    <div class="bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-4 sm:p-6 space-y-4 text-xs sm:text-sm">
+      
+      <!-- 1st Row: FOCUS TYPE (Centered & Larger) -->
+      <div class="border-b border-[#3D2013]/20 pb-3 text-center">
+        <span class="block font-pressstart uppercase text-[8px] sm:text-[10px] text-[#3D2013]/60 mb-1">Focus Type</span>
+        <span id="review-work-type" class="font-pixel text-[40px] sm:text-[50px] font-bold text-[#E87339] uppercase">-</span>
+      </div>
+
+      <!-- 2nd Row: STUDY TECHNIQUE CARD (Matched Reference Structure) -->
+      <div>
+        <div class="bg-[#FEF4E0] rounded-[12px] border-[1px] border-[#3D2013] p-4 sm:p-5 text-center flex flex-col items-center justify-center gap-3">
+          
+          <!-- Technique Title with Gradient -->
+          <div id="review-technique" class="font-pressstart text-[18px] sm:text-[24px] leading-snug tracking-wide room-title-gradient uppercase">-</div>
+
+          <!-- Border Separator -->
+          <div class="w-full h-[1px] bg-[#3D2013]/20"></div>
+
+          <!-- Three Columns Stacked Horizontally: Focus Time, Break Time, Sessions -->
+          <div class="w-full grid grid-cols-3 items-center justify-center divide-x divide-[#3D2013]/20">
+            
+            <!-- Column 1: Focus Time -->
+            <div class="flex items-center justify-center gap-2 sm:gap-3 px-1">
+              <svg class="w-6 h-6 sm:w-8 sm:h-8 shrink-0 text-[#E87339]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"></path></svg>
+              <div class="flex flex-col text-left">
+                <span class="font-pressstart text-[13px] sm:text-[18px] leading-none text-[#511B00]"><span id="review-focus-time">25</span>m</span>
+                <span class="font-pixel text-[12px] sm:text-[16px] text-[#511B00]/70 mt-1">FOCUS TIME</span>
+              </div>
+            </div>
+
+            <!-- Column 2: Break Time -->
+            <div class="flex items-center justify-center gap-2 sm:gap-3 px-1">
+              <svg class="w-6 h-6 sm:w-8 sm:h-8 shrink-0 text-[#E87339]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 8h1a3 3 0 010 6h-1M6 8h12v7a3 3 0 01-3 3H9a3 3 0 01-3-3V8zM6 10H4a2 2 0 00-2 2v1a2 2 0 002 2h2"></path></svg>
+              <div class="flex flex-col text-left">
+                <span class="font-pressstart text-[13px] sm:text-[18px] leading-none text-[#511B00]"><span id="review-break-time">5</span>m</span>
+                <span class="font-pixel text-[12px] sm:text-[16px] text-[#511B00]/70 mt-1">BREAK TIME</span>
+              </div>
+            </div>
+
+            <!-- Column 3: Sessions -->
+            <div class="flex items-center justify-center gap-2 sm:gap-3 px-1">
+              <svg class="w-6 h-6 sm:w-8 sm:h-8 shrink-0 text-[#E87339]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg>
+              <div class="flex flex-col text-left">
+                <span class="font-pressstart text-[13px] sm:text-[18px] leading-none text-[#511B00]"><span id="review-session-count">4</span></span>
+                <span class="font-pixel text-[12px] sm:text-[16px] text-[#511B00]/70 mt-1">SESSIONS</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 3rd Row: Checklist Items (Inflated Tasks) -->
+      <div>
+        <span class="block font-pressstart uppercase text-[8px] sm:text-[10px] text-[#3D2013]/60 mb-2">Checklist Items</span>
+        <ul id="review-tasks-list" class="space-y-1.5 max-h-[140px] overflow-y-auto pr-1 font-pixel text-[13px] sm:text-[16px] text-[#511B00]">
+          <!-- Dynamically populated review tasks -->
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between gap-4 pt-6 mt-6 max-w-2xl mx-auto w-full">
+    <!-- Back Button -->
+    <button type="button" id="f4-back-btn" class="font-pressstart text-[8px] sm:text-[10px] bg-[#FEF4E0] text-[#511B00] border-[2px] border-[#3D2013] px-5 py-3 w-1/2 sm:w-44 text-center cursor-pointer hover:bg-[#FEF4E0] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] transition-all">
+      BACK
+    </button>
+    
+    <!-- Confirm Button -->
+    <button type="button" id="f4-confirm-btn" class="font-pressstart text-[7px] sm:text-[10px] bg-[#E87339] text-white border-[2px] border-[#3D2013] px-4 sm:px-6 py-3 w-1/2 sm:w-44 text-center cursor-pointer hover:opacity-90 hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#3D2013] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3D2013] transition-all">
+      CREATE SESSION
+    </button>
+  </div>
+</section>
+
+  </div>
+</main>
+  
+  <script src="create-session.js"></script>
+</body>
+</html>
