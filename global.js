@@ -2,10 +2,6 @@
 // SHARED GLOBAL STATE & UTILITY HELPERS
 // ==========================================
 
-// ==========================================
-// SHARED GLOBAL STATE & UTILITY HELPERS
-// ==========================================
-
 const COINS_KEY = 'player_user_coins';
 
 // Retrieve initial coin value from localStorage or default to 1250
@@ -102,3 +98,4 @@ function openKitsuAiModal(event) {
 function closeKitsuAiModal() {
   closeModal("kitsuai-modal");
 }
+

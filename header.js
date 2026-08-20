@@ -54,10 +54,29 @@ const mockChatHistory = {
 let pendingRemoveFriendId = null;
 let currentChatFriend = null;
 
+// Global Kitsu AI Modal Function
+window.openKitsuAiModal = function(event) {
+  if (event) event.preventDefault();
+  const modal = document.getElementById("kitsuai-modal");
+  const iframe = document.getElementById("kitsuai-frame");
+
+  if (modal) {
+    if (iframe && (!iframe.src || iframe.src === "" || iframe.src === window.location.href)) {
+      iframe.src = "kitsuai.html";
+    }
+    modal.classList.remove("hidden");
+  } else {
+    window.location.href = "kitsuai.html";
+  }
+};
+
 // --- RENDER HTML TEMPLATES INTO DOM ---
 function renderHeader(containerId = "header-container") {
   const container = document.getElementById(containerId);
   if (!container) return;
+
+  // Check state to toggle buttons between ROOM state (KitsuAI & Leave Room) and SOLO state (Sign Out)
+  const isRoomState = (typeof currentHomepageState !== "undefined" && currentHomepageState === "ROOM") || (window.currentHomepageState === "ROOM");
 
   container.innerHTML = `
     <header class="relative z-10 pt-4 sm:pt-6 flex items-center justify-between md:justify-end w-full px-3 sm:px-6 shrink-0">
@@ -136,19 +155,51 @@ function renderHeader(containerId = "header-container") {
           </span>
         </div>
 
-        <!-- 1. SIGN OUT BUTTON -->
-        <button onclick="openModal('logout-modal')" title="Logout"
-                class="h-8 sm:h-11 bg-[#A53914] border-[2px] sm:border-[2px] border-[#3D2013] px-1.5 sm:px-3 rounded-[8px] sm:rounded-[10px] flex items-center justify-center gap-1 sm:gap-2 transition-all duration-150 retro-shadow shrink-0 cursor-pointer hover:bg-[#832c0f]">
-          <svg class="w-3.5 h-3.5 sm:w-6 sm:h-6 text-[#FEF4E0]" viewBox="0 0 24 24">
-            <path d="M0 0h24v24H0z" fill="none" />
-            <path fill="currentColor" d="M9 20.75H6a2.64 2.64 0 0 1-2.75-2.53V5.78A2.64 2.64 0 0 1 6 3.25h3a.75.75 0 0 1 0 1.5H6a1.16 1.16 0 0 0-1.25 1v12.47a1.16 1.16 0 0 0 1.25 1h3a.75.75 0 0 1 0 1.5Zm7-4a.74.74 0 0 1-.53-.22a.75.75 0 1 1 0-1.06L18.94 12l-3.47-3.47a.75.75 0 1 1 1.06-1.06l4 4a.75.75 0 0 1 0 1.06l-4 4a.74.74 0 0 1-.53.22" />
-            <path fill="currentColor" d="M20 12.75H9a.75.75 0 0 1 0-1.5h11a.75.75 0 0 1 0 1.5" />
-          </svg>
-          <span class="font-pressstart text-[8px] sm:text-[11px] text-[#FEF4E0] hidden sm:inline">SIGN OUT</span>
-        </button>
+        <!-- 1. ACTION BUTTONS (ROOM STATE vs SOLO STATE) -->
+        ${isRoomState ? `
+          <!-- KITSU AI BUTTON -->
+          <a href="kitsuai.html" 
+             onclick="openKitsuAiModal(event)" 
+             class="h-8 sm:h-11 bg-[#FEF4E0] border-[2px] border-[#3D2013] transition-colors px-2 sm:px-3 rounded-[8px] sm:rounded-[10px] flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer no-underline text-[#3D2013] retro-shadow shrink-0">
+            <img src="media/kitsu_logo.png" alt="Kitsu AI Logo" class="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0">
+            <span class="nav-label font-pressstart text-[8px] sm:text-[10px]">KitsuAI</span>
+          </a>
+
+          <!-- LEAVE ROOM BUTTON -->
+          <button id="leave-room-btn" onclick="openModal('leave-room-modal')" title="Leave Room"
+                  class="h-8 sm:h-11 bg-[#A53914] border-[2px] sm:border-[2px] border-[#3D2013] px-1.5 sm:px-3 rounded-[8px] sm:rounded-[10px] flex items-center justify-center gap-1 sm:gap-2 transition-all duration-150 retro-shadow shrink-0 cursor-pointer hover:bg-[#832c0f]">
+            <svg class="w-3.5 h-3.5 sm:w-6 sm:h-6 text-[#FEF4E0]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span class="font-pressstart text-[8px] sm:text-[11px] text-[#FEF4E0] hidden sm:inline">LEAVE ROOM</span>
+          </button>
+        ` : `
+          <!-- SIGN OUT BUTTON -->
+          <button onclick="openModal('logout-modal')" title="Logout"
+                  class="h-8 sm:h-11 bg-[#A53914] border-[2px] sm:border-[2px] border-[#3D2013] px-1.5 sm:px-3 rounded-[8px] sm:rounded-[10px] flex items-center justify-center gap-1 sm:gap-2 transition-all duration-150 retro-shadow shrink-0 cursor-pointer hover:bg-[#832c0f]">
+            <svg class="w-3.5 h-3.5 sm:w-6 sm:h-6 text-[#FEF4E0]" viewBox="0 0 24 24">
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path fill="currentColor" d="M9 20.75H6a2.64 2.64 0 0 1-2.75-2.53V5.78A2.64 2.64 0 0 1 6 3.25h3a.75.75 0 0 1 0 1.5H6a1.16 1.16 0 0 0-1.25 1v12.47a1.16 1.16 0 0 0 1.25 1h3a.75.75 0 0 1 0 1.5Zm7-4a.74.74 0 0 1-.53-.22a.75.75 0 1 1 0-1.06L18.94 12l-3.47-3.47a.75.75 0 1 1 1.06-1.06l4 4a.75.75 0 0 1 0 1.06l-4 4a.74.74 0 0 1-.53.22" />
+              <path fill="currentColor" d="M20 12.75H9a.75.75 0 0 1 0-1.5h11a.75.75 0 0 1 0 1.5" />
+            </svg>
+            <span class="font-pressstart text-[8px] sm:text-[11px] text-[#FEF4E0] hidden sm:inline">SIGN OUT</span>
+          </button>
+        `}
 
       </div>
     </header>
+
+    <!-- LEAVE ROOM CONFIRMATION MODAL -->
+    <div id="leave-room-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3D2013]/50 hidden">
+      <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-6 max-w-sm w-full shadow-xl flex flex-col gap-4 text-center">
+        <h3 class="font-pressstart text-[14px] text-[#3D2013]">Leave Room</h3>
+        <p class="font-pressstart text-[10px] text-[#3D2013]/80 leading-normal">Are you sure you want to leave this study room?</p>
+        <div class="flex gap-3 justify-center mt-2">
+          <button onclick="handleLeaveRoomConfirm()" class="bg-[#A53914] text-[#FEF4E0] border-[2px] border-[#3D2013] px-4 py-2 rounded-[8px] font-pressstart text-[10px] cursor-pointer hover:bg-[#832c0f] transition-colors">Leave</button>
+          <button onclick="closeModal('leave-room-modal')" class="bg-[#FAE9CE] text-[#3D2013] border-[2px] border-[#3D2013] px-4 py-2 rounded-[8px] font-pressstart text-[10px] cursor-pointer hover:bg-[#f3d3a8] transition-colors">Cancel</button>
+        </div>
+      </div>
+    </div>
 
     <!-- LOGOUT MODAL -->
     <div id="logout-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3D2013]/50 hidden">
@@ -258,6 +309,20 @@ function renderHeader(containerId = "header-container") {
       </div>
     </div>
   `;
+}
+
+// --- LEAVE ROOM ACTION HANDLER ---
+function handleLeaveRoomConfirm() {
+  closeModal("leave-room-modal");
+  if (typeof window.switchHomepageState === "function") {
+    window.switchHomepageState("SOLO");
+  } else if (typeof window.setHomepageState === "function") {
+    window.setHomepageState("SOLO");
+  } else {
+    if (typeof currentHomepageState !== "undefined") currentHomepageState = "SOLO";
+    window.currentHomepageState = "SOLO";
+    renderHeader();
+  }
 }
 
 // --- DOM CONTENT LOADED MAIN HANDLER ---
@@ -673,11 +738,9 @@ function sendChatMessage(text) {
   appendMessageBubble(text, true);
 
   if (currentChatFriend) {
-    // 1. Update mockChatHistory
     if (!mockChatHistory[currentChatFriend.id]) mockChatHistory[currentChatFriend.id] = [];
     mockChatHistory[currentChatFriend.id].push({ sender: "me", text });
 
-    // 2. Update notificationFriendsData preview
     const notifFriend = notificationFriendsData.find(f => f.id === currentChatFriend.id);
     if (notifFriend) {
       notifFriend.lastMessage = text;
@@ -745,7 +808,6 @@ function renderNotificationFriends(searchQuery = "") {
            onclick="handleOpenNotifChat('${friend.id}')"
            class="flex items-center justify-between gap-3 ${cardBg} p-2.5 rounded-[8px] cursor-pointer hover:bg-[#F3D3A8] transition-all duration-200">
         
-        <!-- Left Section: Avatar + Info -->
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
           <div class="relative w-9 h-9 shrink-0">
             <img src="${friend.avatar}" alt="${friend.username}" class="w-full h-full rounded-full border-[2px] border-[#3D2013] object-cover bg-[#FEF4E0]">
@@ -758,7 +820,6 @@ function renderNotificationFriends(searchQuery = "") {
           </div>
         </div>
 
-        <!-- Right Section: Time Badge -->
         <div class="font-pressstart text-[7px] text-[#3D2013]/60 shrink-0">
           ${friend.timeAgo || ""}
         </div>
@@ -767,6 +828,7 @@ function renderNotificationFriends(searchQuery = "") {
     `;
   }).join("");
 }
+
 function filterNotificationFriendsSearch() {
   const input = document.getElementById("notif-friends-search");
   if (input) renderNotificationFriends(input.value);

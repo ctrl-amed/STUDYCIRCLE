@@ -74,38 +74,40 @@
     </div>
   </div>
 
-  <!-- Body Content: Study Room & Avatar Container -->
-  <div class="relative w-full flex items-center justify-center rounded-[12px]">
+<!-- Body Content: Study Room & Avatar Container -->
+<div class="relative w-full flex items-center justify-center rounded-[12px]">
+  <!-- Relative wrapper -->
+  <div class="relative flex items-center justify-center max-w-[1100px] w-full mx-auto">
     
-    <!-- Relative wrapper -->
-    <div class="relative flex items-center justify-center max-w-[1100px] w-full mx-auto">
-      
-      <!-- Big Cozy Ambient Glow -->
-      <div class="absolute w-[80%] h-[80%] sm:w-[100%] sm:h-[100%] rounded-full pointer-events-none opacity-75 filter blur-3xl z-0"
-           style="background: radial-gradient(circle, rgba(253, 146, 62, 0.5) 0%, rgba(253, 146, 62, 0) 100%);">
-      </div>
-
-      <!-- Custom Dynamic Room Component -->
-      <custom-room class="relative w-full h-auto flex items-center justify-center scale-100 origin-center"></custom-room>
-
-      <!-- Overlay Avatar Container -->
-      <div class="absolute 
-                  w-[160px] h-[160px] scale-100 bottom-[10%]
-                  md:w-[200px] md:h-[200px] md:scale-75 md:bottom-[19%]
-                  lg:w-[240px] lg:h-[240px] lg:scale-100 lg:bottom-[20%]
-                  left-[50%] -translate-x-1/2 origin-bottom pointer-events-auto">
-
-        <!-- NAME TAG ABOVE AVATAR -->
-        <div class="absolute top-6 sm:top-2 left-1/2 -translate-x-1/2 bg-[#000000]/20 px-1.5 sm:px-3 py-0.5 sm:py-1 whitespace-nowrap shadow-md pointer-events-none flex items-center justify-center">
-          <span id="avatar-nametag" class="font-pressstart text-[6px] sm:text-[8px] text-[#FFFFFF] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-            name
-          </span>
-        </div>
-        <custom-avatar state="idle"></custom-avatar>
-      </div>
-
+    <!-- Big Cozy Ambient Glow -->
+    <div class="absolute w-[80%] h-[80%] sm:w-[100%] sm:h-[100%] rounded-full pointer-events-none opacity-75 filter blur-3xl z-0"
+         style="background: radial-gradient(circle, rgba(253, 146, 62, 0.5) 0%, rgba(253, 146, 62, 0) 100%);">
     </div>
+
+    <!-- Custom Dynamic Room Component -->
+    <custom-room class="relative w-full h-auto flex items-center justify-center scale-100 origin-center"></custom-room>
+
+    <!-- MOCK AVATARS OVERLAY CONTAINER -->
+    <div id="mock-avatars-container" class="absolute inset-0 pointer-events-none z-10"></div>
+
+    <!-- Overlay Avatar Container (User Avatar) -->
+    <div class="absolute 
+                w-[160px] h-[160px] scale-100 bottom-[10%]
+                md:w-[200px] md:h-[200px] md:scale-75 md:bottom-[19%]
+                lg:w-[240px] lg:h-[240px] lg:scale-90 lg:bottom-[10%]
+                left-[50%] -translate-x-1/2 origin-bottom pointer-events-auto z-20">
+
+      <!-- NAME TAG ABOVE AVATAR -->
+      <div class="absolute top-6 sm:top-2 left-1/2 -translate-x-1/2 bg-[#000000]/20 px-1.5 sm:px-3 py-0.5 sm:py-1 whitespace-nowrap shadow-md pointer-events-none flex items-center justify-center">
+        <span id="avatar-nametag" class="font-pressstart text-[6px] sm:text-[8px] text-[#FFFFFF] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+          name
+        </span>
+      </div>
+      <custom-avatar state="idle"></custom-avatar>
+    </div>
+
   </div>
+</div>
 </section>
 
 <!-- RIGHT COLUMN: TWO ROWS IN CARD FORM -->
@@ -184,16 +186,16 @@
       <div class="grid grid-cols-1 md:grid-cols-12 gap-5 w-full">
         
         <!-- LEFT COLUMN (Smaller - 3 cols on desktop) -->
-        <section class="md:col-span-3 bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-3">
+<section class="md:col-span-3 bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-3">
           <h3 class="font-pressstart text-[11px] sm:text-[13px] text-[#3D2013]">Row 2 Left</h3>
           <!-- Component Placeholder -->
           <div class="w-full h-full min-h-[120px] bg-[#FAE9CE] border-[2px] border-dashed border-[#3D2013]/50 rounded-[8px] p-4 flex items-center justify-center text-center">
             <span class="font-pressstart text-[9px] text-[#3D2013]/60">[ Placeholder Component: Small ]</span>
           </div>
-        </section>
+</section>
 
 <!-- MIDDLE COLUMN (Medium - 4 cols on desktop) -->
-<section class="md:col-span-4 bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-3">
+<section id="middle-leaderboard-section" class="md:col-span-4 bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[12px] p-4 sm:p-6 shadow-md flex flex-col gap-3">
   <!-- CARD HEADER -->
   <div class="flex items-center justify-between pb-2 border-b-[2px] border-[#3D2013]/20">
     <div class="flex items-center gap-2">

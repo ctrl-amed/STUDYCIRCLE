@@ -352,6 +352,73 @@
   </div>
 </div>
 
+<!-- ROOM LIMIT MODAL -->
+<div id="room-limit-modal" class="fixed inset-0 bg-[#3D2013]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-6 max-w-sm w-full flex flex-col gap-4 shadow-xl text-center">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between border-b border-[#3D2013]/20 pb-3">
+      <div class="flex items-center gap-2">
+        <span class="font-pressstart text-[11px] text-[#A53914] uppercase">LIMIT REACHED</span>
+      </div>
+      <button class="close-modal-btn font-pressstart text-[12px] text-[#3D2013] hover:text-[#E87339] cursor-pointer">✕</button>
+    </div>
+    
+    <!-- Modal Body -->
+    <div class="my-2 flex flex-col items-center gap-3">
+      <div class="w-12 h-12 rounded-full bg-[#A53914]/10 border-[2px] border-[#A53914] flex items-center justify-center text-[#A53914] font-pressstart text-[18px]">
+        !
+      </div>
+      <p id="room-limit-modal-msg" class="font-pressstart text-[9px] text-[#3D2013] leading-relaxed">
+        Room limit reached! You can only host a maximum of 3 rooms at a time.
+      </p>
+    </div>
+
+    <!-- Confirm / Close Button -->
+    <button id="close-limit-modal-btn" class="font-pressstart text-[10px] text-[#FFFFF6] bg-[#E87339] border-[2px] border-[#3D2013] py-2.5 hover:bg-[#d66530] transition-colors retro-shadow cursor-pointer uppercase w-full">
+      GOT IT
+    </button>
+  </div>
+</div>
+
+
+<!-- REQUEST TO JOIN MODAL -->
+<div id="request-join-modal" class="fixed inset-0 bg-[#3D2013]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+  <div class="bg-[#FEF4E0] border-[3px] border-[#3D2013] rounded-[12px] p-6 max-w-sm w-full flex flex-col gap-4 shadow-xl text-center">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between border-b border-[#3D2013]/20 pb-3">
+      <span id="request-modal-title" class="font-pressstart text-[11px] text-[#E87339] uppercase">REQUEST SENT</span>
+      <button id="close-request-x-btn" class="font-pressstart text-[12px] text-[#3D2013] hover:text-[#E87339] cursor-pointer">✕</button>
+    </div>
+    
+    <!-- Modal Body -->
+    <div class="my-2 flex flex-col items-center gap-3">
+      <!-- Status Icon -->
+      <div id="request-modal-icon" class="w-12 h-12 rounded-full bg-[#E87339]/10 border-[2px] border-[#E87339] flex items-center justify-center text-[#E87339] font-pressstart text-[16px]">
+        ⏳
+      </div>
+      
+      <!-- Main Status Text -->
+      <p id="request-modal-msg" class="font-pressstart text-[10px] text-[#3D2013] leading-relaxed">
+        Waiting for host to accept request...
+      </p>
+
+      <!-- Countdown Timer -->
+      <span id="request-modal-timer" class="font-pressstart text-[9px] text-[#3D2013]/60">
+        Expires in 15s
+      </span>
+    </div>
+
+    <!-- Footer Action Button Container -->
+    <div id="request-modal-footer">
+      <button id="cancel-request-btn" class="font-pressstart text-[10px] text-[#3D2013] bg-[#FAE9CE] hover:bg-[#3D2013] hover:text-[#FEF4E0] border-[2px] border-[#3D2013] py-2.5 transition-colors retro-shadow cursor-pointer uppercase w-full">
+        CANCEL REQUEST
+      </button>
+    </div>
+  </div>
+</div>
+
 </div>
 
   

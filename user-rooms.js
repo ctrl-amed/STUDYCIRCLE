@@ -1,21 +1,54 @@
 document.addEventListener("DOMContentLoaded", () => {
   const myUsername = window.playerData ? window.playerData.username : "ACORN_HERO";
 
+  // Easily configurable settings
+  const MAX_ROOM_LIMIT = 3;
+  const REQUEST_TIMEOUT_SEC = 15; // Timeout for join requests in seconds
+
+  let joinRequestInterval = null;
+  let requestTimeRemaining = REQUEST_TIMEOUT_SEC;
+
   // Mock Database for Rooms
   const mockRooms = {
     all: [
-      { id: 1, name: "Cozy Coding Cave", host: "CodeWizard", privacy: "public", currentMembers: 4, maxMembers: 6, technique: "Pomodoro", focus: "2h 00m", breakTime: "0h 30m", sessions: 4, tasks: [{ text: "Setup repo", completed: true }, { text: "Write component API", completed: true }, { text: "Test routing", completed: false }, { text: "Deploy build", completed: false }], xp: 350, coins: 90 },
-      { id: 2, name: "Quiet Calculus", host: "MathWhiz", privacy: "private", currentMembers: 2, maxMembers: 4, technique: "52-17", focus: "1h 45m", breakTime: "0h 17m", sessions: 3, tasks: [{ text: "Derivatives homework", completed: true }, { text: "Integration practice", completed: true }], xp: 300, coins: 75 },
-      { id: 3, name: "Late Night Grind", host: myUsername, privacy: "public", currentMembers: 5, maxMembers: 6, technique: "Pomodoro", focus: "3h 10m", breakTime: "0h 50m", sessions: 6, tasks: [{ text: "Finish essay draft", completed: true }, { text: "Read chapter 4", completed: true }, { text: "Review notes", completed: true }], xp: 550, coins: 140 },
-      { id: 4, name: "Design & Chill", host: "PixelArtist", privacy: "public", currentMembers: 3, maxMembers: 5, technique: "90m", focus: "3h 00m", breakTime: "1h 00m", sessions: 2, tasks: [{ text: "Wireframe UI", completed: true }, { text: "Select color palette", completed: false }], xp: 400, coins: 100 },
-      { id: 5, name: "Language Masterclass", host: "LinguaFranc", privacy: "private", currentMembers: 1, maxMembers: 3, technique: "Pomodoro", focus: "1h 15m", breakTime: "0h 15m", sessions: 2, tasks: [{ text: "Kanji practice", completed: true }, { text: "Vocabulary review", completed: false }], xp: 200, coins: 50 }
+      { id: 1, code: null, name: "Cozy Coding Cave", host: "CodeWizard", privacy: "public", currentMembers: 4, maxMembers: 6, technique: "Pomodoro", focus: "2h 00m", breakTime: "0h 30m", sessions: 4, tasks: [{ text: "Setup repo", completed: true }, { text: "Write component API", completed: true }, { text: "Test routing", completed: false }, { text: "Deploy build", completed: false }], xp: 350, coins: 90 },
+      { id: 2, code: "QCA291", name: "Quiet Calculus", host: "MathWhiz", privacy: "private", currentMembers: 2, maxMembers: 4, technique: "52-17", focus: "1h 45m", breakTime: "0h 17m", sessions: 3, tasks: [{ text: "Derivatives homework", completed: true }, { text: "Integration practice", completed: true }], xp: 300, coins: 75 },
+      { id: 3, code: null, name: "Late Night Grind", host: myUsername, privacy: "public", currentMembers: 5, maxMembers: 6, technique: "Pomodoro", focus: "3h 10m", breakTime: "0h 50m", sessions: 6, tasks: [{ text: "Finish essay draft", completed: true }, { text: "Read chapter 4", completed: true }, { text: "Review notes", completed: true }], xp: 550, coins: 140 },
+      { id: 4, code: null, name: "Design & Chill", host: "PixelArtist", privacy: "public", currentMembers: 3, maxMembers: 5, technique: "90m", focus: "3h 00m", breakTime: "1h 00m", sessions: 2, tasks: [{ text: "Wireframe UI", completed: true }, { text: "Select color palette", completed: false }], xp: 400, coins: 100 },
+      { id: 5, code: "LMC714", name: "Language Masterclass", host: "LinguaFranc", privacy: "private", currentMembers: 1, maxMembers: 3, technique: "Pomodoro", focus: "1h 15m", breakTime: "0h 15m", sessions: 2, tasks: [{ text: "Kanji practice", completed: true }, { text: "Vocabulary review", completed: false }], xp: 200, coins: 50 }
     ],
     history: [
-      { id: 101, name: "Morning Focus Hub", host: myUsername, privacy: "public", currentMembers: 3, maxMembers: 6, technique: "Pomodoro", focus: "2h 14m", breakTime: "0h 45m", sessions: 4, tasks: [{ text: "Morning emails", completed: true }, { text: "Task planning", completed: true }, { text: "Bug fixing", completed: true }, { text: "Code review", completed: true }, { text: "Sprint retrospective", completed: true }], xp: 450, coins: 120 },
-      { id: 102, name: "Algorithm Dojo", host: "CodeWizard", privacy: "public", currentMembers: 6, maxMembers: 6, technique: "52-17", focus: "2h 35m", breakTime: "0h 34m", sessions: 5, tasks: [{ text: "Solve binary search", completed: true }, { text: "Graph algorithms", completed: true }, { text: "LeetCode daily", completed: false }], xp: 500, coins: 135 },
-      { id: 103, name: "Thesis Writing Sanctuary", host: myUsername, privacy: "private", currentMembers: 1, maxMembers: 2, technique: "90m", focus: "4h 30m", breakTime: "1h 30m", sessions: 3, tasks: [{ text: "Literature review", completed: true }, { text: "Methodology section", completed: true }, { text: "References formatting", completed: true }], xp: 750, coins: 200 }
+      { id: 101, code: null, name: "Morning Focus Hub", host: myUsername, privacy: "public", currentMembers: 3, maxMembers: 6, technique: "Pomodoro", focus: "2h 14m", breakTime: "0h 45m", sessions: 4, tasks: [{ text: "Morning emails", completed: true }, { text: "Task planning", completed: true }, { text: "Bug fixing", completed: true }, { text: "Code review", completed: true }, { text: "Sprint retrospective", completed: true }], xp: 450, coins: 120 },
+      { id: 102, code: null, name: "Algorithm Dojo", host: "CodeWizard", privacy: "public", currentMembers: 6, maxMembers: 6, technique: "52-17", focus: "2h 35m", breakTime: "0h 34m", sessions: 5, tasks: [{ text: "Solve binary search", completed: true }, { text: "Graph algorithms", completed: true }, { text: "LeetCode daily", completed: false }], xp: 500, coins: 135 },
+      { id: 103, code: "TWS945", name: "Thesis Writing Sanctuary", host: myUsername, privacy: "private", currentMembers: 1, maxMembers: 2, technique: "90m", focus: "4h 30m", breakTime: "1h 30m", sessions: 3, tasks: [{ text: "Literature review", completed: true }, { text: "Methodology section", completed: true }, { text: "References formatting", completed: true }], xp: 750, coins: 200 }
     ]
   };
+
+  // Helper to generate room code
+  function generateRoomCode() {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "0123456789";
+    let code = "";
+    for (let i = 0; i < 3; i++) code += letters.charAt(Math.floor(Math.random() * letters.length));
+    for (let i = 0; i < 3; i++) code += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    return code;
+  }
+
+  // Helper function to count active hosted rooms by current user
+  function getHostedRoomsCount() {
+    return mockRooms.all.filter(r => r.host === myUsername).length;
+  }
+
+  // Helper to enter a room session (handles single-page state vs page redirection)
+  function enterRoomSession(room) {
+    localStorage.setItem("activeRoomSession", JSON.stringify(room));
+
+    if (typeof window.switchHomepageState === "function") {
+      window.switchHomepageState("ROOM", room);
+    } else {
+      window.location.href = "user-homepage.html";
+    }
+  }
 
   // Helper to render room cards
   function renderRoomCard(room, isHistoryTab = false) {
@@ -35,11 +68,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="bg-[#FEF4E0] border-[2px] border-[#3D2013] rounded-[10px] p-4 flex flex-col gap-3 shadow-sm justify-between">
         <div class="flex items-start gap-3">
-          <!-- Left Column: PFP Avatar -->
           <div class="w-10 h-10 rounded-full border-[2px] border-[#3D2013] bg-[#FAE9CE] shrink-0 flex items-center justify-center font-pressstart text-[10px] text-[#3D2013]">
             ${room.name.charAt(0)}
           </div>
-          <!-- Right Column: Room Details -->
           <div class="flex-1 flex flex-col gap-1 overflow-hidden">
             <span class="font-pressstart text-[11px] text-[#3D2013] truncate">${room.name}</span>
             <span class="font-pressstart text-[8px] text-[#3D2013] truncate">Hosted by: <span class="text-[#E87339]">${room.host}</span></span>
@@ -61,7 +92,6 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
 
-        <!-- Footer Button -->
         <button class="${footerBtnClass} font-pressstart text-[9px] sm:text-[10px] text-[#FFFFF6] bg-[#E87339] !rounded-none border-[2px] border-[#3D2013] px-8 py-3 transition-all duration-150 retro-shadow cursor-pointer hover:bg-[#d66530] w-full" data-room-id="${room.id}" data-room-type="${isHistoryTab ? 'history' : 'all'}">
           ${footerBtnText}
         </button>
@@ -77,28 +107,31 @@ document.addEventListener("DOMContentLoaded", () => {
   function inflateRooms(searchQuery = "") {
     const query = searchQuery.toLowerCase();
 
-    // All Rooms
     const filteredAll = mockRooms.all.filter(r => r.name.toLowerCase().includes(query) || r.host.toLowerCase().includes(query));
-    allRoomsContainer.innerHTML = filteredAll.length ? filteredAll.map(r => renderRoomCard(r, false)).join('') : `<p class="font-pressstart text-[9px] text-[#3D2013]/70 col-span-full py-4">No rooms found.</p>`;
+    if (allRoomsContainer) {
+      allRoomsContainer.innerHTML = filteredAll.length ? filteredAll.map(r => renderRoomCard(r, false)).join('') : `<p class="font-pressstart text-[9px] text-[#3D2013]/70 col-span-full py-4">No rooms found.</p>`;
+    }
 
-    // My Rooms (Rooms hosted by myUsername)
     const myRoomsList = mockRooms.all.filter(r => r.host === myUsername);
     const filteredMy = myRoomsList.filter(r => r.name.toLowerCase().includes(query));
-    myRoomsContainer.innerHTML = filteredMy.length ? filteredMy.map(r => renderRoomCard(r, false)).join('') : `<p class="font-pressstart text-[9px] text-[#3D2013]/70 col-span-full py-4">You have not created any rooms yet.</p>`;
+    if (myRoomsContainer) {
+      myRoomsContainer.innerHTML = filteredMy.length ? filteredMy.map(r => renderRoomCard(r, false)).join('') : `<p class="font-pressstart text-[9px] text-[#3D2013]/70 col-span-full py-4">You have not created any rooms yet.</p>`;
+    }
 
-    // History
     const filteredHistory = mockRooms.history.filter(r => r.name.toLowerCase().includes(query) || r.host.toLowerCase().includes(query));
-    historyContainer.innerHTML = filteredHistory.length ? filteredHistory.map(r => renderRoomCard(r, true)).join('') : `<p class="font-pressstart text-[9px] text-[#3D2013]/70 col-span-full py-4">No session history found.</p>`;
+    if (historyContainer) {
+      historyContainer.innerHTML = filteredHistory.length ? filteredHistory.map(r => renderRoomCard(r, true)).join('') : `<p class="font-pressstart text-[9px] text-[#3D2013]/70 col-span-full py-4">No session history found.</p>`;
+    }
   }
 
   inflateRooms();
 
-  // Search Bar Event Listener
-  document.getElementById("room-search-input").addEventListener("input", (e) => {
+  // Search Bar Listener
+  document.getElementById("room-search-input")?.addEventListener("input", (e) => {
     inflateRooms(e.target.value);
   });
 
-  // Tab Navigation Switching Logic
+  // Tab Navigation Switching
   const tabBtns = document.querySelectorAll(".room-tab-btn");
   const tabPanes = document.querySelectorAll(".room-tab-pane");
 
@@ -123,25 +156,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Modal Controls utilizing global helpers where applicable
-  const joinModal = document.getElementById("join-room-modal");
-  const createModal = document.getElementById("create-room-modal");
-  const statsModal = document.getElementById("stats-modal");
+  // Modal Controls
+  document.getElementById("open-join-modal-btn")?.addEventListener("click", () => window.openModal("join-room-modal"));
 
-  document.getElementById("open-join-modal-btn").addEventListener("click", () => window.openModal("join-room-modal"));
-  document.getElementById("open-create-modal-btn").addEventListener("click", () => window.openModal("create-room-modal"));
+  document.getElementById("open-create-modal-btn")?.addEventListener("click", () => {
+    const hostedCount = getHostedRoomsCount();
+    if (hostedCount >= MAX_ROOM_LIMIT) {
+      const limitMsgEl = document.getElementById("room-limit-modal-msg");
+      if (limitMsgEl) {
+        limitMsgEl.innerText = `Room limit reached! You can only host a maximum of ${MAX_ROOM_LIMIT} room${MAX_ROOM_LIMIT > 1 ? 's' : ''} at a time.`;
+      }
+      window.openModal("room-limit-modal");
+      return;
+    }
+    window.openModal("create-room-modal");
+  });
 
-  document.querySelectorAll(".close-modal-btn, #cancel-join-btn, #cancel-create-btn, #close-stats-btn").forEach(btn => {
+  document.querySelectorAll(".close-modal-btn, #cancel-join-btn, #cancel-create-btn, #close-stats-btn, #close-limit-modal-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       window.closeModal("join-room-modal");
       window.closeModal("create-room-modal");
       window.closeModal("stats-modal");
+      window.closeModal("room-limit-modal");
     });
   });
 
-  // Privacy Choice Buttons Interaction Logic
+  // Privacy Choice Buttons
   const privacyButtons = document.querySelectorAll(".privacy-choice-btn");
-  let selectedPrivacy = "public"; // default
+  let selectedPrivacy = "public";
 
   privacyButtons.forEach(btn => {
     btn.addEventListener("click", () => {
@@ -168,16 +210,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // --- Form Validation for Create Room ---
+  // Form Validation for Create Room
   const roomNameInput = document.getElementById("create-room-name");
   const roomMaxSelect = document.getElementById("create-room-max");
   const confirmCreateBtn = document.getElementById("confirm-create-btn");
 
   function validateCreateForm() {
+    if (!roomNameInput || !roomMaxSelect || !confirmCreateBtn) return;
+
     const hasName = roomNameInput.value.trim() !== "";
     const hasMaxMember = roomMaxSelect.value !== "";
+    const isUnderLimit = getHostedRoomsCount() < MAX_ROOM_LIMIT;
 
-    if (hasName && hasMaxMember) {
+    if (hasName && hasMaxMember && isUnderLimit) {
       confirmCreateBtn.disabled = false;
       confirmCreateBtn.classList.remove("opacity-50", "cursor-not-allowed");
       confirmCreateBtn.classList.add("cursor-pointer", "hover:bg-[#d66530]");
@@ -188,21 +233,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  roomNameInput.addEventListener("input", validateCreateForm);
-  roomMaxSelect.addEventListener("change", validateCreateForm);
-  validateCreateForm();
-  // --------------------------------------
+  if (roomNameInput && roomMaxSelect) {
+    roomNameInput.addEventListener("input", validateCreateForm);
+    roomMaxSelect.addEventListener("change", validateCreateForm);
+    validateCreateForm();
+  }
 
-  // Create Room Confirmation Mock
-  confirmCreateBtn.addEventListener("click", () => {
-    if (confirmCreateBtn.disabled) return; // Extra safeguard
+  // Create Room Confirmation & Navigation into ROOM State
+  confirmCreateBtn?.addEventListener("click", () => {
+    if (confirmCreateBtn.disabled) return;
+
+    if (getHostedRoomsCount() >= MAX_ROOM_LIMIT) {
+      const limitMsgEl = document.getElementById("room-limit-modal-msg");
+      if (limitMsgEl) {
+        limitMsgEl.innerText = `You have reached the maximum limit of ${MAX_ROOM_LIMIT} hosted rooms.`;
+      }
+      window.openModal("room-limit-modal");
+      return;
+    }
 
     const name = roomNameInput.value.trim();
     const privacy = selectedPrivacy; 
-    const maxMembers = parseInt(roomMaxSelect.value);
+    const maxMembers = parseInt(roomMaxSelect.value, 10);
 
     const newRoom = {
       id: Date.now(),
+      code: privacy.toLowerCase() === "private" ? generateRoomCode() : null,
       name: name,
       host: myUsername,
       privacy: privacy,
@@ -222,30 +278,187 @@ document.addEventListener("DOMContentLoaded", () => {
     window.closeModal("create-room-modal");
     roomNameInput.value = "";
     roomMaxSelect.selectedIndex = 0;
-    validateCreateForm(); // Reset button state
+    validateCreateForm();
 
-    // Reset privacy choice back to default 'public'
     if (privacyButtons.length > 0) {
       privacyButtons[0].click();
     }
+
+    // TRANSITION DIRECTLY INTO ROOM STATE
+    enterRoomSession(newRoom);
   });
 
-  // Join Private Room Confirmation Mock
-  document.getElementById("confirm-join-btn").addEventListener("click", () => {
-    const code = document.getElementById("private-code-input").value.trim();
-    if (code) {
-      alert(`Successfully joined private room with code: ${code}`);
-      window.closeModal("join-room-modal");
-      document.getElementById("private-code-input").value = "";
-    } else {
-      alert("Please enter a valid room code.");
+  // Request to Join Private Room State Management
+  let activePendingRoom = null;
+
+  function setRequestModalState(state, room = null) {
+    if (room) activePendingRoom = room;
+    const currentRoom = room || activePendingRoom;
+
+    const titleEl = document.getElementById("request-modal-title");
+    const msgEl = document.getElementById("request-modal-msg");
+    const timerEl = document.getElementById("request-modal-timer");
+    const iconEl = document.getElementById("request-modal-icon");
+    const footerEl = document.getElementById("request-modal-footer");
+
+    if (!titleEl || !msgEl || !timerEl || !iconEl || !footerEl) return;
+
+    if (state === "WAITING") {
+      titleEl.innerText = "REQUEST SENT";
+      titleEl.className = "font-pressstart text-[11px] text-[#E87339] uppercase";
+      iconEl.innerHTML = "⏳";
+      iconEl.className = "w-12 h-12 rounded-full bg-[#E87339]/10 border-[2px] border-[#E87339] flex items-center justify-center text-[#E87339] font-pressstart text-[16px]";
+      msgEl.innerText = `Waiting for approval from host (${currentRoom?.host || "Host"})...`;
+      timerEl.classList.remove("hidden");
+      timerEl.innerText = `Expires in ${requestTimeRemaining}s`;
+
+      footerEl.innerHTML = `
+        <button id="cancel-request-btn" class="font-pressstart text-[10px] text-[#3D2013] bg-[#FAE9CE] hover:bg-[#3D2013] hover:text-[#FEF4E0] border-[2px] border-[#3D2013] py-2.5 transition-colors retro-shadow cursor-pointer uppercase w-full">
+          CANCEL REQUEST
+        </button>
+      `;
+
+      document.getElementById("cancel-request-btn")?.addEventListener("click", () => {
+        clearInterval(joinRequestInterval);
+        window.closeModal("request-join-modal");
+      });
+
+    } else if (state === "EXPIRED") {
+      titleEl.innerText = "REQUEST EXPIRED";
+      titleEl.className = "font-pressstart text-[11px] text-[#A53914] uppercase";
+      iconEl.innerHTML = "⏰";
+      iconEl.className = "w-12 h-12 rounded-full bg-[#A53914]/10 border-[2px] border-[#A53914] flex items-center justify-center text-[#A53914] font-pressstart text-[16px]";
+      msgEl.innerText = "Request to join expired.";
+      timerEl.classList.add("hidden");
+
+      footerEl.innerHTML = `
+        <button class="close-req-modal-btn font-pressstart text-[10px] text-[#FFFFF6] bg-[#E87339] border-[2px] border-[#3D2013] py-2.5 hover:bg-[#d66530] transition-colors retro-shadow cursor-pointer uppercase w-full">
+          CLOSE
+        </button>
+      `;
+      attachCloseRequestEvents();
+
+    } else if (state === "ACCEPTED") {
+      titleEl.innerText = "ACCEPTED!";
+      titleEl.className = "font-pressstart text-[11px] text-[#E87339] uppercase";
+      iconEl.innerHTML = "✓";
+      iconEl.className = "w-12 h-12 rounded-full bg-green-500/10 border-[2px] border-green-600 flex items-center justify-center text-[#E87339] font-pressstart text-[18px]";
+      msgEl.innerText = `Host accepted your request!\nJoining room...`;
+      timerEl.classList.add("hidden");
+
+      footerEl.innerHTML = `
+        <button id="accept-join-room-btn" class="font-pressstart text-[10px] text-[#FFFFF6] bg-green-600 border-[2px] border-[#3D2013] py-2.5 transition-colors retro-shadow cursor-pointer uppercase w-full">
+          JOIN ROOM
+        </button>
+      `;
+
+      document.getElementById("accept-join-room-btn")?.addEventListener("click", () => {
+        clearInterval(joinRequestInterval);
+        window.closeModal("request-join-modal");
+        
+        if (currentRoom) {
+          if (currentRoom.currentMembers < currentRoom.maxMembers) {
+            currentRoom.currentMembers += 1;
+          }
+          enterRoomSession(currentRoom);
+        }
+      });
+
+      attachCloseRequestEvents();
+
+    } else if (state === "REJECTED") {
+      titleEl.innerText = "REJECTED";
+      titleEl.className = "font-pressstart text-[11px] text-[#A53914] uppercase";
+      iconEl.innerHTML = "✕";
+      iconEl.className = "w-12 h-12 rounded-full bg-[#A53914]/10 border-[2px] border-[#A53914] flex items-center justify-center text-[#A53914] font-pressstart text-[18px]";
+      msgEl.innerText = `Host rejected your request.`;
+      timerEl.classList.add("hidden");
+
+      footerEl.innerHTML = `
+        <button class="close-req-modal-btn font-pressstart text-[10px] text-[#FFFFF6] bg-[#E87339] border-[2px] border-[#3D2013] py-2.5 hover:bg-[#d66530] transition-colors retro-shadow cursor-pointer uppercase w-full">
+          CLOSE
+        </button>
+      `;
+      attachCloseRequestEvents();
     }
+  }
+
+  function attachCloseRequestEvents() {
+    document.querySelectorAll(".close-req-modal-btn, #close-request-x-btn").forEach(btn => {
+      btn.onclick = () => {
+        clearInterval(joinRequestInterval);
+        window.closeModal("request-join-modal");
+      };
+    });
+  }
+
+  document.getElementById("close-request-x-btn")?.addEventListener("click", () => {
+    clearInterval(joinRequestInterval);
+    window.closeModal("request-join-modal");
   });
 
-  // Handle Statistics Button Click (delegated event listener)
+  function startJoinRequestCountdown(room) {
+    if (joinRequestInterval) clearInterval(joinRequestInterval);
+
+    requestTimeRemaining = REQUEST_TIMEOUT_SEC;
+    setRequestModalState("WAITING", room);
+    window.openModal("request-join-modal");
+
+    joinRequestInterval = setInterval(() => {
+      requestTimeRemaining--;
+      const timerEl = document.getElementById("request-modal-timer");
+
+      if (timerEl && !timerEl.classList.contains("hidden")) {
+        timerEl.innerText = `Expires in ${requestTimeRemaining}s`;
+      }
+
+      if (requestTimeRemaining <= 0) {
+        clearInterval(joinRequestInterval);
+        setRequestModalState("EXPIRED", room);
+      }
+    }, 1000);
+  }
+
+  // Join Private Room Confirmation
+  document.getElementById("confirm-join-btn")?.addEventListener("click", () => {
+    const inputCode = document.getElementById("private-code-input")?.value.trim().toUpperCase();
+
+    if (!inputCode) {
+      alert("Please enter a room code.");
+      return;
+    }
+
+    const matchedRoom = mockRooms.all.find(
+      r => r.privacy.toLowerCase() === "private" && r.code && r.code.toUpperCase() === inputCode
+    );
+
+    if (!matchedRoom) {
+      alert("Invalid room code. Please check and try again.");
+      return;
+    }
+
+    window.closeModal("join-room-modal");
+    document.getElementById("private-code-input").value = "";
+
+    startJoinRequestCountdown(matchedRoom);
+  });
+
+  // Global helper for DevTools testing
+  window.mockHostResponse = function(action) {
+    if (joinRequestInterval) clearInterval(joinRequestInterval);
+    if (action === "accept") {
+      setRequestModalState("ACCEPTED");
+    } else if (action === "reject") {
+      setRequestModalState("REJECTED");
+    }
+  };
+
+  // Event Delegation for Card Actions
   document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("stat-btn")) {
-      const roomId = parseInt(e.target.getAttribute("data-room-id"));
+    // 1. Statistics Button
+    const statBtn = e.target.closest(".stat-btn");
+    if (statBtn) {
+      const roomId = parseInt(statBtn.getAttribute("data-room-id"), 10);
       const room = mockRooms.history.find(r => r.id === roomId) || mockRooms.all.find(r => r.id === roomId);
 
       if (room) {
@@ -266,7 +479,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return `
               <li class="flex justify-between items-center">
                 <span class="flex items-center pl-5"><span class="line-through text-[#3D2013]/60">${t.text}</span></span>
-                <span class="text-[#3D2013]/70"><span class="text-green-600 font-pixel text-[20px]">✓</span></span>
+                <span class="text-[#3D2013]/70"><span class="text-[#E87339] font-pixel text-[20px]">✓</span></span>
               </li>
             `;
           } else {
@@ -281,10 +494,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         window.openModal("stats-modal");
       }
+      return;
     }
 
-    if (e.target.classList.contains("join-room-action")) {
-      alert("Successfully joined the study room!");
+    // 2. Join Public Room Action
+    const joinBtn = e.target.closest(".join-room-action");
+    if (joinBtn) {
+      const roomId = parseInt(joinBtn.getAttribute("data-room-id"), 10);
+      const room = mockRooms.all.find(r => r.id === roomId);
+
+      if (room) {
+        if (room.currentMembers < room.maxMembers) {
+          room.currentMembers += 1;
+        }
+        enterRoomSession(room);
+      }
     }
   });
 });

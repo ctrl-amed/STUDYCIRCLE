@@ -131,8 +131,7 @@ function handleUrlHash() {
 }
 
 // Helper to trigger loading screen and redirect
-// Helper to trigger loading screen and redirect
-function triggerLoadingAndRedirect(statusText, targetUrl = "homepage.html", isAdmin = false) {
+function triggerLoadingAndRedirect(statusText, targetUrl = "user-homepage.html", isAdmin = false) {
   if (typeof startSimulatedLoad === 'function') {
     // Pass targetUrl directly so startSimulatedLoad can detect 'admin-dashboard.html'
     startSimulatedLoad(statusText, 2000, targetUrl, isAdmin);
@@ -379,7 +378,7 @@ if (formSignup) {
     
     // Set signup flag and redirect
     localStorage.setItem("justSignedUp", "true");
-    triggerLoadingAndRedirect(' CREATING ACCOUNT ', 'customavatar.html');
+    triggerLoadingAndRedirect(' CREATING ACCOUNT ', 'user-homepage.html');
   });
 }
 

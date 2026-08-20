@@ -3,11 +3,11 @@
 // ==========================================
 
 window.userStatsData = window.userStatsData || {
-  streakDays: 7,
-  bestStreak: 14,
-  totalSessions: 318,
-  focusTimeHours: 42,
-  focusTimeMinutes: 15,
+  streakDays: 0,
+  bestStreak: 0,
+  totalSessions: 0,
+  focusTimeHours: 0,
+  focusTimeMinutes: 0,
   
   // Weekly tracker data (Mon to Sun)
   weeklyActivity: [
@@ -73,11 +73,32 @@ function renderHeaderStats() {
   const totalSessionsEl = document.getElementById("stat-total-sessions");
   const focusTimeEl = document.getElementById("stat-focus-time");
 
+  // Read lifetime tracking from localStorage
+  const totalFocusSec = parseInt(localStorage.getItem("total_focus_seconds") || "0", 10);
+  const totalSessionsCount = parseInt(localStorage.getItem("total_sessions_completed") || "0", 10);
+
+  // Convert total focus seconds to hours and minutes
+  const hours = Math.floor(totalFocusSec / 3600);
+  const minutes = Math.floor((totalFocusSec % 3600) / 60);
+
   if (streakEl) streakEl.textContent = `${stats.streakDays} Days`;
   if (bestStreakEl) bestStreakEl.textContent = `${stats.bestStreak} Days`;
-  if (totalSessionsEl) totalSessionsEl.textContent = stats.totalSessions;
-  if (focusTimeEl) focusTimeEl.textContent = `${stats.focusTimeHours}h ${stats.focusTimeMinutes}m`;
+  
+  // Inflate real session count
+  if (totalSessionsEl) totalSessionsEl.textContent = totalSessionsCount;
+
+  // Inflate real focus time
+  if (focusTimeEl) {
+    focusTimeEl.textContent = `${hours}h ${minutes}m`;
+  }
 }
+
+// Automatically update display in real-time when tracking updates in another tab
+window.addEventListener('storage', (event) => {
+  if (event.key === 'total_focus_seconds' || event.key === 'total_sessions_completed') {
+    renderHeaderStats();
+  }
+});
 
 function renderWeeklyTracker() {
   const container = document.getElementById("weekly-tracker-container");
